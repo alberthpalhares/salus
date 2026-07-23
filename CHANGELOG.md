@@ -16,7 +16,9 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - **Sinais Vitais em `Exames.md`**: Seções dedicadas para acompanhamento domiciliar de peso, pressão arterial e glicemia capilar em perfis humanos.
 - **Alerta de Interações Medicamentosas**: Avisos calmos e factuais sobre possíveis combinações de medicamentos que exigem avaliação médica.
 - **Alerta de Vencimento de Receitas**: Monitoramento de prazos de renovação de receitas em `raio-x` e `salus-revisao`.
-- **Versionamento Git Automático**: Sugestão de commit no Git pós-revisões e atualizações estruturais.
+
+### Removido
+- **Solicitações de Git para Usuário Final**: Removidas todas as sugestões e automações de `git commit` nas skills e templates do Salus, mantendo a ferramenta focada exclusivamente na experiência do usuário final sem expor conceitos de desenvolvimento.
 
 ### Alterado
 - **Premissa Básica de Consentimento**: Regra estrita e inviolável onde o Salus **SEMPRE pede confirmação explícita antes de salvar, arquivar ou alterar qualquer arquivo**.

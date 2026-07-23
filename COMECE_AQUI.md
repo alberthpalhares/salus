@@ -55,7 +55,7 @@ A IA le o arquivo, entende do que se trata, e mostra um plano de arquivamento pa
 | `"organiza a caixa de entrada"` | Processar os documentos novos da pasta de entrada |
 | `"cruza os exames de..."` | Comparar e relacionar exames ao longo do tempo (oferece salvar analise com data) |
 | `"prepara a consulta do [nome]"` | Gerar resumo de 1 pagina para levar ao medico ou veterinario |
-| `"revisar salus"` | Checar o que esta vencendo (vacinas, check-ups, receitas) e sugerir commit no Git |
+| `"revisar salus"` | Checar o que esta vencendo (vacinas, check-ups, receitas da familia) |
 
 ---
 

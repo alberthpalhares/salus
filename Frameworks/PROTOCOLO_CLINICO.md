@@ -46,9 +46,9 @@ O Salus pode manter, se o usuario quiser, um glossario educativo explicando **o 
 
 Como o Salus guarda dados de saude de varias pessoas da familia (e nao so de quem esta conversando), a IA deve, no onboarding, lembrar brevemente que e bom ter o consentimento de quem tera seus dados registrados.
 
-## Backup e versionamento Git
+## Backup e sincronização
 
-O Salus sugere manter a pasta sincronizada com servicos de nuvem (Google Drive, OneDrive, iCloud) e oferece versionamento via Git (`git commit`) apos alteracoes estruturais nos arquivos.
+O Salus sugere manter a pasta sincronizada com serviços de nuvem (Google Drive, OneDrive, iCloud) para garantir a segurança e o backup dos dados da família.
 
 ## Tom de resposta
 

@@ -51,8 +51,7 @@ Após executar o comando, abra a pasta gerada na sua ferramenta de IA (Claude, G
 | `"organiza a caixa de entrada"` | Processa e pede autorização para arquivar novos documentos. |
 | `"cruza os exames de..."` | Compara marcadores ao longo do tempo (respeita vínculo biológico e oferece salvar análise com timestamp). |
 | `"prepara a consulta do [nome]"` | Gera resumo de 1 página focado na especialidade para levar ao médico/veterinário. |
-| `"revisar salus"` | Revisa receitas, vacinas e check-ups pendentes, oferecendo commit no Git ao final. |
-
+| `"revisar salus"` | Revisa receitas, vacinas e check-ups pendentes da família. |
 ---
 
 ## 📂 Estrutura do Repositório
@@ -77,7 +76,7 @@ Salus/
 │   ├── salus-organiza/        ← Skill de triagem da caixa de entrada com regra de prescrições
 │   ├── cruzar/                ← Skill de evolução temporal e salvamento de análises com timestamp
 │   ├── preparar-consulta/     ← 🆕 Skill de preparo de relatórios para consultas médicas/vet
-│   └── salus-revisao/         ← Skill de auditoria periódica com sugestão de commit Git
+│   └── salus-revisao/         ← Skill de auditoria periódica de saúde da família
 ├── Perfis/
 │   ├── [Nome da Pessoa]/
 │   │   ├── Ficha.md           ← Resumo de 1 página (parentesco, vínculo biológico, alergias, vacinas)

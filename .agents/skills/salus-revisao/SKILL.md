@@ -27,13 +27,10 @@ Conduz uma revisao estruturada e rapida do Salus, para manter as Fichas e Medica
 4. Se uma vacina, check-up ou receita estiver vencida ou perto de vencer, avise.
 5. **Com autorizacao do usuario**, atualize a `Ficha.md`, `Medicamentos.md` e registre o evento em `Historico.md`.
 
-### Fechamento e Versionamento
+### Fechamento
 
 1. Atualize `Ultima revisao` e `Proxima revisao sugerida` (data + 6 meses) em `Familia/META.md`.
 2. Mostre um resumo das alteracoes realizadas.
-3. **Ofereca versionamento Git:**
-   > *"Atualizei os perfis do Salus. Quer que eu faca um commit no Git para salvar este ponto de revisao?"*
-   - Se sim: `git add . && git commit -m "salus: revisao periodica de saude da familia"`
 
 ## Regras
 - Nunca apague ou altere informacao sem autorizacao explicita do usuario.

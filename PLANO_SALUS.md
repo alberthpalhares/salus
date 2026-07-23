@@ -43,7 +43,7 @@ Salus/
 │   ├── salus-organiza/        ← triagem da caixa de entrada (com confirmacao e regra de receitas)
 │   ├── cruzar/               ← evolucao temporal + analises salvas com timestamp e fontes
 │   ├── preparar-consulta/    ← 🆕 resumo focado para levar ao medico/veterinario
-│   └── salus-revisao/        ← revisao periodica + commit Git opcional
+│   └── salus-revisao/        ← revisao periodica de saude
 ├── Perfis/
 │   ├── [Nome da Pessoa]/
 │   │   ├── Ficha.md          ← resumo de 1 pagina (alergias, condicoes, vacinas)
