@@ -1,0 +1,25 @@
+# Graphify output
+graphify-out/
+.graphify_*
+
+# Dados pessoais e documentos de saúde do usuário (preserva estrutura e LEIA-ME.md)
+_Caixa de Entrada/*
+!_Caixa de Entrada/.gitkeep
+!_Caixa de Entrada/LEIA-ME.md
+
+Perfis/*
+!Perfis/.gitkeep
+
+# Arquivos do sistema operacional e IDEs
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+.vscode/
+.idea/
+
+# Python / Ambientes virtuais (caso utilizados pelo usuário)
+__pycache__/
+*.pyc
+.venv/
+venv/
