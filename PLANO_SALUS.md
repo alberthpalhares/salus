@@ -1,6 +1,6 @@
-# Plano — Salus v2.0 (Central de Inteligencia de Saude da Familia)
+# Plano — Salus v0.2.0 (Central de Inteligencia de Saude da Familia)
 
-> Documento de planejamento do framework Salus v2.0.
+> Documento de planejamento do framework Salus v0.2.0.
 
 ## 1. O que e
 

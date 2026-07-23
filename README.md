@@ -1,7 +1,7 @@
-# Salus 🩺 — Central de Inteligência de Saúde da Família (v2.0)
+# Salus 🩺 — Central de Inteligência de Saúde da Família (v0.2.0)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: Stable](https://img.shields.io/badge/status-v2.0.0--stable-brightgreen.svg)]()
+[![Status: Beta](https://img.shields.io/badge/status-v0.2.0--beta-orange.svg)]()
 [![NPM Package](https://img.shields.io/badge/npm-salus--ai-red.svg)](https://www.npmjs.com/package/salus-ai)
 [![Platform: Multi-AI](https://img.shields.io/badge/IA-Claude%20%7C%20Gemini%20%7C%20Cursor%20%7C%20Codex-blue.svg)]()
 
@@ -30,7 +30,7 @@ Após executar o comando, abra a pasta gerada na sua ferramenta de IA (Claude, G
 
 ---
 
-## 🌟 Princípios Orientadores (v2.0)
+## 🌟 Princípios Orientadores (v0.2.0)
 
 - 🔒 **Consentimento em 1º Lugar**: O Salus **NUNCA salva ou altera arquivos sem perguntar antes**. Tudo é apresentado para confirmação prévia do usuário.
 - 💊 **Gestão Inteligente de Medicamentos**: Arquivo `Medicamentos.md` individual por perfil. Medicamentos prescritos em receitas só passam para "Em uso" após confirmação do usuário de que comprou/está tomando.

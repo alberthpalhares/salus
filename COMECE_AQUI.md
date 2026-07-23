@@ -1,4 +1,4 @@
-# Bem-vindo ao Salus 🩺 (v2.0)
+# Bem-vindo ao Salus 🩺 (v0.2.0)
 
 O Salus e a central de saude da sua familia — pessoas e animais. Ele guarda seus exames, receitas, laudos e orientacoes medicas em um so lugar, e voce pode conversar com a IA sobre tudo isso com total privacidade.
 
