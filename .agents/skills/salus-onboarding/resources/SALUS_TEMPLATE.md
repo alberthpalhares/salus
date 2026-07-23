@@ -33,6 +33,7 @@ Voce esta operando como assistente de saude da familia **{{NOME_FAMILIA}}**. O s
 Cada perfil tem:
 - `Ficha.md` — resumo de 1 pagina (dados basicos, parentesco, vinculo biologico, alergias, condicoes, vacinas, contatos)
 - `Medicamentos.md` — controle completo de medicamentos (Em uso, Prescritos, Descontinuados)
+- `Genetica.md` — historico genetico individual, condicoes hereditarias e predisposicoes raciais
 - `Historico.md` — linha do tempo de eventos
 - `Exames.md` — valores de exames e sinais vitais (peso, pressao, glicemia) ao longo do tempo
 - `Analises/` — analises comparativas e relatorios salvos com data e carimbo de fontes

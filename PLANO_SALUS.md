@@ -48,6 +48,7 @@ Salus/
 │   ├── [Nome da Pessoa]/
 │   │   ├── Ficha.md          ← resumo de 1 pagina (parentesco, vinculo, alergias, condicoes, vacinas)
 │   │   ├── Medicamentos.md   ← 🆕 controle de medicamentos (Em uso, Prescritos, Descontinuados)
+│   │   ├── Genetica.md       ← 🆕 historico genetico individual e condicoes hereditarias
 │   │   ├── Historico.md      ← linha do tempo individual
 │   │   ├── Exames.md         ← valores laboratoriais e sinais vitais (peso, pressao, glicemia)
 │   │   ├── Analises/         ← 🆕 analises salvas com timestamp e fontes

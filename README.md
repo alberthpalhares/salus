@@ -81,10 +81,11 @@ Salus/
 ├── Perfis/
 │   ├── [Nome da Pessoa]/
 │   │   ├── Ficha.md           ← Resumo de 1 página (parentesco, vínculo biológico, alergias, vacinas)
-│   │   ├── Medicamentos.md    ← 🆕 Controle de medicamentos (Em uso, Prescritos, Descontinuados)
+│   │   ├── Medicamentos.md    ← Controle de medicamentos (Em uso, Prescritos, Descontinuados)
+│   │   ├── Genetica.md        ← 🆕 Histórico genético individual e condições hereditárias
 │   │   ├── Historico.md       ← Linha do tempo individual
 │   │   ├── Exames.md          ← Tabela evolutiva de marcadores e sinais vitais (peso, pressão, glicemia)
-│   │   ├── Analises/          ← 🆕 Análises salvas com timestamp e tabela de fontes
+│   │   ├── Analises/          ← Análises salvas com timestamp e tabela de fontes
 │   │   └── Documentos/        ← Exames, laudos, receitas e áudios originais
 │   └── [Nome do Pet]/         ← Estrutura adaptada para cão ou gato
 └── Familia/

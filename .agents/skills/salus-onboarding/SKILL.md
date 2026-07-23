@@ -58,6 +58,7 @@ Confirme/crie estas pastas na raiz:
 Para CADA membro da familia, crie a pasta `./Perfis/[Nome]/` e dentro dela:
 - `./Perfis/[Nome]/Ficha.md` (com parentesco e vinculo biologico preenchidos)
 - `./Perfis/[Nome]/Medicamentos.md`
+- `./Perfis/[Nome]/Genetica.md`
 - `./Perfis/[Nome]/Historico.md`
 - `./Perfis/[Nome]/Exames.md`
 - `./Perfis/[Nome]/Analises/` (pasta vazia com `.gitkeep`)

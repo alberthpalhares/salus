@@ -65,6 +65,7 @@ Cada pessoa ou animal tem uma pasta em `Perfis/[Nome]/` com:
 
 - **`Ficha.md`** — o resumo de 1 pagina: parentesco, vinculo biologico, tipo sanguineo, alergias, condicoes, vacinas, contatos de emergencia.
 - **`Medicamentos.md`** — historico completo de medicamentos (`Em uso`, `Prescritos` e `Descontinuados`).
+- **`Genetica.md`** — historico genetico individual, condicoes hereditarias da linhagem biologica e predisposicoes raciais.
 - **`Historico.md`** — a linha do tempo individual de tudo que aconteceu.
 - **`Exames.md`** — valores de exames e sinais vitais (peso, pressao, glicemia) organizados ao longo do tempo.
 - **`Analises/`** — comparativos e relatorios salvos com carimbo de data/hora e tabela de fontes.
