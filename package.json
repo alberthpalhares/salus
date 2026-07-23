@@ -1,0 +1,48 @@
+{
+  "name": "salus-ai",
+  "version": "2.0.0",
+  "description": "Central de Inteligencia de Saude da Familia — pessoas e animais.",
+  "main": "bin/cli.js",
+  "bin": {
+    "salus": "bin/cli.js",
+    "salus-ai": "bin/cli.js",
+    "salus-framework": "bin/cli.js"
+  },
+  "files": [
+    "bin",
+    ".agents",
+    "Frameworks",
+    "templates",
+    "COMECE_AQUI.md",
+    "PLANO_SALUS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    "CODEX.md",
+    "AGENTS.md",
+    ".cursorrules",
+    "_Caixa de Entrada"
+  ],
+  "keywords": [
+    "salus",
+    "ai",
+    "health",
+    "familia",
+    "saude",
+    "gemini",
+    "claude",
+    "cursor",
+    "codex",
+    "framework",
+    "agentic-ai"
+  ],
+  "author": "Alberth Klinsmann <alberthpalhares@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alberthpalhares/salus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alberthpalhares/salus/issues"
+  },
+  "homepage": "https://github.com/alberthpalhares/salus#readme"
+}

@@ -1,37 +1,47 @@
 ---
 name: salus-organiza
-description: "Lê os documentos novos deixados em _Caixa de Entrada (exames, laudos, receitas, fotos, áudios), identifica de quem são e do que se trata, e arquiva automaticamente no perfil certo. Acione com: 'organiza a caixa de entrada', 'chegou um exame novo', 'organiza os documentos'."
+description: "Lê os documentos novos deixados em _Caixa de Entrada (exames, laudos, receitas, fotos, áudios), identifica de quem são e do que se trata, e arquiva automaticamente no perfil certo após confirmação. Acione com: 'organiza a caixa de entrada', 'chegou um exame novo', 'organiza os documentos'."
 ---
 
 # Skill: Salus — Organiza
 
-Processa os arquivos deixados pelo usuário em `_Caixa de Entrada/` sem exigir nenhuma etapa manual dele — nada de scripts ou instalação. Você lê os documentos nativamente (PDF, imagem, áudio) com suas próprias ferramentas de leitura de arquivo.
+Processa os arquivos deixados pelo usuario em `_Caixa de Entrada/` com leitura nativa (PDF, imagem, audio).
+
+## 🔒 PREMISSA BASICA: CONFIRMACAO OBRIGATORIA
+
+> **O Salus NUNCA move arquivos ou altera dados sem mostrar o plano e pedir confirmacao.**
 
 ## Passo a Passo
 
 1. Liste os arquivos presentes em `_Caixa de Entrada/` (ignore `LEIA-ME.md`).
 2. Para cada arquivo:
-   a. **Leia o conteúdo** (texto do PDF, imagem do exame/receita, ou transcreva o áudio).
-   b. **Identifique de quem é o documento** — cruze nome mencionado no documento com `Familia/META.md`. Se não for possível identificar com confiança, pergunte ao usuário.
-   c. **Identifique o tipo**: Exame, Laudo, Receita, Requisição, ou Áudio de orientação.
-   d. **Renomeie mentalmente** seguindo o padrão: `AAAA-MM-DD_Tipo_Descricao curta.ext` (data do documento, não a de hoje, quando disponível).
-   e. **Mova/copie** o arquivo para `Perfis/[Nome]/Documentos/[Tipo]/` com o novo nome.
-3. **Extraia o conteúdo relevante** e atualize os arquivos do perfil:
-   - Exame com valores de laboratório → adicionar linha(s) em `Perfis/[Nome]/Exames.md`, com a faixa de referência exatamente como está no laudo.
-   - Receita → atualizar "Medicamentos em uso" na `Ficha.md` e registrar em `Historico.md`.
-   - Laudo/orientação médica → resumir em 2-3 linhas e adicionar em `Historico.md`.
-   - Áudio → transcrever o essencial e registrar como orientação em `Historico.md`, citando que veio de um áudio.
-4. Se um exame tiver algum valor sinalizado como alterado no próprio laudo, mencione isso ao usuário de forma calma, seguindo o `Frameworks/PROTOCOLO_CLINICO.md`.
-5. Ao final, mostre um resumo curto:
+   a. **Leia o conteudo** (texto do PDF, imagem do exame/receita, ou transcreva o audio).
+   b. **Identifique de quem e o documento** — cruze nome mencionado no documento com `Familia/META.md`. Se nao for possivel identificar com confianca, pergunte ao usuario.
+   c. **Identifique o tipo**: Exame, Laudo, Receita, Requisicao, ou Audio de orientacao.
+   d. **Renomeie mentalmente** seguindo o padrao: `AAAA-MM-DD_Tipo_Descricao curta.ext`.
+3. **Apresente o plano de organizacao ao usuario**:
+   ```
+   📄 Encontrei os seguintes documentos para organizar:
 
-```
-📥 Caixa de entrada organizada:
-   • [arquivo] → Perfis/[Nome]/Documentos/[Tipo]/ ([o que foi extraído/atualizado])
-   • ...
-```
+   1. [Nome do Arquivo Original]
+      • Pertence a: [Nome do Membro]
+      • Tipo: [Exame / Receita / Laudo]
+      • Destino: Perfis/[Nome]/Documentos/[Tipo]/AAAA-MM-DD_Tipo_Descricao.ext
+      • Alteracoes: adicionar valores em Exames.md / historico...
 
-## Regras
-- Nunca invente informação que não está no documento.
-- Se não conseguir identificar de quem é um documento, pergunte — não arquive com suposição.
-- Se o mesmo tipo de exame já existir em `Exames.md`, adicione como nova linha na tabela existente (para permitir comparação ao longo do tempo), não crie uma tabela duplicada.
-- Caminhos sempre relativos à raiz do workspace.
+   Posso prosseguir com a organizacao?
+   ```
+
+4. **REGRA ESPECIAL PARA RECEITAS:**
+   Ao processar uma receita medica, pergunte adicionalmente:
+   *"Esta receita possui [Medicamento X]. Voce ja comprou / esta tomando este medicamento, ou e apenas a prescricao por enquanto?"*
+   - Se comprou/tomando → cadastra em `Medicamentos.md` como status `Em uso` e atualiza `Medicamentos_Ativos.md`.
+   - Se apenas prescricao → cadastra em `Medicamentos.md` como status `Prescrito` (nao entra em `Medicamentos_Ativos.md`).
+
+5. **Apos confirmacao explicita do usuario:**
+   - Mova o arquivo original para a pasta de destino.
+   - Atualize `Exames.md`, `Medicamentos.md`, `Historico.md` e `Ficha.md` conforme o caso.
+
+6. Se um exame tiver algum valor sinalizado como alterado no proprio laudo, mencione isso ao usuario de forma calma, seguindo o `Frameworks/PROTOCOLO_CLINICO.md`.
+
+7. Ao final, mostre um resumo dos arquivos organizados com um ✅.

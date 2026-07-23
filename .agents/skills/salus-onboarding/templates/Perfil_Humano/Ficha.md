@@ -1,37 +1,39 @@
-# Ficha de Saúde — [Nome]
+# Ficha de Saude — [Nome]
 
-<!-- Resumo de 1 página. É o que se mostra num pronto-socorro ou se leva a uma consulta. -->
+<!-- Resumo de 1 pagina. E o que se mostra num pronto-socorro ou se leva a uma consulta. -->
 
 **Nascimento:** [DD/MM/AAAA]
-**Tipo sanguíneo:** [ex: O+, ou "não informado"]
-**Plano de saúde:** [nome do plano/convênio, ou "particular"]
+**Tipo sanguineo:** [ex: O+, ou "nao informado"]
+**Parentesco na familia:** [ex: "Pai", "Mae", "Filho de X e Y", "Conjuge de X"]
+**Vinculo biologico:** [Biologico / Adotivo / Enteado / —]
+**Plano de saude:** [nome do plano/convenio, ou "particular"]
 
-## Contato de emergência
+## Contato de emergencia
 - [Nome] — [parentesco] — [telefone]
 
 ## Alergias
-<!-- Medicamentos, alimentos, outras substâncias. Se não houver, escreva "Nenhuma alergia conhecida" -->
+<!-- Medicamentos, alimentos, outras substancias. Se nao houver, escreva "Nenhuma alergia conhecida" -->
 - [ ]
 
-## Condições e diagnósticos
-<!-- Doenças crônicas, condições em acompanhamento -->
+## Condicoes e diagnosticos
+<!-- Doencas cronicas, condicoes em acompanhamento -->
 - [ ]
 
-## Medicamentos em uso
-<!-- Nome, dose, horário, desde quando, quem prescreveu -->
+## Medicamentos em uso (resumo)
+<!-- Veja o historico completo e prescricoes em Medicamentos.md -->
 - [ ]
 
 ## Vacinas
-<!-- Vacina — data — dose/reforço -->
+<!-- Vacina — data — dose/reforco -->
 - [ ]
 
-## Histórico familiar relevante
-<!-- Condições hereditárias na família (pais, avós, irmãos) -->
+## Historico familiar relevante e genetica
+<!-- Condicoes hereditarias na familia (pais, avos, irmaos com vinculo BIOLOGICO) -->
 - [ ]
 
-## Especialistas / médicos de referência
+## Especialistas / medicos de referencia
 <!-- Nome — especialidade — contato — o que acompanha -->
 - [ ]
 
 ---
-*Última atualização: [DD/MM/AAAA]*
+*Ultima atualizacao: [DD/MM/AAAA]*

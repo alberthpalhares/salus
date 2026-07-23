@@ -5,38 +5,36 @@ description: "Revisão periódica do Salus: percorre cada perfil checando vacina
 
 # Skill: Salus — Revisão
 
-Conduz uma revisão estruturada e rápida do Salus, para manter as Fichas atualizadas e não deixar vacinas/check-ups passarem batido.
+Conduz uma revisao estruturada e rapida do Salus, para manter as Fichas e Medicamentos atualizados.
 
 ## Quando Acionar
 
-- `Familia/META.md` contém a data do onboarding e a data sugerida de revisão.
-- Se a data já passou ou está próxima (< 2 semanas), sugira proativamente.
-- O usuário também pode acionar manualmente a qualquer momento.
-
-## Filosofia
-
-> Não é refazer o onboarding. É uma conversa de alguns minutos por membro para conferir o que mudou.
+- `Familia/META.md` contem a data do onboarding e a data sugerida de revisao.
+- Se a data ja passou ou esta proxima (< 2 semanas), sugira proativamente.
+- O usuario tambem pode acionar manualmente a qualquer momento.
 
 ## Fluxo
 
-### Preparação
-1. Leia `Familia/META.md` para saber os membros e a data da última revisão.
-2. Leia a `Ficha.md` de cada membro.
+### Preparacao
+1. Leia `Familia/META.md` para saber os membros e a data da ultima revisao.
+2. Leia a `Ficha.md` e `Medicamentos.md` de cada membro.
 
 ### Para cada membro
 
-1. Mostre um resumo curto: condições ativas, medicamentos em uso, próxima vacina/reforço.
-2. Pergunte: *"Isso ainda está certo? Mudou algo desde a última vez?"*
-3. Se mudou, atualize a `Ficha.md` e registre o evento em `Historico.md`.
-4. Se uma vacina/check-up estiver vencido ou perto de vencer, avise e pergunte se já foi agendado.
+1. Mostre um resumo curto: condicoes ativas, medicamentos em uso, receitas a renovar, proxima vacina/reforco.
+2. Pergunte: *"Isso ainda esta certo? Mudou algo desde a ultima vez?"*
+3. Se mudou algo em medicamentos, pergunte se o medicamento ja foi comprado/iniciado antes de alterar para `Em uso`.
+4. Se uma vacina, check-up ou receita estiver vencida ou perto de vencer, avise.
+5. **Com autorizacao do usuario**, atualize a `Ficha.md`, `Medicamentos.md` e registre o evento em `Historico.md`.
 
-### Fechamento
+### Fechamento e Versionamento
 
-1. Atualize `Última revisão` e `Próxima revisão sugerida` (data + 6 meses) em `Familia/META.md`.
-2. Se as datas de revisão estiverem mencionadas nos arquivos de system prompt (`CLAUDE.md`, `GEMINI.md`, etc.) via `{{DATA_REVISAO}}` já preenchida, atualize-as também.
-3. Mostre um resumo do que foi alterado.
+1. Atualize `Ultima revisao` e `Proxima revisao sugerida` (data + 6 meses) em `Familia/META.md`.
+2. Mostre um resumo das alteracoes realizadas.
+3. **Ofereca versionamento Git:**
+   > *"Atualizei os perfis do Salus. Quer que eu faca um commit no Git para salvar este ponto de revisao?"*
+   - Se sim: `git add . && git commit -m "salus: revisao periodica de saude da familia"`
 
 ## Regras
-- Nunca apague informação sem confirmar com o usuário.
-- Seja rápido — se nada mudou num perfil, siga em 10 segundos.
-- Caminhos sempre relativos à raiz do workspace.
+- Nunca apague ou altere informacao sem autorizacao explicita do usuario.
+- Seja rapido — se nada mudou num perfil, siga adiante.

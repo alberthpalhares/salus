@@ -5,33 +5,33 @@ description: "Levanta um panorama rápido de saúde de toda a família: condiç�
 
 # Skill: Raio-X
 
-Dá ao usuário uma visão instantânea (10-15 linhas) da situação de saúde da família — pessoas e pets.
+Da ao usuario uma visao instantanea (10-15 linhas) da situacao de saude da familia — pessoas e pets.
 
 ## Passo a Passo
 
-1. **Leia silenciosamente** `Familia/META.md` para saber quem são os membros.
-2. **Leia silenciosamente** a `Ficha.md` de cada membro (seções de condições, medicamentos e vacinas).
+1. **Leia silenciosamente** `Familia/META.md` para saber quem sao os membros e seus vinculos.
+2. **Leia silenciosamente** a `Ficha.md` e `Medicamentos.md` de cada membro.
 3. **Leia silenciosamente** `Familia/Medicamentos_Ativos.md`.
-4. Compare datas de vacinas e reforços mencionados nas Fichas com a data atual do sistema.
-5. Gere o relatório neste formato:
+4. Compare datas de vacinas, reforcos e datas de **proxima renovacao de receita** mencionadas em `Medicamentos.md` com a data atual do sistema.
+5. Gere o relatorio neste formato:
 
 ```
-🩺 **RAIO-X — Família [Nome] — [Data de hoje]**
+🩺 **RAIO-X — Familia [Nome] — [Data de hoje]**
 
 🔴 **VENCIDO OU VENCENDO:**
-   • [Nome] — [vacina/check-up/receita] — vence/venceu em [data]
+   • [Nome] — [vacina/check-up/receita a renovar] — vence/venceu em [data]
 
-💊 **MEDICAMENTOS EM USO:**
-   • [Nome] — [medicamento] — [dose]
+💊 **MEDICAMENTOS EM USO (ATIVOS):**
+   • [Nome] — [medicamento] — [dose] (desde [data])
 
 📋 **CONDIÇÕES ATIVAS:**
-   • [Nome] — [condição]
+   • [Nome] — [condicao]
 
-💡 Quer que eu detalhe algum desses pontos?
+💡 Quer que eu detalhe algum desses pontos ou prepare o resumo para uma consulta?
 ```
 
 ## Regras
-- Se não houver nada vencido, escreva "Nada vencendo nos próximos 30 dias. ✅".
-- Seja conciso — não repita o conteúdo inteiro da Ficha, só o essencial.
-- Caminhos sempre relativos à raiz do workspace.
-- Siga o `Frameworks/PROTOCOLO_CLINICO.md` ao mencionar qualquer condição ou exame.
+- Se nao houver nada vencido ou vencendo nos proximos 30 dias, escreva "Nada vencendo nos proximos 30 dias. ✅".
+- So inclua em "Medicamentos em uso" aqueles com status `Em uso` confirmado. Medicamentos com status `Prescrito` podem ser listados como "Receita pendente de inicio".
+- Seja conciso — nao repita o conteudo inteiro da Ficha, so o essencial.
+- Siga o `Frameworks/PROTOCOLO_CLINICO.md` ao mencionar qualquer condicao ou exame.
