@@ -26,7 +26,7 @@ Abra esta pasta no seu assistente de IA preferido (Claude, Gemini, Cursor, Codex
 
 > **"Quero montar meu Salus"**
 
-A IA vai fazer algumas perguntas simples sobre quem sao as pessoas e animais da familia, o parentesco entre eles (para cruzar genetica corretamente), e se voce ja tem exames ou documentos para ela ler.
+A IA vai fazer algumas perguntas simples sobre quem sao as pessoas e animais da familia, como montar a árvore familiar, e se voce ja tem exames ou documentos para ela ler.
 
 **2. Para adicionar um documento novo** (exame, receita, laudo, foto, audio de orientacao do medico):
 
@@ -59,11 +59,15 @@ A IA le o arquivo, entende do que se trata, e mostra um plano de arquivamento pa
 
 ---
 
-## 📂 O que você vai encontrar em cada perfil
+## 📂 O que você vai encontrar
 
-Cada pessoa ou animal tem uma pasta em `Perfis/[Nome]/` com:
+### Na pasta `Familia/`
+- **`META.md`** — o índice principal com todos os membros.
+- **`Arvore.md`** — um diagrama visual desenhando a estrutura da sua família (pessoas e pets).
+- Arquivos consolidados de linha do tempo e genética.
 
-- **`Ficha.md`** — o resumo de 1 pagina: parentesco, vinculo biologico, tipo sanguineo, alergias, condicoes, vacinas, contatos de emergencia.
+### Na pasta de cada membro (`Perfis/[Nome]/`)
+- **`Ficha.md`** — o resumo de 1 pagina: tipo sanguineo, alergias, condicoes, vacinas, contatos de emergencia.
 - **`Medicamentos.md`** — historico completo de medicamentos (`Em uso`, `Prescritos` e `Descontinuados`).
 - **`Genetica.md`** — historico genetico individual, condicoes hereditarias da linhagem biologica e predisposicoes raciais.
 - **`Historico.md`** — a linha do tempo individual de tudo que aconteceu.

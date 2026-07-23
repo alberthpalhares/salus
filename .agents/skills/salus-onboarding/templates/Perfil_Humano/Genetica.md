@@ -1,9 +1,7 @@
 # Genetica e Historico Familiar — [Nome]
 
 <!-- Mapeamento genetico e condicoes hereditarias conhecidas na linhagem biologica. -->
-<!-- Vinculo biologico: verifique sempre se os parentes citados possuem vinculo BIOLOGICO no META.md. -->
-
-**Vinculo biologico na familia:** [Biologico / Adotivo / Enteado]
+<!-- Membros sao considerados biologicos por default, a menos que listados no comentario HTML do META.md -->
 
 ## Condicoes hereditarias conhecidas na familia (Linhagem Biologica)
 <!-- Condicoes presentes em pais, avos, tios ou irmaos biologicos -->

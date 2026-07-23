@@ -13,8 +13,9 @@ Voce esta prestes a conduzir a entrevista de montagem do **Salus** — a central
 
 1. **Comece sempre perguntando se ha documentos** antes de fazer qualquer pergunta de conteudo.
 2. **Leia tudo que for indicado** antes de perguntar qualquer coisa.
-3. **Pergunte a relacao/parentesco e o vinculo biologico entre os membros.** Isso e indispensavel para o cruzamento genetico correto.
-4. **So pergunte o que nao esta nos documentos**.
+3. **Pergunte a relacao/papel na família entre os membros.** Isso e indispensavel para montar a árvore da família.
+4. **Todos os membros humanos são considerados biológicos por padrão.** Se o usuário mencionar espontaneamente que alguém é adotivo ou enteado, anote para registrar depois. Não pergunte proativamente.
+5. **So pergunte o que nao esta nos documentos**.
 5. Se o usuario nao souber responder algo, registre como `<!-- REVISAR -->` e siga.
 
 ---
@@ -27,13 +28,12 @@ Voce esta prestes a conduzir a entrevista de montagem do **Salus** — a central
 >
 > *Primeiro: quem sao os membros da familia que voce quer incluir? Pode ser voce, outras pessoas, e tambem pets (cachorro, gato, outro). Me diga o nome e o tipo de cada um."*
 
-### 👨‍👩‍👧 Parentesco e Vinculo Biologico
+### 👨‍👩‍👧 Papel na Família e Árvore Familiar
 
 Após a lista de membros:
 
-> *"Agora me ajude a entender a relacao entre voces para que o Salus possa cruzar dados de saude e genetica corretamente:*
-> - *Quem e pai/mae ou conjuge de quem?*
-> - *Algum dos membros humanos e filho adotivo ou enteado? (Importante: dados geneticos so sao cruzados entre membros com vinculo biologico)."*
+> *"Agora me ajude a entender a relacao entre voces para que eu possa montar a árvore da família:*
+> - *Quem e pai/mae ou conjuge de quem?"*
 
 ### 📄 Documentos Existentes
 
@@ -56,7 +56,7 @@ Confirme/crie estas pastas na raiz:
 ### Passo 2: Criar um perfil por membro
 
 Para CADA membro da familia, crie a pasta `./Perfis/[Nome]/` e dentro dela:
-- `./Perfis/[Nome]/Ficha.md` (com parentesco e vinculo biologico preenchidos)
+- `./Perfis/[Nome]/Ficha.md`
 - `./Perfis/[Nome]/Medicamentos.md`
 - `./Perfis/[Nome]/Genetica.md`
 - `./Perfis/[Nome]/Historico.md`
@@ -66,7 +66,8 @@ Para CADA membro da familia, crie a pasta `./Perfis/[Nome]/` e dentro dela:
 
 ### Passo 3: Criar os arquivos de Familia
 
-- `./Familia/META.md` — preencha com a lista de membros, parentesco e vinculo biologico (`Biologico` / `Adotivo` / `Enteado` / `—`).
+- `./Familia/META.md` — preencha com a lista de membros e o papel de cada um. Se o usuário tiver mencionado adoção, crie o comentário `<!-- VINCULO...` conforme template.
+- `./Familia/Arvore.md` — gere o diagrama Mermaid com as relações familiares (humanos e pets).
 - `./Familia/Linha_do_Tempo_Geral.md`
 - `./Familia/Medicamentos_Ativos.md`
 - `./Familia/Genetica_Familiar.md`

@@ -18,9 +18,10 @@ Esta e a skill que entrega o valor central do Salus: olhar o historico inteiro d
    - Cruze a data de inicio do medicamento com os valores de exame antes e depois.
 
 3. **Padroes entre membros da familia (GENETICA E FAMILIA)**
-   - **REGRA DE OURO:** Antes de cruzar condicoes hereditarias entre membros, **verifique a coluna `Vinculo biologico` no `Familia/META.md`**.
-   - So cruze padroes geneticos/hereditarios entre membros com vinculo `Biologico`. Nao cruze genetics com filhos/membros `Adotivos` ou `Enteados`.
-   - Leia `Familia/Genetica_Familiar.md` e as Fichas dos membros com vinculo biologico relevante.
+   - **REGRA DE OURO:** Todos os membros humanos da família **são considerados biológicos por padrão**.
+   - Antes de cruzar condicoes hereditarias entre membros, **verifique se há algum comentário HTML `<!-- VINCULO...` no `Familia/META.md`**.
+   - NÃO cruze informações genéticas/hereditárias com membros listados no comentário com vínculo `Adotivo` ou `Enteado`.
+   - Leia `Familia/Genetica_Familiar.md` e os arquivos `Genetica.md` dos membros biológicos relevantes.
 
 ## 💾 Salvamento de analises (com carimbo e fontes)
 

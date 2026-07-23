@@ -4,8 +4,6 @@
 
 **Nascimento:** [DD/MM/AAAA]
 **Tipo sanguineo:** [ex: O+, ou "nao informado"]
-**Parentesco na familia:** [ex: "Pai", "Mae", "Filho de X e Y", "Conjuge de X"]
-**Vinculo biologico:** [Biologico / Adotivo / Enteado / —]
 **Plano de saude:** [nome do plano/convenio, ou "particular"]
 
 ## Contato de emergencia
@@ -25,10 +23,6 @@
 
 ## Vacinas
 <!-- Vacina — data — dose/reforco -->
-- [ ]
-
-## Historico familiar relevante e genetica
-<!-- Condicoes hereditarias na familia (pais, avos, irmaos com vinculo BIOLOGICO) -->
 - [ ]
 
 ## Especialistas / medicos de referencia

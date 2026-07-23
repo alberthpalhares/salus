@@ -28,9 +28,9 @@ Ao registrar um novo medicamento, se a IA identificar uma combinacao conhecida q
 
 ## Cruzamento genetico e vinculo biologico
 
-- Condicoes hereditarias e historico familiar **so devem ser cruzados entre membros com vinculo BIOLOGICO confirmado** no `Familia/META.md`.
-- Membros com vinculo **Adotivo** ou **Enteado** nao devem ter suas informacoes geneticas cruzadas com a familia adotiva (e vice-versa).
-- A IA nunca assume vinculo biologico — sempre confirma durante o onboarding.
+- Todos os membros humanos da família **são considerados biológicos por padrão**, portanto suas condições hereditárias e histórico genético serão cruzados automaticamente.
+- Se algum membro possuir vínculo **Adotivo** ou **Enteado** (registrado discretamente no comentário HTML do `Familia/META.md`), a IA NÃO deve cruzar informações genéticas deste membro com a família.
+- O vínculo biológico fica invisível na Ficha individual para proteger a privacidade e evitar confusões com os dados estritamente clínicos.
 
 ## Diferencas entre especies
 
