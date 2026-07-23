@@ -1,4 +1,4 @@
-# Bem-vindo ao Salus 🩺 (v0.2.0)
+# Bem-vindo ao Salus 🩺 (v0.2.1)
 
 O Salus e a central de saude da sua familia — pessoas e animais. Ele guarda seus exames, receitas, laudos e orientacoes medicas em um so lugar, e voce pode conversar com a IA sobre tudo isso com total privacidade.
 
@@ -7,6 +7,8 @@ O Salus e a central de saude da sua familia — pessoas e animais. Ele guarda se
 ## ⚡ Como instalar e usar
 
 ### Método 1: Via NPX (Recomendado 🚀)
+> **Pré-requisito:** É necessário ter o [Node.js](https://nodejs.org/) instalado no computador.
+
 Abra o terminal na pasta onde quer salvar sua central de saude e execute:
 
 ```bash

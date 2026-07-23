@@ -1,7 +1,7 @@
-# Salus 🩺 — Central de Inteligência de Saúde da Família (v0.2.0)
+# Salus 🩺 — Central de Inteligência de Saúde da Família (v0.2.1)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: Beta](https://img.shields.io/badge/status-v0.2.0--beta-orange.svg)]()
+[![Status: Beta](https://img.shields.io/badge/status-v0.2.1--beta-orange.svg)]()
 [![NPM Package](https://img.shields.io/badge/npm-salus--ai-red.svg)](https://www.npmjs.com/package/salus-ai)
 [![Platform: Multi-AI](https://img.shields.io/badge/IA-Claude%20%7C%20Gemini%20%7C%20Cursor%20%7C%20Codex-blue.svg)]()
 
@@ -13,6 +13,11 @@ Inspirado na mecânica do [Córtex](https://github.com/alberthpalhares/cortex), 
 
 ## ⚡ Instalação Rápida (Via NPX 🚀)
 
+### 📋 Pré-requisito
+Para utilizar o instalador via terminal, é necessário ter o **Node.js** instalado no seu computador.
+- Se você ainda não tem o Node.js instalado, faça o download da versão recomendada no site oficial: [Node.js (nodejs.org)](https://nodejs.org/).
+
+### 🛠️ Comando de Instalação
 Abra o terminal na pasta onde deseja criar sua central de saúde e execute:
 
 ```bash
