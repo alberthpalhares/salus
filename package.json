@@ -1,6 +1,6 @@
 {
   "name": "salus-ai",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Central de Inteligencia de Saude da Familia — pessoas e animais.",
   "main": "bin/cli.js",
   "bin": {
@@ -12,9 +12,7 @@
     "bin",
     ".agents",
     "Frameworks",
-    "templates",
     "COMECE_AQUI.md",
-    "PLANO_SALUS.md",
     "CLAUDE.md",
     "GEMINI.md",
     "CODEX.md",

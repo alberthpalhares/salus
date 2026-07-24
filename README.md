@@ -1,7 +1,7 @@
-# Salus 🩺 — Central de Inteligência de Saúde da Família (v0.2.1)
+# Salus 🩺 — Central de Inteligência de Saúde da Família (v0.3.0)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Status: Beta](https://img.shields.io/badge/status-v0.2.1--beta-orange.svg)]()
+[![Status: Beta](https://img.shields.io/badge/status-v0.3.0--beta-orange.svg)]()
 [![NPM Package](https://img.shields.io/badge/npm-salus--ai-red.svg)](https://www.npmjs.com/package/salus-ai)
 [![Platform: Multi-AI](https://img.shields.io/badge/IA-Claude%20%7C%20Gemini%20%7C%20Cursor%20%7C%20Codex-blue.svg)]()
 
@@ -35,12 +35,14 @@ Após executar o comando, abra a pasta gerada na sua ferramenta de IA (Claude, G
 
 ---
 
-## 🌟 Princípios Orientadores (v0.2.0)
+## 🌟 Princípios Orientadores (v0.3.0)
 
 - 🔒 **Consentimento em 1º Lugar**: O Salus **NUNCA salva ou altera arquivos sem perguntar antes**. Tudo é apresentado para confirmação prévia do usuário.
+- 🧠 **Índice Estruturado como Fonte Única de Verdade**: `Familia/_index.yaml` concentra vínculo, medicamentos, vacinas e marcadores-chave de cada membro. A IA lê esse arquivo primeiro, e só abre os arquivos completos do perfil quando precisa de detalhe — respostas mais rápidas e mais confiáveis.
+- 📅 **Agenda de Saúde Proativa**: `Familia/Agenda.md` mostra o que está vencido, vencendo em 30 dias e em 31-90 dias, sempre atualizada pelo raio-x e pela revisão periódica.
 - 💊 **Gestão Inteligente de Medicamentos**: Arquivo `Medicamentos.md` individual por perfil. Medicamentos prescritos em receitas só passam para "Em uso" após confirmação do usuário de que comprou/está tomando.
-- 👨‍👩‍👧 **Diversidade Familiar & Genética**: Registro de parentesco e vínculo biológico (`Biológico`, `Adotivo`, `Enteado`). O cruzamento genético é aplicado exclusivamente a membros com vínculo biológico.
-- 📊 **Análises Salvas com Timestamp e Fontes**: Comparativos e relatórios de evolução são salvos em `Perfis/[Nome]/Analises/` acompanhados da data/hora exata e da lista de documentos consultados.
+- 👨‍👩‍👧 **Diversidade Familiar & Genética**: Registro de parentesco e vínculo biológico (`Biológico`, `Adotivo`, `Enteado`) como campo explícito no índice. O cruzamento genético é aplicado exclusivamente a membros com vínculo biológico.
+- 📊 **Análises Salvas com Timestamp e Fontes**: Comparativos e relatórios de evolução são salvos em `Perfis/[Nome]/Analises/` de forma enxuta (dados + conclusão), acompanhados da data/hora exata e da lista de documentos consultados.
 - 🏥 **Preparo para Consultas (`preparar-consulta`)**: Gera resumos em 1 página focados na especialidade médica/veterinária para levar ao consultório.
 - 📁 **Entrada Única (`_Caixa de Entrada/`)**: Arraste qualquer documento (PDF, foto, áudio) para uma única pasta. A IA lê, classifica e pede confirmação para arquivar.
 
@@ -51,8 +53,9 @@ Após executar o comando, abra a pasta gerada na sua ferramenta de IA (Claude, G
 | Atalho / Frase | O que faz |
 |---|---|
 | `"npx salus-ai init"` | Inicializa a estrutura do Salus em qualquer pasta via terminal. |
-| `"raio-x"` ou `"como estamos?"` | Exibe o panorama completo de saúde da família (remédios ativos, vacinas e receitas vencendo). |
-| `"registra que..."` | Anota rapidamente uma consulta, sintoma, vacina ou medicamento (pede confirmação antes de gravar). |
+| `"raio-x"` ou `"como estamos?"` | Exibe o panorama completo de saúde da família (remédios ativos, vacinas e receitas vencendo) e atualiza a Agenda. |
+| `"o que está vencendo"` | Responde direto a partir da `Familia/Agenda.md`, sem precisar rodar o raio-x inteiro. |
+| `"registra que..."` | Anota rapidamente uma consulta, sintoma, vacina ou medicamento (pede confirmação antes de gravar no perfil e no índice). |
 | `"organiza a caixa de entrada"` | Processa e pede autorização para arquivar novos documentos. |
 | `"cruza os exames de..."` | Compara marcadores ao longo do tempo (respeita vínculo biológico e oferece salvar análise com timestamp). |
 | `"prepara a consulta do [nome]"` | Gera resumo de 1 página focado na especialidade para levar ao médico/veterinário. |
@@ -65,7 +68,6 @@ Após executar o comando, abra a pasta gerada na sua ferramenta de IA (Claude, G
 Salus/
 ├── CLAUDE.md · GEMINI.md · CODEX.md · AGENTS.md · .cursorrules  ← Inicialização multi-IA
 ├── COMECE_AQUI.md             ← Guia rápido do usuário final
-├── PLANO_SALUS.md             ← Documento de arquitetura v2.0
 ├── README.md                  ← Este arquivo
 ├── CHANGELOG.md               ← Histórico de versões
 ├── LICENSE                    ← Licença MIT
@@ -93,9 +95,11 @@ Salus/
 │   │   └── Documentos/        ← Exames, laudos, receitas e áudios originais
 │   └── [Nome do Pet]/         ← Estrutura adaptada para cão ou gato
 └── Familia/
-    ├── META.md                ← Índice central (membros, parentesco e vínculo biológico)
+    ├── _index.yaml            ← 🆕 Fonte única de verdade (vínculo, medicamentos, vacinas, marcadores-chave)
+    ├── Agenda.md               ← 🆕 O que vence e quando — view derivada do índice
+    ├── META.md                ← Índice legível por humano (membros e mapa de arquivos)
     ├── Linha_do_Tempo_Geral.md← Histórico unificado da família
-    ├── Medicamentos_Ativos.md ← Tabela consolidada de medicamentos em uso
+    ├── Medicamentos_Ativos.md ← Tabela consolidada de medicamentos em uso (view de leitura rápida)
     └── Genetica_Familiar.md   ← Mapeamento de condições hereditárias (apenas vínculo biológico)
 ```
 

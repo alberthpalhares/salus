@@ -1,4 +1,4 @@
-# Bem-vindo ao Salus 🩺 (v0.2.1)
+# Bem-vindo ao Salus 🩺 (v0.3.0)
 
 O Salus e a central de saude da sua familia — pessoas e animais. Ele guarda seus exames, receitas, laudos e orientacoes medicas em um so lugar, e voce pode conversar com a IA sobre tudo isso com total privacidade.
 
@@ -52,7 +52,8 @@ A IA le o arquivo, entende do que se trata, e mostra um plano de arquivamento pa
 
 | Diga isso | Para... |
 |---|---|
-| `"raio-x"` ou `"como estamos?"` | Ver o panorama de saude de toda a familia (remedios ativos, vacinas e receitas vencendo) |
+| `"raio-x"` ou `"como estamos?"` | Ver o panorama de saude de toda a familia (remedios ativos, vacinas e receitas vencendo) e atualizar a Agenda |
+| `"o que esta vencendo"` | Ver rapidamente a `Familia/Agenda.md` — o que vence e quando, sem rodar o raio-x inteiro |
 | `"registra que..."` | Anotar rapidamente uma consulta, sintoma ou remedio (pede confirmacao antes) |
 | `"organiza a caixa de entrada"` | Processar os documentos novos da pasta de entrada |
 | `"cruza os exames de..."` | Comparar e relacionar exames ao longo do tempo (oferece salvar analise com data) |
@@ -64,7 +65,8 @@ A IA le o arquivo, entende do que se trata, e mostra um plano de arquivamento pa
 ## 📂 O que você vai encontrar
 
 ### Na pasta `Familia/`
-- **`META.md`** — o índice principal com todos os membros.
+- **`Agenda.md`** — 🆕 o que está vencido ou vencendo (vacinas, receitas, check-ups), sempre em dia.
+- **`META.md`** — o índice principal com todos os membros (para você olhar; a IA usa o `_index.yaml` internamente).
 - **`Arvore.md`** — um diagrama visual desenhando a estrutura da sua família (pessoas e pets).
 - Arquivos consolidados de linha do tempo e genética.
 

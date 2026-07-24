@@ -27,7 +27,7 @@ Processa os arquivos deixados pelo usuario em `_Caixa de Entrada/` com leitura n
       • Pertence a: [Nome do Membro]
       • Tipo: [Exame / Receita / Laudo]
       • Destino: Perfis/[Nome]/Documentos/[Tipo]/AAAA-MM-DD_Tipo_Descricao.ext
-      • Alteracoes: adicionar valores em Exames.md / historico...
+      • Alteracoes: adicionar valores em Exames.md / historico / Familia/_index.yaml...
 
    Posso prosseguir com a organizacao?
    ```
@@ -35,12 +35,13 @@ Processa os arquivos deixados pelo usuario em `_Caixa de Entrada/` com leitura n
 4. **REGRA ESPECIAL PARA RECEITAS:**
    Ao processar uma receita medica, pergunte adicionalmente:
    *"Esta receita possui [Medicamento X]. Voce ja comprou / esta tomando este medicamento, ou e apenas a prescricao por enquanto?"*
-   - Se comprou/tomando → cadastra em `Medicamentos.md` como status `Em uso` e atualiza `Medicamentos_Ativos.md`.
-   - Se apenas prescricao → cadastra em `Medicamentos.md` como status `Prescrito` (nao entra em `Medicamentos_Ativos.md`).
+   - Se comprou/tomando → cadastra em `Medicamentos.md` como status `Em uso` e adiciona/atualiza em `medicamentos_em_uso` do membro em `Familia/_index.yaml` (com `renova_em` se a receita tiver validade).
+   - Se apenas prescricao → cadastra em `Medicamentos.md` como status `Prescrito` e em `medicamentos_prescritos` do `_index.yaml` (nao entra em "em uso").
 
 5. **Apos confirmacao explicita do usuario:**
    - Mova o arquivo original para a pasta de destino.
    - Atualize `Exames.md`, `Medicamentos.md`, `Historico.md` e `Ficha.md` conforme o caso.
+   - **Atualize `Familia/_index.yaml`** (`atualizado_em` + os campos do membro afetado: medicamentos, vacinas ou `marcadores_chave` se o documento for um exame com marcador relevante). Trate isso como parte obrigatória da gravação, não como passo opcional.
 
 6. Se um exame tiver algum valor sinalizado como alterado no proprio laudo, mencione isso ao usuario de forma calma, seguindo o `Frameworks/PROTOCOLO_CLINICO.md`.
 

@@ -5,6 +5,21 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] - 2026-07-23
+
+### Adicionado
+- **Índice estruturado `Familia/_index.yaml`**: nova fonte única de verdade para a IA — concentra vínculo, condições ativas, medicamentos (com datas de renovação), vacinas, check-ups e marcadores-chave de cada membro. Todas as skills passam a ler este arquivo primeiro, em vez de abrir todos os perfis a cada pergunta.
+- **`Familia/Agenda.md`**: view proativa de "o que vem pela frente" (vencido / vencendo em 30 dias / 31-90 dias / sem data), gerada e mantida pelas skills `raio-x` e `salus-revisao`.
+- **Núcleo inviolável do Protocolo Clínico**: as regras de segurança clínica que valem para toda resposta (8 regras) agora ficam embutidas no system prompt (`AGENTS.md`); o `Frameworks/PROTOCOLO_CLINICO.md` completo continua como referência para casos específicos.
+
+### Alterado
+- **Skills "índice primeiro"**: `raio-x`, `cruzar`, `salus-revisao`, `registrar` e `salus-organiza` agora leem `Familia/_index.yaml` antes de abrir arquivos de perfil completos, e atualizam o índice sempre que gravam um dado novo — reduzindo drasticamente a quantidade de arquivos lidos por consulta.
+- **Vínculo biológico**: deixou de ser um comentário HTML oculto em `Familia/META.md` e passou a ser o campo explícito `vinculo` de cada membro em `Familia/_index.yaml` (`biologico` continua sendo o default), tornando a regra de cruzamento genético mais robusta.
+- **Arquivos de inicialização multi-IA**: `GEMINI.md`, `CLAUDE.md`, `CODEX.md` e `.cursorrules` deixam de conter uma cópia completa do system prompt e passam a ser ponteiros curtos para o `AGENTS.md` (arquivo canônico gerado pelo onboarding). Evita 5 cópias idênticas do "cérebro" do Salus.
+- **Análises salvas (`cruzar`) mais enxutas**: o arquivo salvo em `Analises/` passa a guardar a tabela de dados comparados e uma conclusão curta, em vez da narrativa inteira da resposta.
+- **`Medicamentos_Ativos.md` e `Genetica_Familiar.md`**: explicitamente tratados como views de leitura rápida — o dado de verdade vive no `_index.yaml` e nos arquivos de perfil.
+- **`Familia/Genetica_Familiar.md`**: adicionada nota visível no topo do arquivo explicando que ele só lista condições que aparecem em 2+ membros com vínculo biológico (cruzamento) — achados genéticos individuais ficam em `Perfis/[Nome]/Genetica.md`. Evita a impressão de que dados genéticos pessoais "sumiram" quando na verdade nunca deveriam estar ali.
+
 ## [0.2.0] - 2026-07-23
 
 ### Adicionado

@@ -1,5 +1,9 @@
 # META — Indice do Salus
 
+<!-- Este arquivo e a versao legivel-por-humano do indice. A fonte de verdade que a
+IA usa para calculos (vinculo, medicamentos, vacinas, alertas) e `Familia/_index.yaml`.
+Mantenha os dois em sincronia, mas em caso de duvida o `_index.yaml` manda. -->
+
 **Familia:** [Sobrenome/identificacao]
 **Onboarding realizado em:** [AAAA-MM-DD]
 **Proxima revisao sugerida:** [data + 6 meses no formato AAAA-MM-DD]
@@ -26,7 +30,8 @@
 | Medicamentos em uso por todos (visao consolidada) | `Familia/Medicamentos_Ativos.md` |
 | Condicoes hereditarias cruzadas | `Familia/Genetica_Familiar.md` |
 | Regras de seguranca e glossario | `Frameworks/PROTOCOLO_CLINICO.md` |
+| Indice estruturado (fonte de verdade para IA) | `Familia/_index.yaml` |
+| O que vem pela frente (vacinas, receitas, check-ups) | `Familia/Agenda.md` |
 
-<!-- VINCULO (uso interno — membros não listados são biológicos por default)
-(A IA deve adicionar membros com vínculo 'Adotivo' ou 'Enteado' aqui, se existirem)
--->
+<!-- O vinculo (Biologico/Adotivo/Enteado) de cada membro fica no campo `vinculo`
+de `Familia/_index.yaml` — nao e mais mantido aqui como comentario oculto. -->

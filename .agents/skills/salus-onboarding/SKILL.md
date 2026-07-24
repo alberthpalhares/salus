@@ -66,16 +66,29 @@ Para CADA membro da familia, crie a pasta `./Perfis/[Nome]/` e dentro dela:
 
 ### Passo 3: Criar os arquivos de Familia
 
-- `./Familia/META.md` — preencha com a lista de membros e o papel de cada um. Se o usuário tiver mencionado adoção, crie o comentário `<!-- VINCULO...` conforme template.
+- `./Familia/META.md` — preencha com a lista de membros e o papel de cada um (indice legivel por humano).
+- `./Familia/_index.yaml` — 🆕 **o mais importante.** Preencha um bloco `membros` por pessoa/animal com os campos que a entrevista e os documentos ja revelaram (vinculo, condicoes, medicamentos, vacinas, marcadores-chave). Se o usuario mencionou adocao/enteado, registre no campo `vinculo` daquele membro (biologico e o default para os demais). Este arquivo passa a ser o que as skills leem primeiro — mantenha-o completo.
 - `./Familia/Arvore.md` — gere o diagrama Mermaid com as relações familiares (humanos e pets).
+- `./Familia/Agenda.md` — 🆕 gere a partir do `_index.yaml` (vacinas, receitas e check-ups ordenados por data). Pode iniciar vazio ("Sem pendências ainda") se a entrevista nao revelou nada.
 - `./Familia/Linha_do_Tempo_Geral.md`
 - `./Familia/Medicamentos_Ativos.md`
 - `./Familia/Genetica_Familiar.md`
 
-### Passo 4: System Prompt (o "cerebro")
+> Nota: `Medicamentos_Ativos.md` e `Genetica_Familiar.md` sao VIEWS — o conteudo real de verdade vive no `_index.yaml` e nos `Genetica.md`/`Medicamentos.md` de cada perfil. Gere-os como resumo de leitura rapida, mas nunca trate como fonte primaria ao responder.
 
-Leia `.agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md`. Preencha as variaveis e salve o MESMO conteudo em `GEMINI.md`, `CLAUDE.md`, `CODEX.md`, `AGENTS.md` e `.cursorrules`.
+### Passo 4: System Prompt (o "cerebro") — canônico + stubs
+
+Leia `.agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md`. Preencha as variaveis e salve o conteudo completo **apenas em `AGENTS.md`** (arquivo canônico). Nos outros quatro (`GEMINI.md`, `CLAUDE.md`, `CODEX.md`, `.cursorrules`) grave só um ponteiro curto:
+
+```
+# Salus — Central de Saúde da Família {{NOME_FAMILIA}}
+
+As instruções completas deste assistente estão em `AGENTS.md`. Leia esse arquivo
+e siga-o integralmente antes de responder qualquer coisa neste diretório.
+```
+
+Isso evita manter (e reler) cinco copias identicas do mesmo cerebro — qualquer app de IA cai no mesmo lugar.
 
 ### Passo 5: Mensagem final
 
-Mostre ao usuario a lista do que foi criado e explique que o Salus pedira confirmacao antes de salvar qualquer nova informacao.
+Mostre ao usuario a lista do que foi criado e explique que o Salus pedira confirmacao antes de salvar qualquer nova informacao. Mencione que o `Familia/Agenda.md` e o lugar para ver rapidamente "o que vem pela frente".

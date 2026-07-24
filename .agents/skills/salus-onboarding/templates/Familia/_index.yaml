@@ -1,0 +1,68 @@
+# _index.yaml — Fonte única de verdade do Salus
+#
+# ATENÇÃO IA: este arquivo é o PRIMEIRO que você deve ler para qualquer pergunta
+# sobre o panorama da família (raio-x, cruzar, revisão, agenda). Ele concentra
+# os campos "quentes" (datas, status, medicamentos, marcadores-chave) para que
+# você não precise abrir todos os arquivos de perfil a cada pergunta.
+#
+# Os arquivos de perfil (Ficha.md, Historico.md, Exames.md, Documentos/) continuam
+# sendo a fonte narrativa completa e os documentos originais — abra-os apenas
+# quando o usuário pedir detalhe ou quando o índice não tiver o campo necessário.
+#
+# REGRA DE SINCRONIA: toda skill que grava um dado novo (registrar, salus-organiza,
+# salus-revisao) DEVE atualizar este arquivo no mesmo passo em que grava a prosa
+# correspondente. Se um dado aqui e no perfil divergirem, o arquivo de perfil vence
+# (é o mais detalhado) — mas isso deve ser tratado como uma falha de sincronia a corrigir.
+
+familia: "[Sobrenome/identificacao]"
+atualizado_em: "[AAAA-MM-DD]"
+
+membros:
+  # Repita este bloco para cada membro (pessoa ou animal).
+  - id: "[identificador-curto, ex: alberth]"
+    nome: "[Nome]"
+    tipo: "pessoa"              # pessoa | cao | gato | outro
+    perfil: "Perfis/[Nome]/"
+    nascimento: "[AAAA-MM-DD]"  # ou "" se nao informado
+    vinculo: "biologico"        # biologico | adotivo | enteado — biologico e o default.
+                                 # Este campo e usado pela skill `cruzar` para decidir
+                                 # se cruza geneticos/hereditarios. NAO exponha este
+                                 # campo na Ficha.md do membro (fica so aqui, por privacidade).
+
+    condicoes_ativas: []        # ex: ["hipertensao", "hipotireoidismo"]
+
+    medicamentos_em_uso: []
+      # - nome: "[Medicamento]"
+      #   dose: "[dose]"
+      #   desde: "[AAAA-MM-DD]"
+      #   renova_em: "[AAAA-MM-DD ou vazio se continuo]"
+
+    medicamentos_prescritos: []
+      # - nome: "[Medicamento]"
+      #   data_receita: "[AAAA-MM-DD]"
+
+    vacinas: []
+      # - nome: "[Vacina]"
+      #   aplicada_em: "[AAAA-MM-DD]"
+      #   proxima_em: "[AAAA-MM-DD]"
+
+    proximos_checkups: []
+      # - tipo: "[ex: Retorno cardiologista]"
+      #   data: "[AAAA-MM-DD]"
+
+    ultimo_exame_em: "[AAAA-MM-DD ou vazio]"
+
+    marcadores_chave: []
+      # Só os marcadores mais relevantes para acompanhamento contínuo (ex: colesterol,
+      # glicemia, TSH, creatinina) — não é para duplicar o Exames.md inteiro, só o essencial
+      # para responder "como está o [marcador] do [nome]?" sem abrir o arquivo completo.
+      # - marcador: "[ex: Colesterol total]"
+      #   valor: "[numero]"
+      #   unidade: "[ex: mg/dL]"
+      #   data: "[AAAA-MM-DD]"
+      #   flag: "normal"        # normal | alto | baixo — SEMPRE copiado do que o laudo sinalizou.
+                                 # Nunca invente ou memorize faixa de referencia aqui (ver Protocolo Clinico).
+
+# Alertas ja calculados na ultima revisao/raio-x (opcional, acelera consultas repetidas).
+# Pode ficar vazio; a skill raio-x recalcula na hora a partir dos campos acima.
+alertas_cache: []
