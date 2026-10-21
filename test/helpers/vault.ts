@@ -29,10 +29,17 @@ export async function makeTempRoot(): Promise<string> {
   return root;
 }
 
-/** Remove a pasta de teste e o diretório `salus-test-*` que a contém. */
+/**
+ * Remove a pasta de teste e o diretório `salus-test-*` que a contém.
+ * O pai só é removido se for mesmo um `salus-test-*` DENTRO de `os.tmpdir()`;
+ * caso contrário apaga apenas `root`.
+ */
 export async function removeTempRoot(root: string): Promise<void> {
   const parent = path.dirname(root);
-  const alvo = path.basename(parent).startsWith(TEMP_PREFIX) ? parent : root;
+  const rel = path.relative(os.tmpdir(), parent);
+  const dentroDoTmp = !rel.startsWith('..') && !path.isAbsolute(rel);
+  const alvo =
+    dentroDoTmp && path.basename(parent).startsWith(TEMP_PREFIX) ? parent : root;
   await fs.promises.rm(alvo, { recursive: true, force: true, maxRetries: 5 });
 }
 

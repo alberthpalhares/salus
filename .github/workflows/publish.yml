@@ -1,6 +1,8 @@
 name: Publish to NPM
 
 # Só a tag vX.Y.Z publica. Push na main e PRs rodam apenas a CI (ci.yml).
+# A tag roda primeiro a CI completa (ci.yml, via workflow_call: Linux e Windows,
+# Node 22 e 24); o job `publish` só começa se ela passar inteira.
 on:
   push:
     tags: ['v*']
@@ -15,39 +17,37 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   publish:
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-
-      - name: Instalar dependências
-        run: npm ci
-
-      # Porta antes de publicar: a mesma da CI. Qualquer falha impede o publish.
-      - name: Checagem de tipos
-        run: npm run typecheck
-
-      - name: Testes
-        run: npm test
-
-      - name: Consistência das docs
-        run: bash scripts/check-docs.sh
+          cache: npm
 
       - name: Conferir tag × versão
         shell: bash
         run: |
           set -euo pipefail
-          test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME" || {
-            echo "A tag $GITHUB_REF_NAME não bate com a versão do package.json (v$(node -p "require('./package.json').version")). Nada foi publicado."
+          VERSAO="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$VERSAO" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME não corresponde à versão $VERSAO do package.json"
             exit 1
-          }
+          fi
+
+      - name: Instalar dependências
+        run: npm ci
 
       - name: Publish to NPM
         run: npm publish --provenance --access public

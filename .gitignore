@@ -10,6 +10,15 @@ node_modules/
 dist/
 test/fixtures/local/
 
+# Dados de família nunca entram no repositório (ancorados: não afetam framework/.agents/.../templates/Familia/)
+/Perfis/
+/Familia/
+/_Caixa de Entrada/
+/framework/Perfis/
+/framework/Familia/
+/framework/_Caixa de Entrada/*
+!/framework/_Caixa de Entrada/LEIA-ME.md
+
 # Arquivos do sistema operacional e IDEs
 .DS_Store
 Thumbs.db

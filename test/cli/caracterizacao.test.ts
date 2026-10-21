@@ -35,7 +35,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  await removeTempRoot(root);
+  if (root) await removeTempRoot(root);
 });
 
 function existe(...partes: string[]): boolean {
@@ -148,6 +148,9 @@ describe('init', () => {
       );
     }
     expect(r.out).toContain('Quero montar meu Salus');
+    // O caminho impresso mantém o acento (a pasta temporária é "Saúde da Família").
+    expect(r.out).toContain('Saúde da Família');
+    expect(r.out).toMatch(/Abra esta pasta \(.*Saúde da Família/);
   });
 
   it('init copia .agents idêntico à origem', async () => {
@@ -294,6 +297,9 @@ describe('doctor', () => {
     expect(r.code).toBe(0);
     expect(r.out).toContain('ainda não foi inicializado');
     expect(r.out).toContain('Tudo certo');
+    // O caminho analisado mantém o acento (a pasta temporária é "Saúde da Família").
+    expect(r.out).toContain('Saúde da Família');
+    expect(r.out).toMatch(/Pasta analisada: .*Saúde da Família/);
   });
 
   it('doctor na família simulada', async () => {
@@ -382,34 +388,35 @@ describe('pacote', () => {
     const [pacote] = JSON.parse(stdout) as Array<{ files: Array<{ path: string }> }>;
     const caminhos = pacote.files.map((f) => f.path);
 
-    const proibidosPorPrefixo = ['docs/', 'scripts/', 'test/', '.github/'];
-    for (const prefixo of proibidosPorPrefixo) {
+    // Allowlist real: qualquer caminho fora dela (docs/, scripts/, test/, STATUS.md,
+    // produto solto na raiz, etc.) falha o teste.
+    const arquivosDaRaiz = ['README.md', 'LICENSE', 'package.json', 'dist/cli.js'];
+    const foraDaAllowlist = caminhos.filter(
+      (c) => !arquivosDaRaiz.includes(c) && !c.startsWith('framework/'),
+    );
+    expect(foraDaAllowlist, 'fora da allowlist').toEqual([]);
+
+    for (const arquivo of arquivosDaRaiz) {
+      expect(caminhos, arquivo).toContain(arquivo);
+    }
+    expect(caminhos).toContain('framework/.agents/skills/raio-x/SKILL.md');
+
+    // Dados de família nunca viajam no pacote: nem Perfis/, nem Familia/ (a pasta
+    // `templates/Familia/` das skills fica sob .agents/, então não casa), e da
+    // Caixa de Entrada só o LEIA-ME.md.
+    for (const prefixo of ['framework/Perfis/', 'framework/Familia/']) {
       expect(
         caminhos.filter((c) => c.startsWith(prefixo)),
         prefixo,
       ).toEqual([]);
     }
-    for (const arquivo of ['STATUS.md', 'CONTRIBUTING.md', 'CHANGELOG.md']) {
-      expect(caminhos, arquivo).not.toContain(arquivo);
-    }
-
-    for (const arquivo of ['README.md', 'LICENSE', 'package.json']) {
-      expect(caminhos, arquivo).toContain(arquivo);
-    }
-    expect(caminhos).toContain('framework/.agents/skills/raio-x/SKILL.md');
-
-    // O produto vive só sob framework/: nada dele pode ficar na raiz do pacote.
-    const naRaiz = (c: string): boolean =>
-      c.startsWith('.agents/') ||
-      c.startsWith('Frameworks/') ||
-      [
-        'AGENTS.md',
-        'CLAUDE.md',
-        'GEMINI.md',
-        'CODEX.md',
-        '.cursorrules',
-        'COMECE_AQUI.md',
-      ].includes(c);
-    expect(caminhos.filter(naRaiz), 'produto fora de framework/').toEqual([]);
+    expect(
+      caminhos.filter(
+        (c) =>
+          c.startsWith('framework/_Caixa de Entrada/') &&
+          c !== 'framework/_Caixa de Entrada/LEIA-ME.md',
+      ),
+      'Caixa de Entrada além do LEIA-ME.md',
+    ).toEqual([]);
   });
 });

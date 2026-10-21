@@ -24,7 +24,8 @@
 
 1. `npm run typecheck` — TypeScript estrito, sem emitir arquivos (`tsc --noEmit`).
 2. `npm test` — o `pretest` gera o `dist/cli.js` e a suíte roda: unitários dos módulos e caracterização do CLI (`init`, `update`, `doctor`, colisões, `--force`, pasta vazia); cobre o antigo roteiro manual. A CI roda em Linux e Windows.
-3. `bash scripts/check-docs.sh` — trava de consistência (skills na tabela do cérebro, campos do índice, arquivos citados, versão, resíduos). A CI e o workflow de publicação rodam o mesmo script.
+   `npm run test:watch` e o runner da IDE não reconstroem `dist/`; rode `npm run build` antes se mudou `src/`.
+3. `bash scripts/check-docs.sh` — trava de consistência (skills na tabela do cérebro, campos do índice, arquivos citados, versão, resíduos). A CI (e, por ela, o workflow de publicação) roda o mesmo script.
 4. `npm pack --dry-run` — só `dist/`, `framework/`, `README.md`, `LICENSE` e `package.json` entram.
 5. Mudou um campo de `Familia/_index.yaml`? Atualize, no mesmo commit: o template do índice, `SALUS_TEMPLATE.md`, `PROTOCOLO_CLINICO.md`, cada skill que lê ou grava o campo, a seção "Reconstruir ou migrar o índice" de `salus-revisao` e o `CHANGELOG.md`.
 6. Mudou, criou ou renomeou uma skill? Confira a tabela "Skills" do `SALUS_TEMPLATE.md` e a tabela "Quem lê, quem grava" do protocolo.
@@ -34,7 +35,8 @@
 ## Release
 
 - Suba a versão em `package.json`, `README.md`, `framework/COMECE_AQUI.md` e no marcador `salus-template` do `SALUS_TEMPLATE.md`; crie a seção no `CHANGELOG.md`; commit; depois **`git tag vX.Y.Z && git push origin main vX.Y.Z`** (empurre a tag pelo nome, nunca `--tags`, para não enviar tags esquecidas) — só a tag publica (`.github/workflows/publish.yml`, com provenance). Push na `main` **não publica mais**; roda a CI (`.github/workflows/ci.yml`).
-- A tag precisa ser igual a `v` + a `version` do `package.json`; o workflow confere antes de publicar e roda `npm run typecheck`, `npm test` e `check-docs`. Se algum passo falhar, nada é publicado.
+- A tag dispara primeiro a CI completa (`ci.yml` chamada por `publish.yml`: Linux e Windows × Node 22 e 24, com `npm run typecheck`, `npm test`, `check-docs`, `npm pack --dry-run` e a instalação do tarball); só se ela passar em todas as combinações o job `publish` roda. Se algum passo falhar, nada é publicado.
+- A tag precisa ser igual a `v` + a `version` do `package.json`; o primeiro passo do job `publish` confere isso antes de qualquer outra coisa e falha com `::error::` se divergir.
 - O nome do comando é só `npx salus-ai`. Não adicione aliases de bin: `salus` é um pacote de terceiro no npm.
 
 ## Ambiente

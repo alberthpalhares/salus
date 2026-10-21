@@ -12,6 +12,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Node mínimo passa a 22.
 - `require('salus-ai')` não executa mais o CLI (use `npx salus-ai`).
 - Cancelar o prompt do `init` com Ctrl+C/Ctrl+D agora termina com "Operação cancelada" e código 1 (antes saía 0 em silêncio).
+- `init` não cria mais `_Caixa de Entrada/.gitkeep` na pasta do usuário (a pasta continua sendo criada).
 
 ### Interno
 - Produto movido para `framework/`; CI em Linux e Windows; publicação só por tag.

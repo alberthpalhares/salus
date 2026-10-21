@@ -171,7 +171,7 @@ Sem rede de saída, telemetria ou contas. A IA vê o que as tools devolvem. Audi
 
 | Escolha | Por quê |
 |---|---|
-| TypeScript, ESM, Node ≥ 20 | tipos = parte do schema; padrão do MCP SDK e do Hono |
+| TypeScript, ESM, Node ≥ 22 (Node 20 fora de suporte desde 2026-04-30 e não testado na CI) | tipos = parte do schema; padrão do MCP SDK e do Hono |
 | Zod (versão pinada compatível com o MCP SDK) | schema único para validação, tools e API |
 | `yaml` (parseDocument) + `remark`/`remark-gfm`/`remark-frontmatter` **só para localizar** + emissor/splice próprios | round-trip real |
 | Sem banco, sem cache em disco | escala de família; zero nativo |
@@ -186,7 +186,7 @@ Sem rede de saída, telemetria ou contas. A IA vê o que as tools devolvem. Audi
 ### 3.9 Estrutura do repositório (alvo)
 ```
 <repo>/
-├── package.json  ("type": "module", bin: dist/cli.js, files: [dist, framework], engines >=20)
+├── package.json  ("type": "module", bin: dist/cli.js, files: [dist, framework], engines >=22)
 ├── src/{core,cli,mcp,server}/ · ui/ (Vite+Preact → dist/ui)
 ├── framework/  (tudo que vai ao cofre do usuário)
 ├── test/{unit,integration,fixtures/{vaults/{v1-0.3,v1-0.4,v2},dirty/}}/   (+ test/fixtures/local/ gitignored)

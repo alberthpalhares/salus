@@ -17,6 +17,9 @@ export const CLI_PATH: string =
 export const FRAMEWORK_SRC: string =
   process.env.SALUS_FRAMEWORK ?? path.join(REPO_ROOT, 'framework');
 
+/** Tempo máximo de cada execução do CLI nos testes. */
+const CLI_TIMEOUT_MS = 25_000;
+
 export type CliResult = {
   code: number;
   stdout: string;
@@ -42,12 +45,23 @@ export function runCli(
     const child = execFile(
       process.execPath,
       [CLI_PATH, ...args],
-      { cwd: opts.cwd, windowsHide: true, encoding: 'utf8' },
+      {
+        cwd: opts.cwd,
+        windowsHide: true,
+        encoding: 'utf8',
+        // Um CLI travado (prompt pendente, laço) não pode pendurar a suíte inteira.
+        timeout: CLI_TIMEOUT_MS,
+        killSignal: 'SIGKILL',
+      },
       (error, stdout, stderr) => {
         let code = 0;
         let err = stderr;
         if (error) {
-          if (typeof error.code === 'number') {
+          if (error.killed === true) {
+            // Estourou o timeout e o filho foi morto: nunca confundir com exit code do CLI.
+            code = -1;
+            err = `${stderr}[runCli] timeout: o CLI não terminou em ${CLI_TIMEOUT_MS} ms e foi encerrado com SIGKILL.\n`;
+          } else if (typeof error.code === 'number') {
             code = error.code;
           } else {
             // Falha ao iniciar o processo ou morte por sinal: não é um exit code do CLI.

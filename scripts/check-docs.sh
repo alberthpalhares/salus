@@ -22,7 +22,8 @@ residuos=$(grep -rn \
   -e 'total privacidade' -e 'ChatGPT CLI' \
   --include='*.md' --include='*.yaml' --include='*.yml' --include='*.js' --include='*.ts' \
   --exclude-dir=.git --exclude-dir=graphify-out --exclude-dir=node_modules \
-  --exclude-dir=docs --exclude-dir=scripts --exclude=CHANGELOG.md . 2>/dev/null || true)
+  --exclude-dir=docs --exclude-dir=scripts --exclude-dir=dist --exclude-dir=.superpowers \
+  --exclude-dir=.claude --exclude-dir=fixtures --exclude=CHANGELOG.md . 2>/dev/null || true)
 if [ -n "$residuos" ]; then
   fail "resíduo proibido encontrado:"
   echo "$residuos"

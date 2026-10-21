@@ -7,7 +7,7 @@
 
 - Projeto: **Salus** (framework Markdown/YAML + CLI `salus-ai`) · Classificação project-standards: **T1** (CLI/script + framework documental) · Última atualização: 2026-10-21 (Claude Code)
 - Regras de desenvolvimento vivem **aqui** e em `CONTRIBUTING.md`. `framework/AGENTS.md`, `framework/CLAUDE.md`, `framework/GEMINI.md`, `framework/CODEX.md` e `framework/.cursorrules` são **artefatos do produto** (stubs copiados para o usuário final) — não coloque regras de dev neles. Os `AGENTS.md`/`CLAUDE.md` da **raiz** são as instruções de desenvolvimento deste repositório.
-- Porta de verificação atual: `npm run typecheck && npm test && bash scripts/check-docs.sh` (tipos; testes unitários e de caracterização do CLI; consistência das docs, com proveta conferida em 2026-10-20) + CI (`.github/workflows/ci.yml`, ubuntu+windows, Node 22 e 24). Só a tag `vX.Y.Z` publica no npm (`.github/workflows/publish.yml`); push na `main` não publica mais.
+- Porta de verificação atual: `npm run typecheck && npm test && bash scripts/check-docs.sh` (tipos; testes unitários e de caracterização do CLI; consistência das docs, com proveta conferida em 2026-10-20) + CI (`.github/workflows/ci.yml`, ubuntu+windows, Node 22 e 24). Só a tag `vX.Y.Z` publica no npm (`.github/workflows/publish.yml`, que chama a CI completa antes de publicar); push na `main` não publica mais.
 
 ## Concluído (último marco)
 
@@ -29,7 +29,7 @@
 | ID | Item | Motivo de adiar | Alocação |
 |----|------|-----------------|----------|
 | DT-02 | `update` apagar e recopiar `.agents/skills/` e `Frameworks/` (skills órfãs) e gravar versão instalada | Muda o comportamento do `update`; a Fase 0 foi só paridade | Alocação: → Fase 1 (framework/ em código) |
-| DT-04 | `doctor` sair ≠ 0 com alertas; Caixa ignorar subpastas; sentinela explícita para `isAlreadyInitialized` | Muda o comportamento observável do CLI; a Fase 0 foi só paridade | Alocação: → Fase 1 (doctor novo) |
+| DT-04 | `doctor` sair ≠ 0 com alertas; `doctor` tolerar links quebrados em `Perfis/` e na Caixa; Caixa ignorar subpastas; sentinela explícita para `isAlreadyInitialized` | Muda o comportamento observável do CLI; a Fase 0 foi só paridade | Alocação: → Fase 1 (doctor novo) |
 | DT-05 | Cérebro atualizável: bloco da família entre marcadores em `AGENTS.md`; `update` regenera o resto; migração 0.4 → 0.5 | Muda formato do arquivo do usuário | Alocação: → Fase 1 (formato v2) |
 | DT-06 | `pais: [id, id]` e `tutores: [id]` no índice; cruzamento genético por linhagem; `vinculo` vira só flag de privacidade | Muda formato do índice (mesma migração do DT-05) | Alocação: → Fase 1 (formato v2) |
 | DT-07 | Índice por membro (`Familia/index/<id>.yaml`) para minimizar dados enviados ao provedor | Muda formato do índice | Alocação: → Fase 1 (formato v2) |

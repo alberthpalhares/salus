@@ -7,7 +7,7 @@ O Salus é a central de saúde da sua família — pessoas e animais. Ele guarda
 ## ⚡ Como instalar e atualizar
 
 ### Método 1: Via NPX (Recomendado 🚀)
-> **Pré-requisito:** É necessário ter o [Node.js](https://nodejs.org/) instalado no computador.
+> **Pré-requisito:** É necessário ter o [Node.js](https://nodejs.org/) 22 ou mais recente instalado no computador.
 
 Abra o terminal na pasta onde quer salvar sua central de saúde e execute:
 
