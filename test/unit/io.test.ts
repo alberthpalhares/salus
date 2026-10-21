@@ -1,3 +1,4 @@
+import { EventEmitter } from 'node:events';
 import * as readline from 'node:readline';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ansi, memoryIo, nodeIo } from '../../src/cli/io.js';
@@ -7,8 +8,12 @@ vi.mock('node:readline', () => ({ createInterface: vi.fn() }));
 
 const isTTYOriginal = Object.getOwnPropertyDescriptor(process.stdin, 'isTTY');
 
-/** Faz o `process.stdin` parecer (ou não) um terminal e programa a resposta digitada. */
-function simularTerminal(opts: { tty: boolean; resposta?: string }): {
+/**
+ * Faz o `process.stdin` parecer (ou não) um terminal e programa a resposta digitada.
+ * Como no readline real, `close()` emite 'close' na hora; `abortar` imita Ctrl+C/Ctrl+D:
+ * o readline fecha sem chamar o callback da pergunta.
+ */
+function simularTerminal(opts: { tty: boolean; resposta?: string; abortar?: boolean }): {
   perguntas: string[];
   close: ReturnType<typeof vi.fn>;
 } {
@@ -17,14 +22,22 @@ function simularTerminal(opts: { tty: boolean; resposta?: string }): {
     configurable: true,
   });
   const perguntas: string[] = [];
-  const close = vi.fn();
-  vi.mocked(readline.createInterface).mockReturnValue({
+  const rl = new EventEmitter();
+  const close = vi.fn(() => {
+    rl.emit('close');
+  });
+  Object.assign(rl, {
     question: (pergunta: string, aoResponder: (resposta: string) => void) => {
       perguntas.push(pergunta);
+      if (opts.abortar) {
+        rl.emit('close');
+        return;
+      }
       aoResponder(opts.resposta ?? '');
     },
     close,
-  } as unknown as readline.Interface);
+  });
+  vi.mocked(readline.createInterface).mockReturnValue(rl as unknown as readline.Interface);
   return { perguntas, close };
 }
 
@@ -108,6 +121,14 @@ describe('nodeIo', () => {
       expect(close).toHaveBeenCalledOnce();
     },
   );
+
+  it('confirm com TTY resolve false quando o prompt é abortado (Ctrl+C/Ctrl+D) sem resposta', async () => {
+    const { perguntas, close } = simularTerminal({ tty: true, abortar: true });
+    expect(await nodeIo().confirm('Continuar? ')).toBe(false);
+    expect(perguntas).toEqual(['Continuar? ']);
+    // o readline já fechou sozinho; confirm não precisa fechá-lo de novo
+    expect(close).not.toHaveBeenCalled();
+  });
 });
 
 describe('ansi', () => {

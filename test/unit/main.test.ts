@@ -156,20 +156,22 @@ describe('main: init', () => {
     }
   });
 
-  it('erro ao criar a pasta de destino devolve 1 com a mensagem de erro do init', async () => {
+  it('erro ao criar a pasta de destino cai no catch do main: devolve 1 antes de "Inicializando"', async () => {
     fs.writeFileSync(path.join(tmp, 'arquivo'), 'não sou pasta');
 
     const io = memoryIo();
     expect(await main(['init', 'arquivo/sub'], io, tmp)).toBe(1);
     expect(saida(io.stderr)).toContain('Erro ao inicializar o Salus:');
+    expect(saida(io.stdout)).not.toContain('Inicializando');
   });
 
-  it('erro ao copiar o framework devolve 1 com a mensagem de erro do init', async () => {
+  it('erro ao copiar o framework cai no catch do init: devolve 1 depois de "Inicializando"', async () => {
     fs.writeFileSync(path.join(tmp, 'arquivo'), 'não sou pasta');
 
     const io = memoryIo();
     expect(await main(['init', 'arquivo'], io, tmp)).toBe(1);
     expect(saida(io.stderr)).toContain('Erro ao inicializar o Salus:');
+    expect(saida(io.stdout)).toContain('Inicializando');
   });
 });
 

@@ -40,9 +40,14 @@ export function nodeIo(): Io {
         output: process.stdout,
       });
       return new Promise<boolean>((resolve) => {
+        // Ctrl+C/Ctrl+D fecham o readline sem chamar o callback da pergunta: conta como "não".
+        rl.on('close', () => {
+          resolve(false);
+        });
         rl.question(question, (answer) => {
-          rl.close();
+          // Resolver antes de fechar: `close()` emite 'close' na hora e o primeiro resolve vence.
           resolve(RESPOSTAS_AFIRMATIVAS.has(answer.trim().toLowerCase()));
+          rl.close();
         });
       });
     },
