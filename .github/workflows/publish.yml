@@ -1,11 +1,15 @@
 name: Publish to NPM
 
+# Só a tag vX.Y.Z publica. Push na main e PRs rodam apenas a CI (ci.yml).
 on:
   push:
-    branches:
-      - main
+    tags: ['v*']
 
-# Evita duas publicações concorrentes da mesma versão
+permissions:
+  contents: read
+  id-token: write
+
+# Evita duas publicações concorrentes
 concurrency:
   group: npm-publish
   cancel-in-progress: false
@@ -20,37 +24,29 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
-      # Porta mínima antes de publicar: docs consistentes, e o CLI precisa carregar,
-      # inicializar uma pasta, passar no doctor e atualizar a si mesmo.
-      # Qualquer falha impede o publish.
-      - name: Smoke test do CLI e consistência das docs
+      - name: Instalar dependências
+        run: npm ci
+
+      # Porta antes de publicar: a mesma da CI. Qualquer falha impede o publish.
+      - name: Testes
+        run: npm test
+
+      - name: Consistência das docs
+        run: bash scripts/check-docs.sh
+
+      - name: Conferir tag × versão
+        shell: bash
         run: |
           set -euo pipefail
-          bash scripts/check-docs.sh
-          node --check bin/cli.js
-          node bin/cli.js --version
-          SMOKE="$RUNNER_TEMP/salus-smoke"
-          node bin/cli.js init "$SMOKE"
-          test -f "$SMOKE/AGENTS.md"
-          test -f "$SMOKE/Frameworks/PROTOCOLO_CLINICO.md"
-          test -d "$SMOKE/.agents/skills/raio-x"
-          node bin/cli.js doctor "$SMOKE"
-          node bin/cli.js update "$SMOKE"
-          npm pack --dry-run
+          test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME" || {
+            echo "A tag $GITHUB_REF_NAME não bate com a versão do package.json (v$(node -p "require('./package.json').version")). Nada foi publicado."
+            exit 1
+          }
 
-      - name: Publish to NPM if version updated
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-
-          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version > /dev/null 2>&1; then
-            echo "A versão ${PACKAGE_VERSION} de ${PACKAGE_NAME} já está publicada no NPM. Pulando publicação."
-          else
-            echo "Publicando a versão ${PACKAGE_VERSION} de ${PACKAGE_NAME} no NPM..."
-            npm publish --access public
-          fi
+      - name: Publish to NPM
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

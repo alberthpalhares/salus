@@ -18,19 +18,18 @@
 
 ## Antes de dizer "pronto"
 
-0. `bash scripts/check-docs.sh` — trava de consistência (skills na tabela do cérebro, campos do índice, arquivos citados, versão, resíduos). O workflow roda o mesmo script antes de publicar.
-1. `node --check bin/cli.js`
-2. Em uma pasta temporária fora do repositório: `node bin/cli.js init <tmp>` → `doctor <tmp>` → `update <tmp>`. Rodar `init <tmp>` de novo com stdin fechado (`</dev/null`) deve listar as colisões e sair com código 1 sem alterar nada; `init <tmp> --force` sobrescreve. `update` numa pasta vazia deve sair com código 1.
-3. `npm pack --dry-run` — só `bin/`, `.agents/`, `Frameworks/`, os cinco stubs, `_Caixa de Entrada/`, `COMECE_AQUI.md`, `README.md`, `LICENSE` e `package.json` entram.
-4. Mudou um campo de `Familia/_index.yaml`? Atualize, no mesmo commit: o template do índice, `SALUS_TEMPLATE.md`, `PROTOCOLO_CLINICO.md`, cada skill que lê ou grava o campo, a seção "Reconstruir ou migrar o índice" de `salus-revisao` e o `CHANGELOG.md`.
-5. Mudou, criou ou renomeou uma skill? Confira a tabela "Skills" do `SALUS_TEMPLATE.md` e a tabela "Quem lê, quem grava" do protocolo.
-6. Mudou uma promessa de comportamento? Confira se `README.md` e `COMECE_AQUI.md` ainda dizem a verdade.
-7. Atualize `CHANGELOG.md` (uma linha por mudança) e `STATUS.md` (retrato + adiados com `Alocação:`).
+0. `bash scripts/check-docs.sh` — trava de consistência (skills na tabela do cérebro, campos do índice, arquivos citados, versão, resíduos). A CI e o workflow de publicação rodam o mesmo script.
+1. `npm test` — suíte de caracterização do CLI (`init`, `update`, `doctor`, colisões, `--force`, pasta vazia); cobre o antigo roteiro manual. A CI roda em Linux e Windows.
+2. `npm pack --dry-run` — só `bin/`, `.agents/`, `Frameworks/`, os cinco stubs, `_Caixa de Entrada/`, `COMECE_AQUI.md`, `README.md`, `LICENSE` e `package.json` entram.
+3. Mudou um campo de `Familia/_index.yaml`? Atualize, no mesmo commit: o template do índice, `SALUS_TEMPLATE.md`, `PROTOCOLO_CLINICO.md`, cada skill que lê ou grava o campo, a seção "Reconstruir ou migrar o índice" de `salus-revisao` e o `CHANGELOG.md`.
+4. Mudou, criou ou renomeou uma skill? Confira a tabela "Skills" do `SALUS_TEMPLATE.md` e a tabela "Quem lê, quem grava" do protocolo.
+5. Mudou uma promessa de comportamento? Confira se `README.md` e `COMECE_AQUI.md` ainda dizem a verdade.
+6. Atualize `CHANGELOG.md` (uma linha por mudança) e `STATUS.md` (retrato + adiados com `Alocação:`).
 
 ## Release
 
-- Suba a versão em `package.json`, `README.md`, `COMECE_AQUI.md` e no marcador `salus-template` do `SALUS_TEMPLATE.md`; crie a seção no `CHANGELOG.md`.
-- **Push na `main` publica no npm automaticamente** (`.github/workflows/publish.yml`) se a versão ainda não existir no registro. O workflow roda um smoke test do CLI antes; se ele falhar, nada é publicado.
+- Suba a versão em `package.json`, `README.md`, `COMECE_AQUI.md` e no marcador `salus-template` do `SALUS_TEMPLATE.md`; crie a seção no `CHANGELOG.md`; commit; depois **`git tag vX.Y.Z && git push origin main --tags`** — só a tag publica (`.github/workflows/publish.yml`, com provenance). Push na `main` **não publica mais**; roda a CI (`.github/workflows/ci.yml`).
+- A tag precisa ser igual a `v` + a `version` do `package.json`; o workflow confere antes de publicar e roda `npm test` e `check-docs`. Se algum passo falhar, nada é publicado.
 - O nome do comando é só `npx salus-ai`. Não adicione aliases de bin: `salus` é um pacote de terceiro no npm.
 
 ## Estilo
