@@ -8,7 +8,7 @@ Antes de qualquer alteração, leia `STATUS.md` (estado, fase atual, adiados) e 
 Desenho aprovado: `docs/superpowers/specs/2026-10-21-salus-v2-design.md`. Decisões: `docs/adr/`. Planos por fase: `docs/superpowers/plans/`.
 
 Regras que não se negociam:
-- `npm test` e `bash scripts/check-docs.sh` verdes antes de dizer "pronto".
+- `npm run typecheck`, `npm test` e `bash scripts/check-docs.sh` verdes antes de dizer "pronto".
 - Nunca `git push`, `git tag` ou `npm publish` sem pedido explícito do dono (a tag publica no npm).
 - Dados reais de qualquer família nunca entram neste repositório; testes usam pastas temporárias e os templates de `framework/`.
 - Textos para o usuário final em português do Brasil, UTF-8, LF.

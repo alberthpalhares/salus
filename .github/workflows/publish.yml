@@ -31,6 +31,9 @@ jobs:
         run: npm ci
 
       # Porta antes de publicar: a mesma da CI. Qualquer falha impede o publish.
+      - name: Checagem de tipos
+        run: npm run typecheck
+
       - name: Testes
         run: npm test
 

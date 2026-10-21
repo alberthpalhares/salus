@@ -11,8 +11,8 @@
 
 ## Concluído (último marco)
 
-- [x] Fase 0 — fundação de engenharia (plano `docs/superpowers/plans/2026-10-21-fase-0-fundacao.md`) — 2026-10-21 — testes Vitest (33 de caracterização + 70 unitários), CI em Linux e Windows (Node 22 e 24), publicação só por tag com provenance, produto separado em `framework/` e CLI portado para TypeScript (`src/` → `dist/cli.js`) com comportamento idêntico (DT-01, DT-03 e a parte de módulos do DT-04); concluída neste branch (`worktree-fase-0-fundacao`), aguardando revisão final e merge pelo dono — modelos usados: Claude Sonnet 5.5 e Claude Opus 5.5
-- [x] 0.4.0 publicada no npm em 2026-10-21 (run do Actions verde; `npm view salus-ai version` = 0.4.0)
+- [x] Fase 0 — fundação de engenharia (plano `docs/superpowers/plans/2026-10-21-fase-0-fundacao.md`) — 2026-10-21 — testes Vitest (33 de caracterização + 70 unitários), CI em Linux e Windows (Node 22 e 24), publicação só por tag com provenance, produto separado em `framework/` e CLI portado para TypeScript (`src/` → `dist/cli.js`) com comportamento idêntico (DT-01, DT-03 e a parte de módulos do DT-04), workflows novos ainda não executados no GitHub; concluída neste branch (`worktree-fase-0-fundacao`), aguardando revisão final e merge pelo dono — modelos usados: Claude Sonnet 5.5 e Claude Opus 5.5
+- [x] 0.4.0 publicada no npm em 2026-10-21 (pelo workflow antigo de push na `main`; run do Actions verde; `npm view salus-ai version` = 0.4.0)
 - [x] v0.4.0 commitada como baseline (`61f3bad`) — 2026-10-20 — modelo usado: Claude Fable 5.1 · xhigh
 - [x] Auditoria completa + correções rápidas — 2026-10-20 — relatório em `docs/auditoria/2026-10-20_auditoria.md` — modelo usado: Claude Fable 5.1 · xhigh
 
@@ -42,5 +42,5 @@ Fase 0 concluída neste branch (aguardando revisão final e merge pelo dono). Pr
 ## Fora da porta de verificação
 
 - Comportamento das skills dentro de um assistente real (só revisão de texto e checagem cruzada de campos/caminhos).
-- Execução real dos workflows na forma final desta fase (`ci.yml` com matriz Linux+Windows × Node 22 e 24, typecheck e instalação do tarball; `publish.yml` com `--provenance`): validados por parse do YAML e pelos mesmos comandos rodados localmente; a 0.4.0 foi publicada em 2026-10-21 com o run do Actions verde, mas a primeira execução da CI desta fase no GitHub depende de push autorizado pelo dono.
+- Execução real dos workflows (validados só por parse do YAML e pelos mesmos comandos rodados localmente): a 0.4.0 foi publicada pelo `publish.yml` antigo (push na `main`). `ci.yml` e o novo `publish.yml` (só tag, com `--provenance`) nunca rodaram no GitHub: a primeira execução da CI depende de push autorizado pelo dono, e a do publish, de tag autorizada.
 - YAML do índice (sem parser disponível; validado por leitura).
