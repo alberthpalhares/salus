@@ -1,0 +1,6 @@
+# salus.yaml — manifesto do cofre (fica na RAIZ do cofre; o Salus lê e atualiza, não edite à mão)
+schema_versao: 2
+versao_salus: "[versão do Salus]"
+familia: "[Sobrenome/identificação da família]"
+criado_em: "[AAAA-MM-DD]"
+ultima_revisao: null

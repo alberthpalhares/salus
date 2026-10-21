@@ -1,6 +1,10 @@
 # Normaliza fim de linha: LF no repositório e no checkout, em qualquer SO.
 * text=auto eol=lf
 
+# Fixtures de teste: sem conversão de fim de linha (CRLF e BOM de propósito precisam sobreviver ao checkout em qualquer SO).
+test/fixtures/dirty/** -text
+test/fixtures/vaults/** -text
+
 # Binários que podem aparecer em exemplos/documentação
 *.png binary
 *.jpg binary
