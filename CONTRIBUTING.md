@@ -47,7 +47,7 @@
 
 ## Estilo
 
-- TypeScript estrito, ESM, imports com sufixo `.js`; sem dependências de runtime sem ADR.
+- TypeScript estrito, ESM, imports com sufixo `.js`; dependência de runtime só as do [ADR-0008](docs/adr/0008-dependencias-de-runtime.md); qualquer outra exige um novo ADR.
 - Português do Brasil com acentos, UTF-8, LF (`.gitattributes` cuida disso).
 - Datas em `AAAA-MM-DD` em qualquer arquivo gerado para o usuário.
 - Skills descrevem o que a IA faz em passos numerados, com os arquivos exatos que lê e grava; toda gravação de dado clínico passa por confirmação explícita (regra 4 do núcleo).
