@@ -1,0 +1,160 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import fc from 'fast-check';
+import { describe, expect, it } from 'vitest';
+import {
+  desescaparCelula,
+  detectarEol,
+  dividirLinhas,
+  escaparCelula,
+  normalizarCabecalho,
+  removerBom,
+} from '../../../src/core/format/texto.js';
+
+const FIXTURES = fileURLToPath(new URL('../../fixtures/', import.meta.url));
+const lerFixture = (relativo: string): string => readFileSync(FIXTURES + relativo, 'utf8');
+
+describe('removerBom', () => {
+  it('remove o U+FEFF do início e sinaliza', () => {
+    expect(removerBom('﻿# Título\n')).toEqual({ texto: '# Título\n', tinhaBom: true });
+  });
+
+  it('sem BOM devolve o texto intacto', () => {
+    expect(removerBom('# Título\n')).toEqual({ texto: '# Título\n', tinhaBom: false });
+    expect(removerBom('')).toEqual({ texto: '', tinhaBom: false });
+  });
+
+  it('só o BOM do início sai: um U+FEFF no meio do texto fica', () => {
+    expect(removerBom('a﻿b')).toEqual({ texto: 'a﻿b', tinhaBom: false });
+    expect(removerBom('﻿﻿a')).toEqual({ texto: '﻿a', tinhaBom: true });
+  });
+
+  it('lê o BOM real de dirty/bom.md', () => {
+    const { texto, tinhaBom } = removerBom(lerFixture('dirty/bom.md'));
+    expect(tinhaBom).toBe(true);
+    expect(texto.startsWith('# Medicamentos')).toBe(true);
+  });
+});
+
+describe('detectarEol', () => {
+  it('escolhe o terminador dominante', () => {
+    expect(detectarEol('a\r\nb\r\nc\n')).toBe('CRLF');
+    expect(detectarEol('a\nb\nc\r\n')).toBe('LF');
+  });
+
+  it('empate ou texto sem quebra de linha → LF', () => {
+    expect(detectarEol('a\r\nb\n')).toBe('LF');
+    expect(detectarEol('sem quebra')).toBe('LF');
+    expect(detectarEol('')).toBe('LF');
+  });
+
+  it('\\r solto não conta como fim de linha', () => {
+    expect(detectarEol('a\rb\rc\r\n')).toBe('CRLF');
+    expect(detectarEol('a\rb\rc\n')).toBe('LF');
+  });
+
+  it('reconhece os arquivos do corpus', () => {
+    expect(detectarEol(lerFixture('dirty/crlf.md'))).toBe('CRLF');
+    expect(detectarEol(lerFixture('vaults/v2-exemplo/Perfis/Ana/Medicamentos.md'))).toBe('LF');
+  });
+});
+
+describe('normalizarCabecalho', () => {
+  it('apara, ignora maiúsculas e colapsa espaços repetidos', () => {
+    expect(normalizarCabecalho('  Pressão  Arterial ')).toBe(normalizarCabecalho('pressão arterial'));
+    expect(normalizarCabecalho('  Pressão  Arterial ')).toBe('pressão arterial');
+  });
+
+  it('normaliza o Unicode para NFC (ã decomposto = ã composto)', () => {
+    const decomposto = 'Pressão arterial';
+    expect(decomposto).not.toBe('Pressão arterial');
+    expect(normalizarCabecalho(decomposto)).toBe(normalizarCabecalho('Pressão arterial'));
+    expect(normalizarCabecalho(decomposto)).toBe('pressão arterial'.normalize('NFC'));
+  });
+
+  it('trata tabulação, espaço inseparável e quebra de linha como espaço', () => {
+    expect(normalizarCabecalho('Contatos\tde  emergência')).toBe('contatos de emergência');
+    expect(normalizarCabecalho('Contatos de\nemergência')).toBe('contatos de emergência');
+  });
+
+  it('minúsculas com acento em português', () => {
+    expect(normalizarCabecalho('DESCONTINUADOS')).toBe('descontinuados');
+    expect(normalizarCabecalho('ÉPOCA DE VACINAÇÃO')).toBe('época de vacinação');
+  });
+});
+
+describe('escaparCelula / desescaparCelula', () => {
+  it('escreve | como \\| e lê \\| como |', () => {
+    expect(escaparCelula('Tomar com alimento | completar os 7 dias')).toBe(
+      'Tomar com alimento \\| completar os 7 dias',
+    );
+    expect(desescaparCelula('Tomar com alimento \\| completar os 7 dias')).toBe(
+      'Tomar com alimento | completar os 7 dias',
+    );
+  });
+
+  it('texto sem | passa intacto (HTML é só texto)', () => {
+    expect(escaparCelula('<b>alto</b> segundo o paciente')).toBe('<b>alto</b> segundo o paciente');
+    expect(desescaparCelula('<b>alto</b> segundo o paciente')).toBe('<b>alto</b> segundo o paciente');
+    expect(escaparCelula('')).toBe('');
+  });
+
+  it('round-trip com barra invertida antes do |', () => {
+    for (const s of ['a\\|b', '\\', 'a\\', '||', '\\\\|', '| início e fim |']) {
+      expect(desescaparCelula(escaparCelula(s))).toBe(s);
+    }
+  });
+
+  it('propriedade: desescapar(escapar(s)) === s', () => {
+    const unidade = fc.constantFrom('|', '\\', 'a', ' ', 'ç', 'é', '̃', '<', '>');
+    fc.assert(
+      fc.property(fc.oneof(fc.string(), fc.string({ unit: unidade })), (s) => {
+        expect(desescaparCelula(escaparCelula(s))).toBe(s);
+        // Depois de escapar, todo | está precedido de \ (nunca vira divisor de célula).
+        expect(/(^|[^\\])\|/.test(escaparCelula(s))).toBe(false);
+      }),
+      { numRuns: 300 },
+    );
+  });
+});
+
+describe('dividirLinhas', () => {
+  it('separa linhas e guarda o terminador original de cada uma', () => {
+    expect(dividirLinhas('a\r\nb\nc')).toEqual({ linhas: ['a', 'b', 'c'], eols: ['\r\n', '\n', ''] });
+  });
+
+  it('texto terminado em quebra não ganha linha vazia extra', () => {
+    expect(dividirLinhas('a\n')).toEqual({ linhas: ['a'], eols: ['\n'] });
+    expect(dividirLinhas('a\n\n')).toEqual({ linhas: ['a', ''], eols: ['\n', '\n'] });
+  });
+
+  it('texto vazio não tem linhas', () => {
+    expect(dividirLinhas('')).toEqual({ linhas: [], eols: [] });
+  });
+
+  it('\\r solto fica dentro da linha', () => {
+    expect(dividirLinhas('a\rb\n')).toEqual({ linhas: ['a\rb'], eols: ['\n'] });
+  });
+
+  it('preserva o CRLF de dirty/crlf.md linha a linha', () => {
+    const fonte = lerFixture('dirty/crlf.md');
+    const { linhas, eols } = dividirLinhas(fonte);
+    expect(linhas.length).toBe(20);
+    expect(eols.every((eol) => eol === '\r\n')).toBe(true);
+    expect(linhas.some((l) => l.includes('\r'))).toBe(false);
+  });
+
+  it('propriedade: linhas e eols paralelos; juntar devolve a fonte byte a byte', () => {
+    const unidade = fc.constantFrom('a', ' ', '|', '\r', '\n', '\r\n', 'é');
+    fc.assert(
+      fc.property(fc.string({ unit: unidade }), (s) => {
+        const { linhas, eols } = dividirLinhas(s);
+        expect(linhas.length).toBe(eols.length);
+        expect(linhas.map((l, i) => l + eols[i]).join('')).toBe(s);
+        for (const l of linhas) expect(l.includes('\n')).toBe(false);
+        for (const eol of eols.slice(0, -1)) expect(['\n', '\r\n']).toContain(eol);
+      }),
+      { numRuns: 300 },
+    );
+  });
+});
