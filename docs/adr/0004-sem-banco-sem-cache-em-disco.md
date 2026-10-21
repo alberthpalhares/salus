@@ -5,7 +5,7 @@
 
 ## Contexto
 
-Diagnóstico D11 e D9 do [desenho do v2](../superpowers/specs/2026-10-21-salus-v2-design.md): sem acesso local estruturado não há como devolver só o que a pergunta exige, e nada roda em Windows hoje. A anti-meta de instalação complicada (desenho, seção 2: continua `npx`, sem Docker, banco ou conta) exclui dependência nativa, e um cofre familiar parseia em dezenas de ms.
+Diagnóstico D11 e D9 do [desenho do v2](../superpowers/specs/2026-10-21-salus-v2-design.md): sem acesso local estruturado não há como devolver só o que a pergunta exige, e nada é testado em Windows hoje. A anti-meta de instalação complicada (desenho, seção 2: continua `npx`, sem Docker, banco ou conta) exclui dependência nativa, e um cofre familiar parseia em dezenas de ms.
 
 ## Decisão
 

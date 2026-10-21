@@ -16,4 +16,4 @@ O cofre é uma pasta sincronizada por OneDrive sem servidor fixo; dois escritore
 - Positivo: duas máquinas escrevendo funcionam sem servidor fixo, e lock, PIN e auditoria não viram conflito de OneDrive.
 - Positivo: `Doses.md` e `Historico.md` fundem sozinhos; o resto é protegido por hash-base e 409 (ADR-0005).
 - Custo: a auditoria é por máquina, então não existe uma trilha única da família.
-- Custo: copiar o cofre para outra máquina não leva lock, PIN nem "última cópia gravada"; o PIN é definido de novo lá.
+- Custo: copiar o cofre para outra máquina não leva lock, PIN nem "última cópia gravada"; o PIN não acompanha o cofre.

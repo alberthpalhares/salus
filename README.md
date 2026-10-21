@@ -14,7 +14,7 @@ Inspirado na mecânica do [Córtex](https://github.com/alberthpalhares/cortex), 
 ## ⚡ Instalação e Atualização Rápida (Via NPX 🚀)
 
 ### 📋 Pré-requisito
-Para utilizar o instalador via terminal, é necessário ter o **Node.js** instalado no seu computador.
+Para utilizar o instalador via terminal, é necessário ter o **Node.js 22 ou mais recente** instalado no seu computador.
 - Se você ainda não tem o Node.js instalado, faça o download da versão recomendada no site oficial: [Node.js (nodejs.org)](https://nodejs.org/).
 
 ### 🛠️ Comandos do CLI
@@ -84,11 +84,15 @@ Salus/
 ├── README.md                  ← Este arquivo
 ├── CHANGELOG.md               ← Histórico de versões
 ├── CONTRIBUTING.md · STATUS.md ← Para quem desenvolve o framework (não vão no pacote npm)
-├── docs/auditoria/            ← Relatórios de auditoria (não vão no pacote npm)
+├── docs/                      ← Auditorias, ADRs, desenho e planos (não vão no pacote npm)
 ├── scripts/check-docs.sh      ← Trava de consistência das docs (roda no CI antes de publicar)
 ├── LICENSE                    ← Licença MIT
 ├── package.json               ← Configuração do pacote NPX (salus-ai)
-├── bin/cli.js                 ← Script CLI (init, update, doctor)
+├── src/                       ← Código-fonte do CLI em TypeScript (init, update, doctor; não vai no pacote npm)
+│   ├── cli/                   ← Entrada e despacho dos comandos
+│   └── core/framework/        ← init, update, doctor e utilitários
+├── dist/cli.js                ← CLI empacotado, gerado por `npm run build` (não é commitado; é o binário do pacote)
+├── test/                      ← Testes do CLI: unitários e de caracterização (não vão no pacote npm)
 └── framework/                 ← Tudo que o `init` copia para a pasta do usuário (espelha o layout do cofre)
     ├── CLAUDE.md · GEMINI.md · CODEX.md · AGENTS.md · .cursorrules  ← Inicialização multi-IA
     ├── COMECE_AQUI.md         ← Guia rápido do usuário final

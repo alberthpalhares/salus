@@ -4,7 +4,7 @@ Cada decisão estrutural do Salus fica em um arquivo `docs/adr/NNNN-slug.md`, e 
 
 ## Convenção
 
-- `# ADR-NNNN: Título`: número de quatro dígitos e um título curto, no mesmo nome do arquivo.
+- `# ADR-NNNN: Título`: número de quatro dígitos e um título curto (o nome do arquivo é o slug do título).
 - `Data`: dia em que a decisão foi aceita, em `AAAA-MM-DD`.
 - `Status`: `aceita` ou `substituída por ADR-NNNN`.
 - `## Contexto`: o problema que motivou a decisão, citando o item do diagnóstico (D1–D12, seção 1 do [desenho do v2](../superpowers/specs/2026-10-21-salus-v2-design.md)) quando houver.

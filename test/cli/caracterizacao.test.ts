@@ -11,7 +11,7 @@ import {
   simulateFamily,
 } from '../helpers/vault.js';
 
-// Suíte de caracterização: congela o comportamento ATUAL do CLI (bin/cli.js).
+// Suíte de caracterização: congela o comportamento ATUAL do CLI (dist/cli.js).
 // O CLI é a referência; se um teste falhar, o teste está errado.
 
 const VERSAO: string = JSON.parse(

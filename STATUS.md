@@ -7,40 +7,40 @@
 
 - Projeto: **Salus** (framework Markdown/YAML + CLI `salus-ai`) · Classificação project-standards: **T1** (CLI/script + framework documental) · Última atualização: 2026-10-21 (Claude Code)
 - Regras de desenvolvimento vivem **aqui** e em `CONTRIBUTING.md`. `framework/AGENTS.md`, `framework/CLAUDE.md`, `framework/GEMINI.md`, `framework/CODEX.md` e `framework/.cursorrules` são **artefatos do produto** (stubs copiados para o usuário final) — não coloque regras de dev neles. Os `AGENTS.md`/`CLAUDE.md` da **raiz** são as instruções de desenvolvimento deste repositório.
-- Porta de verificação atual: `npm test` (suíte de caracterização do CLI) + `bash scripts/check-docs.sh` (consistência das docs, com proveta conferida em 2026-10-20) + CI (`.github/workflows/ci.yml`, ubuntu+windows, Node 22 e 24). Só a tag `vX.Y.Z` publica no npm (`.github/workflows/publish.yml`); push na `main` não publica mais.
+- Porta de verificação atual: `npm run typecheck && npm test && bash scripts/check-docs.sh` (tipos; testes unitários e de caracterização do CLI; consistência das docs, com proveta conferida em 2026-10-20) + CI (`.github/workflows/ci.yml`, ubuntu+windows, Node 22 e 24). Só a tag `vX.Y.Z` publica no npm (`.github/workflows/publish.yml`); push na `main` não publica mais.
 
 ## Concluído (último marco)
 
-- [x] DT-03 — CI por PR/push em Linux e Windows (`ci.yml`) e publicação só por tag `v*`, com provenance (`publish.yml`) — 2026-10-21 — workflows validados só por parse do YAML; rodam no GitHub no primeiro push/tag autorizado pelo dono — modelo usado: Claude Sonnet 5.5
-- [x] DT-01 — suíte de caracterização do `bin/cli.js` (Vitest, 33 testes em `test/`) e `npm test` como porta única — 2026-10-21 (`89a3bcf`, `fc603a7`) — modelo usado: Claude Sonnet 5.5
+- [x] Fase 0 — fundação de engenharia (plano `docs/superpowers/plans/2026-10-21-fase-0-fundacao.md`) — 2026-10-21 — testes Vitest (33 de caracterização + 70 unitários), CI em Linux e Windows (Node 22 e 24), publicação só por tag com provenance, produto separado em `framework/` e CLI portado para TypeScript (`src/` → `dist/cli.js`) com comportamento idêntico (DT-01, DT-03 e a parte de módulos do DT-04); concluída neste branch (`worktree-fase-0-fundacao`), aguardando revisão final e merge pelo dono — modelos usados: Claude Sonnet 5.5 e Claude Opus 5.5
+- [x] 0.4.0 publicada no npm em 2026-10-21 (run do Actions verde; `npm view salus-ai version` = 0.4.0)
 - [x] v0.4.0 commitada como baseline (`61f3bad`) — 2026-10-20 — modelo usado: Claude Fable 5.1 · xhigh
 - [x] Auditoria completa + correções rápidas — 2026-10-20 — relatório em `docs/auditoria/2026-10-20_auditoria.md` — modelo usado: Claude Fable 5.1 · xhigh
 
 ## Em andamento
 
-- [~] Nada em aberto fora da Fase 0 (ver "Onde retomar"). O push na `main` **não publica mais**: só a tag `vX.Y.Z` publica (ver `CONTRIBUTING.md`, seção "Release").
+- [~] Nada em aberto: a Fase 0 está concluída neste branch (ver "Onde retomar"). O push na `main` **não publica mais**: só a tag `vX.Y.Z` publica (ver `CONTRIBUTING.md`, seção "Release").
 
 ## Aguardando aprovação
 
-- ⏸ Nada. A 0.4.0 foi publicada em 2026-10-21. Qualquer push, tag ou publish continua exigindo pedido explícito do dono.
+- ⏸ Revisão final e merge da Fase 0 (branch `worktree-fase-0-fundacao`) pelo dono. Qualquer push, tag ou publish continua exigindo pedido explícito do dono.
 
 ## Adiados (todo item com destino grepável)
 
 | ID | Item | Motivo de adiar | Alocação |
 |----|------|-----------------|----------|
-| DT-02 | `update` apagar e recopiar `.agents/skills/` e `Frameworks/` (skills órfãs) e gravar versão instalada | Apagar pastas sem teste é arriscado | Alocação: → rodada testes/CI |
-| DT-04 | `bin/cli.js` (~400 linhas com brancos, acima do alvo de 200) → `lib/`; `doctor` sair ≠ 0 com alertas; ignorar subpastas e links quebrados na Caixa; `isAlreadyInitialized` por marcador explícito | Refatorar sem teste de caracterização | Alocação: → rodada testes/CI |
-| DT-05 | Cérebro atualizável: bloco da família entre marcadores em `AGENTS.md`; `update` regenera o resto; migração 0.4 → 0.5 | Muda formato do arquivo do usuário | Alocação: → v0.5.0 |
-| DT-06 | `pais: [id, id]` e `tutores: [id]` no índice; cruzamento genético por linhagem; `vinculo` vira só flag de privacidade | Muda formato do índice (mesma migração do DT-05) | Alocação: → v0.5.0 |
-| DT-07 | Índice por membro (`Familia/index/<id>.yaml`) para minimizar dados enviados ao provedor | Muda formato do índice | Alocação: → v0.5.0 |
-| DT-08 | Separar `dose` de `frequencia` no índice; remover `CODEX.md` (Codex lê `AGENTS.md`) | Cosmético; junto da migração | Alocação: → v0.5.0 |
+| DT-02 | `update` apagar e recopiar `.agents/skills/` e `Frameworks/` (skills órfãs) e gravar versão instalada | Muda o comportamento do `update`; a Fase 0 foi só paridade | Alocação: → Fase 1 (framework/ em código) |
+| DT-04 | `doctor` sair ≠ 0 com alertas; Caixa ignorar subpastas; sentinela explícita para `isAlreadyInitialized` | Muda o comportamento observável do CLI; a Fase 0 foi só paridade | Alocação: → Fase 1 (doctor novo) |
+| DT-05 | Cérebro atualizável: bloco da família entre marcadores em `AGENTS.md`; `update` regenera o resto; migração 0.4 → 0.5 | Muda formato do arquivo do usuário | Alocação: → Fase 1 (formato v2) |
+| DT-06 | `pais: [id, id]` e `tutores: [id]` no índice; cruzamento genético por linhagem; `vinculo` vira só flag de privacidade | Muda formato do índice (mesma migração do DT-05) | Alocação: → Fase 1 (formato v2) |
+| DT-07 | Índice por membro (`Familia/index/<id>.yaml`) para minimizar dados enviados ao provedor | Muda formato do índice | Alocação: → Fase 1 (formato v2) |
+| DT-08 | Separar `dose` de `frequencia` no índice; remover `CODEX.md` (Codex lê `AGENTS.md`) | Cosmético; junto da migração | Alocação: → Fase 1 (formato v2) |
 
 ## Onde retomar
 
-Fase 0 em execução (plano `docs/superpowers/plans/2026-10-21-fase-0-fundacao.md`): Tarefas 1–3 concluídas; próxima: Tarefa 4 (mover o produto para `framework/`).
+Fase 0 concluída neste branch (aguardando revisão final e merge pelo dono). Próxima: Fase 1 — escrever `docs/superpowers/plans/<data>-fase-1-nucleo.md` com `superpowers:writing-plans`, começando por `salus-ai inspecionar`/`anonimizar`.
 
 ## Fora da porta de verificação
 
 - Comportamento das skills dentro de um assistente real (só revisão de texto e checagem cruzada de campos/caminhos).
-- Execução real dos workflows `ci.yml` e `publish.yml` (incluindo `--provenance`): validados só por parse do YAML e pelos mesmos comandos rodados localmente; a primeira execução no GitHub depende de push/tag autorizado pelo dono.
+- Execução real dos workflows na forma final desta fase (`ci.yml` com matriz Linux+Windows × Node 22 e 24, typecheck e instalação do tarball; `publish.yml` com `--provenance`): validados por parse do YAML e pelos mesmos comandos rodados localmente; a 0.4.0 foi publicada em 2026-10-21 com o run do Actions verde, mas a primeira execução da CI desta fase no GitHub depende de push autorizado pelo dono.
 - YAML do índice (sem parser disponível; validado por leitura).

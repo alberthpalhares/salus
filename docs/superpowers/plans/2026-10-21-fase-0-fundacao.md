@@ -8,7 +8,9 @@
 
 **Tech Stack:** Node ≥ 20 (CI em 20/22/24), TypeScript (ESM, `NodeNext`), Vitest, tsdown, GitHub Actions. Zero dependências de runtime nesta fase.
 
-**Spec:** `docs/superpowers/specs/2026-10-21-salus-v2-design.md` (seções 1, 3.9, 4 e 5). Plano aprovado completo: `C:\Users\alber\.claude\plans\n-o-entendi-os-stop-happy-lecun.md`.
+**Spec:** `docs/superpowers/specs/2026-10-21-salus-v2-design.md` (seções 1, 3.9, 4 e 5). Plano aprovado completo: cópia local do dono (fora do repositório).
+
+**Desvios registrados na execução (2026-10-21):** `vitest.config.mts` em vez de `.ts` (saída de teste limpa antes do `"type": "module"`); piso de Node `>=22` e matriz de CI [22, 24] (Node 20 fora de suporte; toolchain exige ≥22); `prepack` = `npm run build 1>&2` (tsdown loga em stdout e corrompia `npm pack --json`); cancelar o prompt do `init` passa a sair com código 1; `tsdown.config.ts` com `fixedExtension: false` e `target: node22`.
 
 ## Global Constraints
 

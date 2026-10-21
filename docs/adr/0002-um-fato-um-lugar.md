@@ -16,4 +16,4 @@ Cada fato vive em exatamente um arquivo de verdade; `Familia/.gerado/indice.yaml
 - Positivo: a dessincronia entre cópias deixa de ser possível por construção, em vez de proibida por texto.
 - Positivo: views sem relógio, regravadas só quando o conteúdo muda, não geram conflito de sincronização à toa.
 - Custo: a edição manual de um arquivo gerado é sobrescrita e acusada pelo `doctor`.
-- Custo: `META.md` e `_index.yaml` deixam de existir, e a migração v1→v2 precisa tratá-los.
+- Custo: a edição direta dos arquivos de verdade continua permitida (Obsidian, VS Code), então as views em disco ficam defasadas até o próximo commit ou `salus-ai sync`; o `doctor` acusa "views desatualizadas".
