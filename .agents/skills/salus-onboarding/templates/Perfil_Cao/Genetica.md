@@ -1,16 +1,16 @@
-# Genetica e Predisposicoes — [Nome] (cao) 🐶
+# Genética e Predisposições — [Nome] (cão) 🐶
 
-<!-- Predisposicoes raciais e historico genetico do cao. -->
+<!-- Predisposições raciais e histórico genético do cão. -->
 
-**Raca:** [raca ou SRD]
-**Linhagem / Pedigree:** [informado / nao possui]
+**Raça:** [raça ou SRD]
+**Linhagem / Pedigree:** [informado / não possui]
 
-## Predisposicoes conhecidas da raca
-<!-- Ex: displasia coxofemoral, problemas cardiacos (cardiopatia dilatada), atrofia progressiva da retina, etc. -->
+## Predisposições conhecidas da raça
+<!-- Ex: displasia coxofemoral, problemas cardíacos (cardiopatia dilatada), síndrome braquiocefálica, atrofia progressiva da retina, etc. -->
 - [ ]
 
-## Historico dos pais / ninhada (se conhecido)
+## Histórico dos pais / ninhada (se conhecido)
 - [ ]
 
-## Testes geneticos veterinarios (se houver)
+## Testes genéticos veterinários (se houver)
 - [ ]

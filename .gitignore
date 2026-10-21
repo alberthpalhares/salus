@@ -10,6 +10,9 @@ _Caixa de Entrada/*
 Perfis/*
 !Perfis/.gitkeep
 
+Familia/*
+!Familia/.gitkeep
+
 # Arquivos do sistema operacional e IDEs
 .DS_Store
 Thumbs.db

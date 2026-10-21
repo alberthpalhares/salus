@@ -1,21 +1,22 @@
 # Medicamentos — [Nome]
 
-<!-- Historico e controle de medicamentos do perfil. -->
+<!-- Histórico e controle de medicamentos do perfil. -->
+<!-- Em "Renovação / Término", informe a data de renovação da receita (uso contínuo) ou a data de fim do tratamento (ciclo fechado). -->
 
 ## Em uso
 
-| Medicamento | Dose | Frequencia | Desde | Prescrito por | Proxima renovacao | Status |
+| Medicamento | Dose | Frequência | Desde | Prescrito por | Renovação / Término | Status |
 |---|---|---|---|---|---|---|
 | | | | | | | Em uso |
 
-## Prescritos (aguardando confirmacao de inicio)
+## Prescritos (aguardando confirmação de início)
 
-| Medicamento | Dose | Frequencia | Data da receita | Prescrito por | Status |
+| Medicamento | Dose | Frequência | Data da receita | Prescrito por | Status |
 |---|---|---|---|---|---|
 | | | | | | Prescrito |
 
-## Descontinuados / Historico
+## Descontinuados / Histórico
 
-| Medicamento | Dose | Periodo | Prescrito por | Motivo da descontinuacao |
+| Medicamento | Dose | Período | Prescrito por | Motivo da descontinuação / término |
 |---|---|---|---|---|
 | | | | | |

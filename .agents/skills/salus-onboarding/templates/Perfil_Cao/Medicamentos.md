@@ -1,21 +1,22 @@
-# Medicamentos — [Nome] (cao) 🐶
+# Medicamentos — [Nome] (cão) 🐶
 
-<!-- Historico e controle de medicamentos do cao. -->
+<!-- Histórico e controle de medicamentos do cão. -->
+<!-- Em "Renovação / Término", informe a data de renovação da receita (uso contínuo) ou a data de fim do tratamento (ciclo fechado). -->
 
 ## Em uso
 
-| Medicamento | Dose | Frequencia | Desde | Veterinario | Proxima renovacao | Status |
+| Medicamento | Dose | Frequência | Desde | Veterinário | Renovação / Término | Status |
 |---|---|---|---|---|---|---|
 | | | | | | | Em uso |
 
-## Prescritos (aguardando confirmacao de inicio)
+## Prescritos (aguardando confirmação de início)
 
-| Medicamento | Dose | Frequencia | Data da receita | Veterinario | Status |
+| Medicamento | Dose | Frequência | Data da receita | Veterinário | Status |
 |---|---|---|---|---|---|
 | | | | | | Prescrito |
 
-## Descontinuados / Historico
+## Descontinuados / Histórico
 
-| Medicamento | Dose | Periodo | Veterinario | Motivo da descontinuacao |
+| Medicamento | Dose | Período | Veterinário | Motivo da descontinuação / término |
 |---|---|---|---|---|
 | | | | | |

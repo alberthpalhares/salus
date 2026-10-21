@@ -1,41 +1,47 @@
 ---
 name: raio-x
-description: "Levanta um panorama rápido de saúde de toda a família: condições ativas, medicamentos em uso, e vacinas/exames/check-ups vencendo. Use quando o usuário pedir o status geral. Acione com: 'raio-x', 'como estamos?', 'status da família', 'panorama de saúde'."
+description: "Levanta um panorama rápido de saúde de toda a família: condições ativas, medicamentos em uso, e vacinas/antiparasitários/exames/check-ups/receitas vencendo ou ciclos de tratamento encerrados. Use quando o usuário pedir o status geral. Acione com: 'raio-x', 'como estamos?', 'status da família', 'panorama de saúde'."
 ---
 
 # Skill: Raio-X
 
-Da ao usuario uma visao instantanea (10-15 linhas) da situacao de saude da familia — pessoas e pets.
+Dá ao usuário uma visão instantânea (10–20 linhas) da situação de saúde da família — pessoas e pets.
 
 ## Passo a Passo (índice primeiro — não abra os perfis inteiros)
 
-1. **Leia apenas** `Familia/_index.yaml`. Ele já contém, por membro: vínculo, condições ativas, medicamentos em uso/prescritos com datas de renovação, vacinas com próxima data, e marcadores-chave. Isso basta para montar o relatório inteiro.
-2. **Calcule os alertas você mesmo**, comparando cada data (`renova_em`, `proxima_em` de vacinas, `data` de `proximos_checkups`) com a data atual do sistema:
-   - Vencido: data já passou.
-   - Vencendo: data nos próximos 30 dias.
+1. **Leia apenas `Familia/_index.yaml`**. Ele já contém, por membro: vínculo, alergias, condições ativas, medicamentos em uso/prescritos (com `renova_em` ou `termino_em`), vacinas (`proxima_em`), antiparasitários (`proximo_em` para pets), check-ups (`data` de `proximos_checkups`) e marcadores-chave. Isso basta para montar o relatório inteiro.
+2. **Calcule os alertas você mesmo**, comparando cada data com a data atual do sistema:
+   - **Vencido / Ciclo encerrado**: data já passou.
+     - *Atenção à diferença:* se for `termino_em` de um medicamento de ciclo fechado (ex: tratamento por 5 dias já concluído), sinalize como **"Tratamento encerrado em [data] (confirmar conclusão para mover ao histórico)"**, e NÃO como "receita vencida para renovar".
+   - **Vencendo em breve**: data nos próximos 30 dias (`renova_em`, `proxima_em` de vacina, `proximo_em` de antiparasitário, `data` de check-up, ou `termino_em` de medicamento).
 3. **Só abra um arquivo de perfil completo** (`Ficha.md`, `Medicamentos.md`, `Exames.md`) se o índice estiver incompleto para o que foi pedido, ou se o usuário pedir detalhe de um membro específico depois do panorama.
-4. Gere o relatorio neste formato:
+4. Gere o relatório neste formato:
 
-```
-🩺 **RAIO-X — Familia [Nome] — [Data de hoje]**
+```text
+🩺 **RAIO-X — Família [Nome] — [Data de hoje]**
 
-🔴 **VENCIDO OU VENCENDO:**
-   • [Nome] — [vacina/check-up/receita a renovar] — vence/venceu em [data]
+🔴 **VENCIDO, VENCENDO (30 DIAS) OU CICLO ENCERRADO:**
+   • [Nome] — [vacina / antiparasitário / check-up / receita a renovar / tratamento concluído] — [data]
 
 💊 **MEDICAMENTOS EM USO (ATIVOS):**
-   • [Nome] — [medicamento] — [dose] (desde [data])
+   • [Nome] — [medicamento] — [dose] (desde [data] · [contínuo / término em data])
 
-📋 **CONDIÇÕES ATIVAS:**
-   • [Nome] — [condicao]
+📋 **CONDIÇÕES ATIVAS & ALERGIAS:**
+   • [Nome] — Condições: [condições] | Alergias: [alergias]
 
-💡 Quer que eu detalhe algum desses pontos ou prepare o resumo para uma consulta?
+💡 Quer que eu detalhe algum desses pontos, encerre algum tratamento já concluído ou prepare o resumo para uma consulta?
 ```
 
-5. **Atualize `Familia/Agenda.md`** com os itens calculados no passo 2, agrupados por Vencido / 30 dias / 31–90 dias / sem data — assim ele fica pronto para o usuário reabrir depois sem precisar te perguntar de novo. Isso não precisa de confirmação do usuário (é uma view derivada, não um dado clínico novo).
+5. **Atualize `Familia/Agenda.md`** com os itens calculados no passo 2, agrupados por:
+   - `🔴 Vencido ou ciclo encerrado (confirmar)`
+   - `🟡 Vencendo nos próximos 30 dias`
+   - `🟢 Vencendo em 31–90 dias`
+   - `📌 Sem data definida (acompanhar / receitas prescritas aguardando início)`
+   Isso não precisa de confirmação do usuário (é uma view derivada, não um dado clínico novo).
 
 ## Regras
-- Se nao houver nada vencido ou vencendo nos proximos 30 dias, escreva "Nada vencendo nos proximos 30 dias. ✅".
-- So inclua em "Medicamentos em uso" os que estão em `medicamentos_em_uso` no índice. Os de `medicamentos_prescritos` podem ser listados como "Receita pendente de inicio".
-- Seja conciso — nao repita o conteudo inteiro da Ficha, so o essencial.
-- Siga o `Frameworks/PROTOCOLO_CLINICO.md` ao mencionar qualquer condicao ou exame.
+- Se não houver nada vencido ou vencendo nos próximos 30 dias, escreva `"Nada vencido ou vencendo nos próximos 30 dias. ✅"`.
+- Só inclua em "Medicamentos em uso" os que estão em `medicamentos_em_uso` no índice. Os de `medicamentos_prescritos` devem ser lembrados em "Sem data definida / Receita pendente de início".
+- Seja conciso — não repita o conteúdo inteiro da Ficha, só o essencial.
+- Siga o `Frameworks/PROTOCOLO_CLINICO.md` ao mencionar qualquer condição ou exame.
 - Se `Familia/_index.yaml` não existir ou estiver vazio (família recém-montada ou desatualizado), avise o usuário e ofereça rodar `salus-revisao` ou reler os perfis para reconstruí-lo — não trave a resposta.

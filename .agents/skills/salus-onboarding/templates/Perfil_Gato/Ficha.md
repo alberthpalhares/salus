@@ -4,7 +4,7 @@
 
 **Espécie:** Gato
 **Raça:** [raça ou "SRD"]
-**Data de nascimento / idade estimada:** [DD/MM/AAAA ou idade aproximada]
+**Data de nascimento / idade estimada:** [AAAA-MM-DD ou idade aproximada]
 **Sexo:** [Macho/Fêmea] — **Castrado(a):** [Sim/Não/data]
 **Peso atual:** [X kg] — *(ver evolução em Exames.md)*
 **Microchip:** [número, ou "não possui"]
@@ -16,28 +16,30 @@
 ## Alergias e intolerâncias
 - [ ]
 
-## Condições e diagnósticos
+## Condições e diagnósticos em acompanhamento
 - [ ]
 
-## Medicamentos em uso
+## Medicamentos em uso (resumo)
+<!-- Veja o histórico completo, prescrições e renovações/términos em Medicamentos.md -->
 - [ ]
 
 ## Vacinas
 <!-- Gato: geralmente V4/V5 (múltipla) + FeLV (leucemia felina) + antirrábica -->
-- [ ] V4/V5 — data — próximo reforço:
-- [ ] FeLV — data — próximo reforço:
-- [ ] Antirrábica — data — próximo reforço:
+- [ ] V4/V5 — aplicada em: — próximo reforço:
+- [ ] FeLV — aplicada em: — próximo reforço:
+- [ ] Antirrábica — aplicada em: — próximo reforço:
 
 ## Antiparasitários
+<!-- Vermífugo e antipulgas/carrapatos, dosados por peso e sincronizados em Familia/_index.yaml -->
 - [ ] Vermífugo — última dose: — próxima dose:
 - [ ] Antipulgas/carrapatos — última dose: — próxima dose:
 
 ## Predisposições da raça
-<!-- Ex: doença renal policística, problemas cardíacos em certas raças -->
+<!-- Ex: doença renal policística, problemas cardíacos em certas raças (detalhes em Genetica.md) -->
 - [ ]
 
 ## Veterinário(s) de referência
 - [Nome] — [clínica] — [contato]
 
 ---
-*Última atualização: [DD/MM/AAAA]*
+*Última atualização: [AAAA-MM-DD]*

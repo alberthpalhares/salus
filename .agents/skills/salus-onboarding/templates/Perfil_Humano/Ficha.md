@@ -1,33 +1,34 @@
-# Ficha de Saude — [Nome]
+# Ficha de Saúde — [Nome]
 
-<!-- Resumo de 1 pagina. E o que se mostra num pronto-socorro ou se leva a uma consulta. -->
+<!-- Resumo de 1 página. É o que se mostra num pronto-socorro ou se leva a uma consulta. -->
+<!-- Nota: O vínculo biológico fica restrito ao Familia/_index.yaml por privacidade. -->
 
-**Nascimento:** [DD/MM/AAAA]
-**Tipo sanguineo:** [ex: O+, ou "nao informado"]
-**Plano de saude:** [nome do plano/convenio, ou "particular"]
+**Nascimento:** [AAAA-MM-DD ou DD/MM/AAAA]
+**Tipo sanguíneo:** [ex: O+, ou "não informado"]
+**Plano de saúde:** [nome do plano/convênio, ou "particular"]
 
-## Contato de emergencia
+## Contato de emergência
 - [Nome] — [parentesco] — [telefone]
 
-## Alergias
-<!-- Medicamentos, alimentos, outras substancias. Se nao houver, escreva "Nenhuma alergia conhecida" -->
+## Alergias e intolerâncias
+<!-- Medicamentos, alimentos, outras substâncias. Se não houver, escreva "Nenhuma alergia conhecida" -->
 - [ ]
 
-## Condicoes e diagnosticos
-<!-- Doencas cronicas, condicoes em acompanhamento -->
+## Condições e diagnósticos em acompanhamento
+<!-- Doenças crônicas, condições ativas -->
 - [ ]
 
 ## Medicamentos em uso (resumo)
-<!-- Veja o historico completo e prescricoes em Medicamentos.md -->
+<!-- Veja o histórico completo, prescrições e renovações/términos em Medicamentos.md -->
 - [ ]
 
 ## Vacinas
-<!-- Vacina — data — dose/reforco -->
+<!-- Vacina — data da aplicação — próximo reforço -->
 - [ ]
 
-## Especialistas / medicos de referencia
+## Especialistas / médicos de referência
 <!-- Nome — especialidade — contato — o que acompanha -->
 - [ ]
 
 ---
-*Ultima atualizacao: [DD/MM/AAAA]*
+*Última atualização: [AAAA-MM-DD]*

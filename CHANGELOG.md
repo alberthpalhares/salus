@@ -5,6 +5,27 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [0.4.0] - 2026-10-20
+
+### Adicionado
+- **Comandos `npx salus-ai update` e `npx salus-ai doctor` no CLI (`bin/cli.js`)**:
+  - `update`: atualiza `.agents/skills/`, `Frameworks/` e `COMECE_AQUI.md` preservando intactos os perfis (`Perfis/`), os dados familiares (`Familia/`) e o cérebro já customizado (`AGENTS.md`).
+  - `doctor`: diagnostica a integridade da pasta, valida a presença dos arquivos obrigatórios em cada perfil e avisa quantos documentos estão aguardando triagem em `_Caixa de Entrada/`.
+- **Proteção contra sobrescrita acidental no `npx salus-ai init`**: detecta se a pasta já possui um Salus inicializado e solicita confirmação antes de sobrescrever `AGENTS.md` (ou sugere usar `npx salus-ai update`).
+- **Diferenciação entre medicamentos de uso contínuo (`renova_em`) e tratamentos temporários (`termino_em`)**: evita que tratamentos de ciclo fechado (ex: antibiótico ou antiemético por 5 dias) sejam reportados como "receita vencida para renovar" após o término, orientando a IA a confirmar a conclusão para movê-los ao histórico.
+- **Campos `alergias` e `antiparasitarios` em `Familia/_index.yaml`**:
+  - `alergias`: permite checagem imediata de segurança clínica antes de cadastrar novos medicamentos e no preparo de consultas sem precisar abrir `Ficha.md`.
+  - `antiparasitarios`: acompanha vencimento de vermífugos e antipulgas/carrapatos de cães e gatos no `raio-x` e na `Familia/Agenda.md`.
+- **Modo Ficha de Emergência / Pronto-Socorro e seção de Genética em `preparar-consulta`**: a skill agora segue o padrão Index-First (`Familia/_index.yaml` + `Genetica.md`) e destaca alergias e medicamentos ativos no topo.
+- **Subpasta `Vacinas/` em `Perfis/[Nome]/Documentos/`**: dedicada a comprovantes e carteirinhas de vacinação e controle antiparasitário.
+
+### Alterado
+- **Sincronia completa das Views Derivadas (`Agenda.md`, `Medicamentos_Ativos.md`, `Linha_do_Tempo_Geral.md`)**: as skills `registrar` e `salus-organiza` agora sincronizam automaticamente a `Agenda.md` e `Medicamentos_Ativos.md` ao gravar novos eventos, medicamentos, vacinas ou antiparasitários, garantindo que o atalho `"o que está vencendo"` esteja sempre atualizado.
+- **Alinhamento do `Frameworks/PROTOCOLO_CLINICO.md` e `Perfil_Humano/Genetica.md` com o `_index.yaml`**: removidas as referências residuais à mecânica antiga da v0.2.0 (comentário HTML oculto em `META.md`), unificando a checagem de vínculo biológico exclusivamente no campo `vinculo` de `Familia/_index.yaml`.
+- **Padronização das tabelas de `Exames.md` (Humano, Cão e Gato)**: adicionadas as colunas `Unidade` e `Flag (do laudo)` para compatibilidade 1:1 com `Familia/_index.yaml` e `cruzar/SKILL.md`.
+- **Cópia por allowlist em `bin/cli.js` e blindagem do `.gitignore`**: o CLI agora copia apenas os itens explícitos do framework (evitando copiar `.github/` ou arquivos de desenvolvimento) e o `.gitignore` passa a ignorar `Familia/*` no repositório base.
+- **Padronização ortográfica UTF-8**: revisão completa de acentuação em português em todas as skills, templates, `PROTOCOLO_CLINICO.md`, `SALUS_TEMPLATE.md` e `COMECE_AQUI.md`.
+
 ## [0.3.0] - 2026-07-23
 
 ### Adicionado

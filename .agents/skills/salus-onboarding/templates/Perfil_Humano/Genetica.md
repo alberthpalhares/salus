@@ -1,16 +1,16 @@
-# Genetica e Historico Familiar — [Nome]
+# Genética e Histórico Familiar — [Nome]
 
-<!-- Mapeamento genetico e condicoes hereditarias conhecidas na linhagem biologica. -->
-<!-- Membros sao considerados biologicos por default, a menos que listados no comentario HTML do META.md -->
+<!-- Mapeamento genético e condições hereditárias conhecidas na linhagem biológica. -->
+<!-- Membros humanos são considerados biológicos por padrão; o campo `vinculo` oficial fica em `Familia/_index.yaml`. -->
 
-## Condicoes hereditarias conhecidas na familia (Linhagem Biologica)
-<!-- Condicoes presentes em pais, avos, tios ou irmaos biologicos -->
-- **[Condicao / Doenca]** — parente biologico afetado: [ex: Pai, Avo paterno] — observacoes: [ex: diagnosticado aos 50 anos]
+## Condições hereditárias conhecidas na família (Linhagem Biológica)
+<!-- Condições presentes em pais, avós, tios ou irmãos biológicos -->
+- **[Condição / Doença]** — parente biológico afetado: [ex: Pai, Avô paterno] — observações: [ex: diagnosticado aos 50 anos]
 
-## Mapeamento / Testes geneticos (se houver)
-<!-- Painel de variantes geneticas, mutacoes conhecidas (ex: BRCA, ApoE, MTHFR) -->
+## Mapeamento / Testes genéticos (se houver)
+<!-- Painel de variantes genéticas, mutações conhecidas (ex: BRCA, ApoE, MTHFR, Genera) -->
 - [ ]
 
-## Predisposicoes e fatores de risco monitorados
-<!-- Condicoes a monitorar preventivamente com base no historico biologico -->
+## Predisposições e fatores de risco monitorados
+<!-- Condições a monitorar preventivamente com base no histórico biológico -->
 - [ ]

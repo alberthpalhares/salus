@@ -1,16 +1,16 @@
-# Genetica e Predisposicoes — [Nome] (gato) 🐱
+# Genética e Predisposições — [Nome] (gato) 🐱
 
-<!-- Predisposicoes raciais e historico genetico do gato. -->
+<!-- Predisposições raciais e histórico genético do gato. -->
 
-**Raca:** [raca ou SRD]
-**Linhagem / Pedigree:** [informado / nao possui]
+**Raça:** [raça ou SRD]
+**Linhagem / Pedigree:** [informado / não possui]
 
-## Predisposicoes conhecidas da raca
-<!-- Ex: Doenca Renal Policistica (PKD em Persas/Exoticos), Miocardiopatia Hipertrofica (HCM em Maine Coon/Ragdoll), etc. -->
+## Predisposições conhecidas da raça
+<!-- Ex: Doença Renal Policística (PKD em Persas/Exóticos), Miocardiopatia Hipertrófica (HCM em Maine Coon/Ragdoll), etc. -->
 - [ ]
 
-## Historico dos pais / ninhada (se conhecido)
+## Histórico dos pais / ninhada (se conhecido)
 - [ ]
 
-## Testes geneticos veterinarios (se houver)
+## Testes genéticos veterinários (se houver)
 - [ ]
