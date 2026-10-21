@@ -396,6 +396,20 @@ describe('pacote', () => {
     for (const arquivo of ['README.md', 'LICENSE', 'package.json']) {
       expect(caminhos, arquivo).toContain(arquivo);
     }
-    expect(caminhos).toContain('.agents/skills/raio-x/SKILL.md');
+    expect(caminhos).toContain('framework/.agents/skills/raio-x/SKILL.md');
+
+    // O produto vive só sob framework/: nada dele pode ficar na raiz do pacote.
+    const naRaiz = (c: string): boolean =>
+      c.startsWith('.agents/') ||
+      c.startsWith('Frameworks/') ||
+      [
+        'AGENTS.md',
+        'CLAUDE.md',
+        'GEMINI.md',
+        'CODEX.md',
+        '.cursorrules',
+        'COMECE_AQUI.md',
+      ].includes(c);
+    expect(caminhos.filter(naRaiz), 'produto fora de framework/').toEqual([]);
   });
 });

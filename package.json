@@ -15,15 +15,7 @@
   },
   "files": [
     "bin",
-    ".agents",
-    "Frameworks",
-    "COMECE_AQUI.md",
-    "CLAUDE.md",
-    "GEMINI.md",
-    "CODEX.md",
-    "AGENTS.md",
-    ".cursorrules",
-    "_Caixa de Entrada"
+    "framework"
   ],
   "keywords": [
     "salus",

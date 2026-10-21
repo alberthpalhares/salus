@@ -14,7 +14,8 @@ export const CLI_PATH: string =
   process.env.SALUS_CLI ?? path.join(REPO_ROOT, 'bin', 'cli.js');
 
 /** Pasta que contém o framework distribuído (.agents, Frameworks, ...). */
-export const FRAMEWORK_SRC: string = process.env.SALUS_FRAMEWORK ?? REPO_ROOT;
+export const FRAMEWORK_SRC: string =
+  process.env.SALUS_FRAMEWORK ?? path.join(REPO_ROOT, 'framework');
 
 export type CliResult = {
   code: number;

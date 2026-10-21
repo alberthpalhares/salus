@@ -156,7 +156,7 @@ function askConfirmation(question) {
 }
 
 async function init(targetDirName) {
-  const rootDir = path.join(__dirname, '..');
+  const rootDir = path.join(__dirname, '..', 'framework');
   let targetDir = process.cwd();
 
   if (targetDirName) {
@@ -223,7 +223,7 @@ async function init(targetDirName) {
 }
 
 function update(targetDirName) {
-  const rootDir = path.join(__dirname, '..');
+  const rootDir = path.join(__dirname, '..', 'framework');
   const targetDir = targetDirName ? path.resolve(process.cwd(), targetDirName) : process.cwd();
 
   if (!fs.existsSync(targetDir)) {
