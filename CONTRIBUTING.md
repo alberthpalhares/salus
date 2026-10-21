@@ -36,7 +36,8 @@
 
 - Suba a versão em `package.json`, `README.md`, `framework/COMECE_AQUI.md` e no marcador `salus-template` do `SALUS_TEMPLATE.md`; crie a seção no `CHANGELOG.md`; commit; depois **`git tag vX.Y.Z && git push origin main vX.Y.Z`** (empurre a tag pelo nome, nunca `--tags`, para não enviar tags esquecidas) — só a tag publica (`.github/workflows/publish.yml`, com provenance). Push na `main` **não publica mais**; roda a CI (`.github/workflows/ci.yml`).
 - A tag dispara primeiro a CI completa (`ci.yml` chamada por `publish.yml`: Linux e Windows × Node 22 e 24, com `npm run typecheck`, `npm test`, `check-docs`, `npm pack --dry-run` e a instalação do tarball); só se ela passar em todas as combinações o job `publish` roda. Se algum passo falhar, nada é publicado.
-- A tag precisa ser igual a `v` + a `version` do `package.json`; o primeiro passo do job `publish` confere isso antes de qualquer outra coisa e falha com `::error::` se divergir.
+- A tag precisa ser igual a `v` + a `version` do `package.json`; o primeiro passo de verificação do job `publish` confere isso e falha com `::error::` se divergir.
+- A publicação usa **trusted publishing (OIDC)**: não existe token do npm no repositório. Pré-requisitos (uma vez só, pelo dono): no npmjs.com, em *salus-ai → Settings → Trusted Publisher*, cadastrar GitHub Actions com usuário `alberthpalhares`, repositório `salus`, workflow `publish.yml`, environment em branco; depois remover o secret `NPM_TOKEN` do GitHub. O job roda em Node 24 porque o npm precisa ser ≥ 11.5.1; a proveniência é gerada automaticamente.
 - O nome do comando é só `npx salus-ai`. Não adicione aliases de bin: `salus` é um pacote de terceiro no npm.
 
 ## Ambiente

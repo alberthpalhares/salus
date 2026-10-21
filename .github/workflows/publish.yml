@@ -3,6 +3,11 @@ name: Publish to NPM
 # Só a tag vX.Y.Z publica. Push na main e PRs rodam apenas a CI (ci.yml).
 # A tag roda primeiro a CI completa (ci.yml, via workflow_call: Linux e Windows,
 # Node 22 e 24); o job `publish` só começa se ela passar inteira.
+#
+# Publicação por trusted publishing (OIDC): não há token do npm neste repositório.
+# O pacote `salus-ai` precisa ter este repositório e este arquivo (`publish.yml`)
+# cadastrados como Trusted Publisher no npmjs.com; o npm CLI precisa ser >= 11.5.1
+# (Node 24 já traz). A proveniência (provenance) é gerada automaticamente.
 on:
   push:
     tags: ['v*']
@@ -32,9 +37,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: '22'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           cache: npm
+
+      - name: Conferir npm >= 11.5.1 (exigido pelo trusted publishing)
+        shell: bash
+        run: |
+          set -euo pipefail
+          NPM_VERSAO="$(npm --version)"
+          if ! node -e "const [a,b,c]=process.argv[1].split('.').map(Number); process.exit((a>11||(a===11&&(b>5||(b===5&&c>=1))))?0:1)" "$NPM_VERSAO"; then
+            echo "::error::npm $NPM_VERSAO é anterior a 11.5.1; trusted publishing exige 11.5.1 ou mais recente"
+            exit 1
+          fi
 
       - name: Conferir tag × versão
         shell: bash
@@ -49,7 +64,5 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
-      - name: Publish to NPM
+      - name: Publish to NPM (trusted publishing, sem token)
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

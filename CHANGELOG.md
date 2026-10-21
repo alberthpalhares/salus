@@ -15,7 +15,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - `init` não cria mais `_Caixa de Entrada/.gitkeep` na pasta do usuário (a pasta continua sendo criada).
 
 ### Interno
-- Produto movido para `framework/`; CI em Linux e Windows; publicação só por tag.
+- Produto movido para `framework/`; CI em Linux e Windows; publicação só por tag, por trusted publishing (OIDC) e sem token do npm no repositório.
 
 ## [0.4.0] - 2026-10-20
 

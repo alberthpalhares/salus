@@ -22,7 +22,8 @@
 
 ## Aguardando aprovação
 
-- ⏸ Revisão final e merge da Fase 0 (branch `worktree-fase-0-fundacao`) pelo dono. Qualquer push, tag ou publish continua exigindo pedido explícito do dono.
+- ⏸ Revisão final e merge da Fase 0 (PR #1, branch `worktree-fase-0-fundacao`) pelo dono. Qualquer push, tag ou publish continua exigindo pedido explícito do dono.
+- ⏸ **Antes da primeira tag:** cadastrar o Trusted Publisher no npmjs.com (*salus-ai → Settings → Trusted Publisher → GitHub Actions*: usuário `alberthpalhares`, repositório `salus`, workflow `publish.yml`, environment em branco) e remover o secret `NPM_TOKEN` do GitHub. Sem isso, `npm publish` falha por falta de credencial (nada é publicado).
 
 ## Adiados (todo item com destino grepável)
 
@@ -42,5 +43,5 @@ Fase 0 concluída neste branch (aguardando revisão final e merge pelo dono). Pr
 ## Fora da porta de verificação
 
 - Comportamento das skills dentro de um assistente real (só revisão de texto e checagem cruzada de campos/caminhos).
-- Execução real dos workflows (validados só por parse do YAML e pelos mesmos comandos rodados localmente): a 0.4.0 foi publicada pelo `publish.yml` antigo (push na `main`). `ci.yml` e o novo `publish.yml` (só tag, com `--provenance`) nunca rodaram no GitHub: a primeira execução da CI depende de push autorizado pelo dono, e a do publish, de tag autorizada.
+- Execução real dos workflows (validados só por parse do YAML e pelos mesmos comandos rodados localmente): a 0.4.0 foi publicada pelo `publish.yml` antigo (push na `main`). `ci.yml` rodou pela primeira vez no PR #1 (2026-10-21, 4 jobs verdes). O novo `publish.yml` (só tag; trusted publishing sem token) nunca rodou: depende de tag autorizada pelo dono e do Trusted Publisher cadastrado no npmjs.com.
 - YAML do índice (sem parser disponível; validado por leitura).
