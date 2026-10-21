@@ -6,7 +6,9 @@ import {
   ehDataValida,
   FlagExame,
   HoraHHmm,
+  HoraOuVazia,
   Id,
+  TextoOpcional,
   TipoAntiparasitario,
   TipoEvento,
   TipoMembro,
@@ -96,6 +98,34 @@ describe('DataOuVazia', () => {
     expect(DataOuVazia.safeParse('2026-02-30').success).toBe(false);
     expect(DataOuVazia.safeParse('em breve').success).toBe(false);
     expect(DataOuVazia.safeParse(' ').success).toBe(false);
+  });
+
+  it('aceita null (chave YAML presente e vazia) e o normaliza para vazio', () => {
+    expect(DataOuVazia.parse(null)).toBe('');
+    expect(DataOuVazia.default('').parse(undefined)).toBe('');
+    expect(DataOuVazia.safeParse(20261021).success).toBe(false);
+  });
+});
+
+describe('HoraOuVazia', () => {
+  it('aceita HH:MM, vazio e null (normalizado para vazio)', () => {
+    expect(HoraOuVazia.parse('07:30')).toBe('07:30');
+    expect(HoraOuVazia.parse('')).toBe('');
+    expect(HoraOuVazia.parse(null)).toBe('');
+  });
+
+  it('rejeita hora inválida e o que não é texto', () => {
+    expect(HoraOuVazia.safeParse('7h30').success).toBe(false);
+    expect(HoraOuVazia.safeParse(730).success).toBe(false);
+  });
+});
+
+describe('TextoOpcional', () => {
+  it('ausente e null valem vazio; texto é mantido; número é rejeitado', () => {
+    expect(TextoOpcional.parse(undefined)).toBe('');
+    expect(TextoOpcional.parse(null)).toBe('');
+    expect(TextoOpcional.parse('F')).toBe('F');
+    expect(TextoOpcional.safeParse(985112000123456).success).toBe(false);
   });
 });
 

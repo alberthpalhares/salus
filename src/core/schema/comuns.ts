@@ -25,20 +25,34 @@ export const DataIso = z
   .refine(ehDataValida, { error: 'a data não existe no calendário' });
 export type DataIso = z.infer<typeof DataIso>;
 
-/** Data ISO ou célula vazia (data desconhecida ou não se aplica). */
-export const DataOuVazia = z.string().refine((s) => s === '' || ehDataValida(s), {
-  error: 'a data deve estar no formato AAAA-MM-DD (e existir no calendário) ou ficar vazia',
-});
+/**
+ * Chave YAML presente e vazia (`plano:` sem valor) chega como `null`; vale o mesmo que a chave
+ * ausente. O resto passa intacto para o schema de texto, que rejeita número e booleano.
+ */
+function nuloViraVazio(valor: unknown): unknown {
+  return valor === null ? '' : valor;
+}
+
+/** Data ISO ou célula vazia (data desconhecida ou não se aplica); `null` do YAML vale vazio. */
+export const DataOuVazia = z.preprocess(
+  nuloViraVazio,
+  z.string().refine((s) => s === '' || ehDataValida(s), {
+    error: 'a data deve estar no formato AAAA-MM-DD (e existir no calendário) ou ficar vazia',
+  }),
+);
 export type DataOuVazia = z.infer<typeof DataOuVazia>;
 
 /** Hora `HH:MM`, de 00:00 a 23:59. */
 export const HoraHHmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, { error: 'a hora deve estar no formato HH:MM' });
 export type HoraHHmm = z.infer<typeof HoraHHmm>;
 
-/** Hora `HH:MM` ou célula vazia. */
-export const HoraOuVazia = z.string().refine((s) => s === '' || HoraHHmm.safeParse(s).success, {
-  error: 'a hora deve estar no formato HH:MM ou ficar vazia',
-});
+/** Hora `HH:MM` ou célula vazia; `null` do YAML vale vazio. */
+export const HoraOuVazia = z.preprocess(
+  nuloViraVazio,
+  z.string().refine((s) => s === '' || HoraHHmm.safeParse(s).success, {
+    error: 'a hora deve estar no formato HH:MM ou ficar vazia',
+  }),
+);
 export type HoraOuVazia = z.infer<typeof HoraOuVazia>;
 
 export const TipoMembro = z.enum(['pessoa', 'cao', 'gato', 'outro']);
@@ -60,8 +74,13 @@ export type TipoAntiparasitario = z.infer<typeof TipoAntiparasitario>;
 export const TipoEvento = z.enum(['consulta', 'sintoma', 'procedimento', 'observacao']);
 export type TipoEvento = z.infer<typeof TipoEvento>;
 
-/** Texto de uma célula ou chave opcional: ausente vale vazio. */
-export const TextoOpcional = z.string().default('');
+/** Texto de uma célula ou chave opcional: ausente ou `null` (chave vazia no YAML) vale vazio. */
+export const TextoOpcional = z.preprocess(nuloViraVazio, z.string()).default('');
+
+/** Lista de textos de uma chave opcional: ausente ou `null` (chave vazia no YAML) vale `[]`. */
+export const ListaOpcional = z
+  .preprocess((valor) => (valor === null ? [] : valor), z.array(z.string()))
+  .default([]);
 
 /** Texto que identifica o registro (nome, produto, valor medido): não pode ficar vazio. */
 export const TextoObrigatorio = z.string().min(1, { error: 'o campo não pode ficar vazio' });

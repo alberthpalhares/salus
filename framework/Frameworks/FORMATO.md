@@ -111,6 +111,7 @@ Frontmatter (texto e listas de texto), depois o corpo.
 | `tutores` | lista de `id` dos tutores (animais) |
 | `conjuges` | lista de `id`; só alimenta a árvore da família |
 | `raca`, `castrado`, `microchip` | só animais, texto livre (`castrado`: `sim`, `não` ou a data); `microchip` entre aspas |
+| *(chave ausente ou vazia)* | vale `''` (texto) ou `[]` (lista); só `alergias` é diferente: ausente ou vazia vale `null` (ainda não perguntado) |
 
 Corpo: o título `# Ficha de Saúde — <nome>`, texto livre, e as duas regiões gerenciadas:
 

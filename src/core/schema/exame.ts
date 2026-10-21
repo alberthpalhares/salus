@@ -59,11 +59,19 @@ export type Glicemia = z.infer<typeof Glicemia>;
 const NUMERO_DO_LAUDO = /^-?\d+(?:[.,]\d+)?$/;
 
 /**
+ * Milhar ambíguo: até três dígitos (sem zero à esquerda), um separador e exatamente três casas.
+ * `11.800` é 11800 em pt-BR e 11,8 em inglês; `1,234` é 1234 ou 1,234. Sem como saber qual o laudo
+ * quis dizer, não se adivinha. `0,500` não entra aqui (a parte inteira começa em zero: é 0,5).
+ */
+const MILHAR_AMBIGUO = /^-?[1-9]\d{0,2}[.,]\d{3}$/;
+
+/**
  * Número de um `valor` de laudo, para gráficos: aceita `5,5` e `5.5`; devolve `null` para o que
- * não é um número puro (`< 0,5`, `negativo`, vazio). Nunca arredonda nem interpreta o texto.
+ * não é um número puro (`< 0,5`, `negativo`, vazio) e para o milhar ambíguo (`11.800`, `1,234`).
+ * Nunca arredonda nem interpreta o texto.
  */
 export function valorNumerico(valor: string): number | null {
   const texto = valor.trim();
-  if (!NUMERO_DO_LAUDO.test(texto)) return null;
+  if (!NUMERO_DO_LAUDO.test(texto) || MILHAR_AMBIGUO.test(texto)) return null;
   return Number(texto.replace(',', '.'));
 }

@@ -100,6 +100,22 @@ describe('valorNumerico', () => {
     expect(valorNumerico('-3,2')).toBe(-3.2);
   });
 
+  it('devolve null para o milhar ambíguo (11.800, 1,234): pode ser 11800 ou 11,8', () => {
+    expect(valorNumerico('11.800')).toBeNull();
+    expect(valorNumerico('1,234')).toBeNull();
+    expect(valorNumerico('100,000')).toBeNull();
+    expect(valorNumerico('-1,234')).toBeNull();
+  });
+
+  it('só trata como milhar três casas exatas com no máximo três dígitos antes; o resto é decimal', () => {
+    expect(valorNumerico('0,500')).toBe(0.5);
+    expect(valorNumerico('5,5')).toBe(5.5);
+    expect(valorNumerico('5.5')).toBe(5.5);
+    expect(valorNumerico('1234,567')).toBe(1234.567);
+    expect(valorNumerico('1,23')).toBe(1.23);
+    expect(valorNumerico('1,2345')).toBe(1.2345);
+  });
+
   it('devolve null para comparador, texto e vazio', () => {
     expect(valorNumerico('< 0,5')).toBeNull();
     expect(valorNumerico('> 10')).toBeNull();
@@ -204,6 +220,20 @@ describe('FichaFrontmatter', () => {
     expect(FichaFrontmatter.safeParse({ ...minimo, id: 'Ana' }).success).toBe(false);
     expect(FichaFrontmatter.safeParse({ ...minimo, tipo: 'ave' }).success).toBe(false);
     expect(FichaFrontmatter.safeParse({ ...minimo, nascimento: '2026-02-30' }).success).toBe(false);
+  });
+
+  it('chave presente mas vazia (`plano:` sem valor chega como null) vale vazio, como a ausente', () => {
+    expect(FichaFrontmatter.parse({ ...minimo, plano: null }).plano).toBe('');
+    expect(FichaFrontmatter.parse({ id: 'x', nome: 'X', tipo: 'pessoa', plano: null }).plano).toBe('');
+    expect(FichaFrontmatter.parse({ ...minimo, nascimento: null }).nascimento).toBe('');
+    expect(FichaFrontmatter.parse({ ...minimo, tutores: null }).tutores).toEqual([]);
+    expect(FichaFrontmatter.parse({ ...minimo, alergias: null }).alergias).toBeNull();
+  });
+
+  it('nome, id e tipo vazios (null) continuam obrigatórios', () => {
+    expect(FichaFrontmatter.safeParse({ ...minimo, nome: null }).success).toBe(false);
+    expect(FichaFrontmatter.safeParse({ ...minimo, id: null }).success).toBe(false);
+    expect(FichaFrontmatter.safeParse({ ...minimo, tipo: null }).success).toBe(false);
   });
 
   it('rejeita escalar que não é texto (microchip sem aspas vira número no YAML)', () => {

@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { DataOuVazia, Id, TextoObrigatorio, TextoOpcional, TipoMembro } from './comuns.js';
+import {
+  DataOuVazia,
+  Id,
+  ListaOpcional,
+  TextoObrigatorio,
+  TextoOpcional,
+  TipoMembro,
+} from './comuns.js';
 import { Dose } from './dose.js';
 import { Evento } from './evento.js';
 import { Glicemia, Marcador, Peso, Pressao } from './exame.js';
@@ -11,13 +18,11 @@ import {
 import { Consulta, ExameSolicitado } from './pendencia.js';
 import { Antiparasitario, Vacina } from './vacina.js';
 
-const ListaDeTextos = z.array(z.string()).default([]);
-
 /**
  * Frontmatter da Ficha.md: só texto e listas de texto. Só `id`, `nome` e `tipo` são obrigatórios;
- * texto ausente vale `''` e lista ausente vale `[]`. `alergias` tem três estados: `null` (ainda não
- * perguntado, e também o valor da chave ausente), `[]` (confirmado sem alergia conhecida) ou a lista.
- * Chaves desconhecidas não entram aqui; o codec as preserva no YAML.
+ * texto ausente ou vazio vale `''` e lista ausente ou vazia vale `[]`. `alergias` tem três estados:
+ * `null` (ainda não perguntado, e também o valor da chave ausente ou vazia), `[]` (confirmado sem
+ * alergia conhecida) ou a lista. Chaves desconhecidas não entram aqui; o codec as preserva no YAML.
  */
 export const FichaFrontmatter = z.object({
   id: Id,
@@ -32,12 +37,12 @@ export const FichaFrontmatter = z.object({
   castrado: TextoOpcional,
   microchip: TextoOpcional,
   alergias: z.union([z.null(), z.array(z.string())]).default(null),
-  condicoes_ativas: ListaDeTextos,
-  marcadores_chave: ListaDeTextos,
-  pais_biologicos: ListaDeTextos,
-  responsaveis: ListaDeTextos,
-  tutores: ListaDeTextos,
-  conjuges: ListaDeTextos,
+  condicoes_ativas: ListaOpcional,
+  marcadores_chave: ListaOpcional,
+  pais_biologicos: ListaOpcional,
+  responsaveis: ListaOpcional,
+  tutores: ListaOpcional,
+  conjuges: ListaOpcional,
 });
 export type FichaFrontmatter = z.infer<typeof FichaFrontmatter>;
 

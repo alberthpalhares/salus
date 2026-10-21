@@ -11,8 +11,10 @@ export default defineConfig({
   outDir: 'dist',
   clean: true,
   dts: false,
-  // ADR-0008: o tsdown externaliza o que está em `dependencies`; aqui as seis dependências de
-  // runtime entram no bundle e a build falha se o resultado importar qualquer pacote do npm.
+  // ADR-0008: as seis bibliotecas de runtime ficam em `devDependencies` e são inlinadas no bundle
+  // (o tsdown só externaliza o que está em `dependencies`). `alwaysBundle` é redundante com isso,
+  // mas documenta a intenção e protege se uma delas voltar a `dependencies`. `onlyImport: []` é o
+  // guard: a build falha se a saída importar qualquer pacote do npm (só `node:*` é permitido).
   deps: {
     alwaysBundle: ['zod', 'yaml', 'unified', 'remark-parse', 'remark-gfm', 'remark-frontmatter'],
     onlyImport: [],
