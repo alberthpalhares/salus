@@ -104,7 +104,9 @@ function primeiraFaixa(
  * `fonte` deve chegar **sem BOM** (quem lê o arquivo chama `removerBom` antes): com o U+FEFF no
  * início, o micromark o descarta e todos os offsets saem deslocados de 1 — por isso o BOM é
  * recusado com `Error` em vez de produzir faixas erradas. O fim de linha (LF ou CRLF) não é
- * convertido: os offsets valem para a string exatamente como ela é.
+ * convertido: os offsets valem para a string exatamente como ela é. Um CR solto (`\r` sem `\n`
+ * depois) também é recusado com `Error`: o remark o trata como quebra de linha, mas `dividirLinhas`
+ * não, e as faixas e o frontmatter deixariam de bater com as linhas que o resto do `format/` lê.
  *
  * Só os blocos do nível superior contam: cabeçalho, tabela ou lista dentro de citação (`>`) ou de
  * item de lista não abre seção nem vira região. Blocos de código (cercados ou indentados) são nós
@@ -114,10 +116,18 @@ function primeiraFaixa(
  * `---` no meio do texto é linha horizontal (ou o sublinhado de um cabeçalho setext).
  */
 export function parseDocumento(fonte: string): Documento {
-  if (fonte.startsWith('﻿')) {
+  if (fonte.startsWith('\uFEFF')) {
     throw new Error(
       'parseDocumento recebeu texto com BOM: chame removerBom antes ' +
         '(com o BOM, os offsets do remark ficam deslocados)',
+    );
+  }
+  const crSolto = fonte.search(/\r(?!\n)/);
+  if (crSolto !== -1) {
+    const linha = fonte.slice(0, crSolto).split('\n').length;
+    throw new Error(
+      `parseDocumento recebeu um CR solto (\\r sem \\n) na linha ${linha}: converta os fins de linha ` +
+        'para LF ou CRLF antes (o remark trata o CR solto como quebra de linha e os offsets divergiriam)',
     );
   }
   const blocos = processador.parse(fonte).children;

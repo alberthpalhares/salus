@@ -4,7 +4,7 @@
  * prepara pedaços para o *splice* (ADR-0003).
  */
 
-const BOM = '﻿';
+const BOM = '\uFEFF';
 
 /** Remove o BOM (U+FEFF) do início, se houver, e diz se havia. Um U+FEFF no meio do texto fica. */
 export function removerBom(s: string): { texto: string; tinhaBom: boolean } {

@@ -16,7 +16,7 @@ const lerFixture = (relativo: string): string => readFileSync(FIXTURES + relativ
 
 describe('removerBom', () => {
   it('remove o U+FEFF do início e sinaliza', () => {
-    expect(removerBom('﻿# Título\n')).toEqual({ texto: '# Título\n', tinhaBom: true });
+    expect(removerBom('\uFEFF# Título\n')).toEqual({ texto: '# Título\n', tinhaBom: true });
   });
 
   it('sem BOM devolve o texto intacto', () => {
@@ -25,8 +25,8 @@ describe('removerBom', () => {
   });
 
   it('só o BOM do início sai: um U+FEFF no meio do texto fica', () => {
-    expect(removerBom('a﻿b')).toEqual({ texto: 'a﻿b', tinhaBom: false });
-    expect(removerBom('﻿﻿a')).toEqual({ texto: '﻿a', tinhaBom: true });
+    expect(removerBom('a\uFEFFb')).toEqual({ texto: 'a\uFEFFb', tinhaBom: false });
+    expect(removerBom('\uFEFF\uFEFFa')).toEqual({ texto: '\uFEFFa', tinhaBom: true });
   });
 
   it('lê o BOM real de dirty/bom.md', () => {
@@ -66,14 +66,14 @@ describe('normalizarCabecalho', () => {
   });
 
   it('normaliza o Unicode para NFC (ã decomposto = ã composto)', () => {
-    const decomposto = 'Pressão arterial';
+    const decomposto = 'Pressa\u0303o arterial';
     expect(decomposto).not.toBe('Pressão arterial');
     expect(normalizarCabecalho(decomposto)).toBe(normalizarCabecalho('Pressão arterial'));
     expect(normalizarCabecalho(decomposto)).toBe('pressão arterial'.normalize('NFC'));
   });
 
   it('trata tabulação, espaço inseparável e quebra de linha como espaço', () => {
-    expect(normalizarCabecalho('Contatos\tde  emergência')).toBe('contatos de emergência');
+    expect(normalizarCabecalho('Contatos\tde\u00A0\u00A0emergência')).toBe('contatos de emergência');
     expect(normalizarCabecalho('Contatos de\nemergência')).toBe('contatos de emergência');
   });
 
@@ -106,7 +106,7 @@ describe('escaparCelula / desescaparCelula', () => {
   });
 
   it('propriedade: desescapar(escapar(s)) === s', () => {
-    const unidade = fc.constantFrom('|', '\\', 'a', ' ', 'ç', 'é', '̃', '<', '>');
+    const unidade = fc.constantFrom('|', '\\', 'a', ' ', 'ç', 'é', '\u0303', '<', '>');
     fc.assert(
       fc.property(fc.oneof(fc.string(), fc.string({ unit: unidade })), (s) => {
         expect(desescaparCelula(escaparCelula(s))).toBe(s);

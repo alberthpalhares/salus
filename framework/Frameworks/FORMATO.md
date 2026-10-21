@@ -2,7 +2,7 @@
 
 > **Estado:** contrato do formato v2 (`schema_versao: 2`), em implementação para a v0.5.0. O CLI desta versão do pacote ainda opera o formato anterior; os comandos que leem e gravam o v2 chegam com a v0.5.0.
 
-Esta é a especificação legível do formato dos arquivos de verdade do Salus. Três leitores usam o mesmo contrato: você (Obsidian, VS Code, Explorador de Arquivos), a IA e o código do Salus (leitura, gravação, `doctor`, migração). Os cabeçalhos, colunas e chaves abaixo são **literais**: o código compara exatamente o que está escrito aqui. Todos os exemplos vêm do cofre de exemplo fictício usado nos testes; nenhum dado é real.
+Esta é a especificação legível do formato dos arquivos de verdade do Salus. Três leitores usam o mesmo contrato: você (Obsidian, VS Code, Explorador de Arquivos), a IA e o código do Salus (leitura, gravação, `doctor`, migração). Os cabeçalhos, colunas e chaves abaixo são **literais**, salvo a normalização (trim, NFC, caixa, espaços repetidos) com que cabeçalhos e nomes de coluna são comparados (ver "Cabeçalhos" em Regras gerais); as chaves do frontmatter são comparadas exatamente. Todos os exemplos vêm do cofre de exemplo fictício usado nos testes; nenhum dado é real.
 
 ## Estrutura do cofre
 
@@ -24,12 +24,12 @@ Os oito arquivos de cada perfil são a **verdade**. Qualquer arquivo gerado (age
 
 ## Regras gerais
 
-- **Arquivo e texto.** UTF-8. Um BOM (U+FEFF) no início é tolerado: é removido na leitura e o `doctor` avisa. O fim de linha dominante do arquivo (LF ou CRLF) é preservado ao gravar; arquivos novos usam LF. O Salus nunca reescreve o arquivo inteiro: troca só as linhas que mudaram e copia o resto byte a byte.
+- **Arquivo e texto.** UTF-8. Um BOM (U+FEFF) no início é tolerado: é ignorado na leitura, removido ao gravar o arquivo, e o `doctor` avisa. O fim de linha dominante do arquivo (LF ou CRLF) é preservado ao gravar; arquivos novos usam LF. O Salus nunca reescreve o arquivo inteiro: troca só as linhas que mudaram e copia o resto byte a byte.
 - **Datas e horas.** Data em ISO estrito `AAAA-MM-DD`; hora em `HH:MM`. No frontmatter, datas entre aspas (`nascimento: "1985-03-10"`) para continuarem texto. Data desconhecida é célula vazia. Data que não existe no calendário (`2026-02-30`) é erro de schema.
 - **Valores de exame.** `Valor` é texto exatamente como está no laudo (`5,5`, `< 0,5`). O número usado em gráficos é derivado depois; nunca arredonde nem converta ao registrar.
 - **Células de tabela.** O caractere `|` dentro de uma célula é escrito `\|`. HTML numa célula é só texto. Célula vazia é válida.
 - **Colunas.** As colunas listadas aqui devem aparecer neste nome e nesta ordem. Colunas extras no fim (por exemplo `Laboratório`) são preservadas e ignoradas pelo Salus.
-- **Cabeçalhos.** O Salus acha cada região pelo cabeçalho `##` canônico. A comparação apara espaços, normaliza o Unicode (NFC), ignora maiúsculas e minúsculas e colapsa espaços repetidos.
+- **Cabeçalhos.** O Salus acha cada região pelo cabeçalho `##` canônico e confere as colunas da tabela pelo nome. A comparação (de cabeçalhos e de nomes de coluna) apara espaços, normaliza o Unicode (NFC), ignora maiúsculas e minúsculas e colapsa espaços repetidos.
 - **Frontmatter.** Só texto e listas de texto (nada de listas de objetos: o Obsidian não as edita). Chaves desconhecidas e comentários YAML são preservados. Valores escalares são sempre texto; números longos, como `microchip`, vão entre aspas.
 
 ## Regiões gerenciadas
@@ -40,8 +40,8 @@ Uma **região gerenciada** é um cabeçalho `##` canônico mais a **primeira** t
 
 Dentro de uma região gerenciada, o Salus preserva sem alterar tudo o que não entende e as lista no `doctor`:
 
-- linha de tabela com número de células diferente do cabeçalho;
-- linha dentro da tabela que não começa com `|` (por exemplo, uma frase solta);
+- linha de tabela com mais células que o cabeçalho (uma linha com menos células é lida normalmente: as células que faltam no fim valem vazio);
+- linha dentro da tabela que não começa com `|` (por exemplo, uma frase solta; espaços antes do `|` não contam);
 - item de lista do histórico fora da gramática (por exemplo, `- Primeira consulta em março`).
 
 Linhas de tabela só com células vazias (`| | |`, o resto de um modelo) também são opacas, mas são ignoradas na leitura: não viram registro. Linha opaca nunca é apagada nem reordenada; para corrigi-la, edite à mão.
@@ -299,7 +299,7 @@ Log de eventos, na lista da região `## Eventos`. Cada item segue a gramática:
 ## Eventos
 
 - **2026-03-10** [consulta] Consulta de rotina com a cardiologista; pressão controlada.
-- **2026-03-12** Coleta de sangue para hemograma e colesterol.
+- **2026-03-09** Coleta de sangue para hemograma e colesterol.
 - **2026-06-05** [sintoma] Dor de cabeça leve por três dias; melhorou com repouso.
 - **2026-09-15** [procedimento] Exames de controle colhidos em jejum.
 - **2026-10-10** [observacao] A cardiologista sugeriu iniciar atorvastatina; receita retirada.

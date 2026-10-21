@@ -302,6 +302,41 @@ describe('parseDocumento — casos de borda', () => {
     expect(() => parseDocumento(lerFixture('dirty/bom.md'))).toThrow(/BOM/);
     expect(() => parseDocumento(removerBom(lerFixture('dirty/bom.md')).texto)).not.toThrow();
   });
+
+  it('recusa CR solto (o remark o trata como quebra de linha; dividirLinhas não)', () => {
+    expect(() => parseDocumento('# A\r\rtexto\r\n')).toThrow(/CR solto.*linha 1/);
+    expect(() => parseDocumento('---\nid: x\n---\n\n# A\r## B\n')).toThrow(/CR solto.*linha 5/);
+    expect(() => parseDocumento('# A\r\n\r\ntexto\r\n')).not.toThrow();
+  });
+
+  it('seção sem tabela/lista seguida de seção irmã com tabela/lista: a primeira fica sem nenhuma', () => {
+    const fonte = linhas(
+      '## Prescritos',
+      '',
+      'Nenhum por enquanto.',
+      '',
+      '## Em uso',
+      '',
+      '| A |',
+      '|---|',
+      '| 1 |',
+      '',
+      '## Notas',
+      '',
+      'Texto.',
+      '',
+      '## Eventos',
+      '',
+      '- **2026-01-01** a',
+      '',
+    );
+    const doc = parseDocumento(fonte);
+    expect(secao(doc, 'Prescritos').tabela).toBeUndefined();
+    expect(secao(doc, 'Prescritos').lista).toBeUndefined();
+    expect(secao(doc, 'Em uso').tabela).toBeDefined();
+    expect(secao(doc, 'Notas').lista).toBeUndefined();
+    expect(secao(doc, 'Eventos').lista).toBeDefined();
+  });
 });
 
 describe('parseDocumento — invariantes em todo o cofre de exemplo e no corpus sujo', () => {
