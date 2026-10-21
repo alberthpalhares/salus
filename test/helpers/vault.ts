@@ -2,30 +2,15 @@ import { randomBytes } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { PROFILE_REQUIRED_FILES } from '../../src/core/framework/manifest.js';
 import { FRAMEWORK_SRC } from './cli.js';
 
-// Cópias literais de bin/cli.js (a Tarefa 5 passa a importá-las de src/).
-export const INIT_ITEMS = [
-  '.agents',
-  'Frameworks',
-  '_Caixa de Entrada',
-  'COMECE_AQUI.md',
-  'AGENTS.md',
-  'CLAUDE.md',
-  'GEMINI.md',
-  'CODEX.md',
-  '.cursorrules',
-];
-
-export const UPDATE_ITEMS = ['.agents', 'Frameworks', 'COMECE_AQUI.md'];
-
-export const PROFILE_REQUIRED_FILES = [
-  'Ficha.md',
-  'Medicamentos.md',
-  'Genetica.md',
-  'Historico.md',
-  'Exames.md',
-];
+// As listas vêm do código de produção (src/), não são mais duplicadas aqui.
+export {
+  INIT_ITEMS,
+  PROFILE_REQUIRED_FILES,
+  UPDATE_ITEMS,
+} from '../../src/core/framework/manifest.js';
 
 const IGNORED_NAMES = new Set(['.DS_Store', 'Thumbs.db']);
 const TEMP_PREFIX = 'salus-test-';

@@ -7,7 +7,7 @@
 
 | Caminho | Papel |
 |---|---|
-| `bin/cli.js` | CLI sem dependências: `init`, `update`, `doctor`. |
+| `bin/cli.cjs` | CLI sem dependências: `init`, `update`, `doctor`. |
 | `framework/` | Tudo que é copiado para a pasta do usuário; espelha o layout do cofre. |
 | `framework/.agents/skills/<nome>/SKILL.md` | Instruções que a IA segue para cada tarefa. |
 | `framework/.agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md` | O "cérebro" gerado no onboarding (vira o `AGENTS.md` do usuário). Carrega um marcador `salus-template: <versão>` na primeira linha. |

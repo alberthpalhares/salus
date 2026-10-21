@@ -2,16 +2,18 @@
   "name": "salus-ai",
   "version": "0.4.0",
   "description": "Central de Inteligência de Saúde da Família — pessoas e animais.",
-  "main": "bin/cli.js",
+  "type": "module",
+  "main": "bin/cli.cjs",
   "bin": {
-    "salus-ai": "bin/cli.js"
+    "salus-ai": "bin/cli.cjs"
   },
   "engines": {
     "node": ">=18"
   },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "files": [
     "bin",
@@ -45,6 +47,8 @@
   "homepage": "https://github.com/alberthpalhares/salus#readme",
   "devDependencies": {
     "@types/node": "^26.6.5",
+    "tsdown": "^0.23.1",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   }
 }
