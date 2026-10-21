@@ -6,7 +6,7 @@
 ## Visão Geral
 
 - Projeto: **Salus** (framework Markdown/YAML + CLI `salus-ai`) · Classificação project-standards: **T1** (CLI/script + framework documental) · Última atualização: 2026-10-21 (Claude Code)
-- Regras de desenvolvimento vivem **aqui** e em `CONTRIBUTING.md`. `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CODEX.md` e `.cursorrules` da raiz são **artefatos do produto** (stubs que vão para o usuário final) — não coloque regras de dev neles.
+- Regras de desenvolvimento vivem **aqui** e em `CONTRIBUTING.md`. `framework/AGENTS.md`, `framework/CLAUDE.md`, `framework/GEMINI.md`, `framework/CODEX.md` e `framework/.cursorrules` são **artefatos do produto** (stubs copiados para o usuário final) — não coloque regras de dev neles. Os `AGENTS.md`/`CLAUDE.md` da **raiz** são as instruções de desenvolvimento deste repositório.
 - Porta de verificação atual: `npm test` (suíte de caracterização do CLI) + `bash scripts/check-docs.sh` (consistência das docs, com proveta conferida em 2026-10-20) + CI (`.github/workflows/ci.yml`, ubuntu+windows, Node 22 e 24). Só a tag `vX.Y.Z` publica no npm (`.github/workflows/publish.yml`); push na `main` não publica mais.
 
 ## Concluído (último marco)

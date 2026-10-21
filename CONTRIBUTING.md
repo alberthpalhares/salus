@@ -15,7 +15,7 @@
 | `framework/Frameworks/PROTOCOLO_CLINICO.md` | Regras clínicas, tabela "quem lê, quem grava", privacidade. |
 | `framework/AGENTS.md`, `framework/CLAUDE.md`, `framework/GEMINI.md`, `framework/CODEX.md`, `framework/.cursorrules` | **Artefatos do produto**: stubs pré-onboarding copiados para o usuário. Não coloque regras de desenvolvimento neles; os `AGENTS.md`/`CLAUDE.md` da **raiz** são as instruções de desenvolvimento deste repositório. |
 | `docs/` | Auditorias (`docs/auditoria`), desenho e planos (`docs/superpowers`), ADRs (`docs/adr`). Fica fora do pacote npm. |
-| `_Caixa de Entrada/`, `Perfis/`, `Familia/` (no cofre do usuário) | Dados do usuário. Não existem neste repositório e nunca entram nele; os testes usam pastas temporárias. |
+| `_Caixa de Entrada/`, `Perfis/`, `Familia/` (no cofre do usuário) | Dados do usuário. Não existem neste repositório (só `framework/_Caixa de Entrada/LEIA-ME.md` faz parte do produto) e nunca entram nele; os testes usam pastas temporárias. |
 
 ## Antes de dizer "pronto"
 
