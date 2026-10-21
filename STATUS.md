@@ -5,7 +5,7 @@
 
 ## Visão Geral
 
-- Projeto: **Salus** (framework Markdown/YAML + CLI `salus-ai`) · Classificação project-standards: **T1** (CLI/script + framework documental) · Última atualização: 2026-10-20 (Claude Code)
+- Projeto: **Salus** (framework Markdown/YAML + CLI `salus-ai`) · Classificação project-standards: **T1** (CLI/script + framework documental) · Última atualização: 2026-10-21 (Claude Code)
 - Regras de desenvolvimento vivem **aqui** e em `CONTRIBUTING.md`. `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CODEX.md` e `.cursorrules` da raiz são **artefatos do produto** (stubs que vão para o usuário final) — não coloque regras de dev neles.
 - Porta de verificação atual: `npm test` (suíte de caracterização do CLI) + `bash scripts/check-docs.sh` (consistência das docs, com proveta conferida em 2026-10-20) + CI (`.github/workflows/ci.yml`, ubuntu+windows, Node 22 e 24). Só a tag `vX.Y.Z` publica no npm (`.github/workflows/publish.yml`); push na `main` não publica mais.
 
@@ -18,11 +18,11 @@
 
 ## Em andamento
 
-- [~] Nada em aberto. A v0.4.0 (com as correções da auditoria) está pronta para `git push` — o push na `main` **não publica mais** (só a tag `vX.Y.Z` publica; ver `CONTRIBUTING.md`, seção "Release").
+- [~] Nada em aberto fora da Fase 0 (ver "Onde retomar"). O push na `main` **não publica mais**: só a tag `vX.Y.Z` publica (ver `CONTRIBUTING.md`, seção "Release").
 
 ## Aguardando aprovação
 
-- ⏸ `git push` da v0.4.0. O que o dono confere antes: a seção "Para onde vão seus dados" em `COMECE_AQUI.md` e `README.md`; a remoção dos aliases de bin `salus` e `salus-framework` (quebra só quem instalou global e usa esses nomes); a tabela de compatibilidade do `README.md`.
+- ⏸ Nada. A 0.4.0 foi publicada em 2026-10-21. Qualquer push, tag ou publish continua exigindo pedido explícito do dono.
 
 ## Adiados (todo item com destino grepável)
 
@@ -37,7 +37,7 @@
 
 ## Onde retomar
 
-Próxima sessão: **DT-01**. Começar por `test/cli.test.js` reproduzindo os 30 cenários do roteiro em `docs/auditoria/2026-10-20_auditoria.md` (seção "Verificação executada"), depois `"test": "node --test"` no `package.json` e o mesmo comando no workflow antes do publish.
+Fase 0 em execução (plano `docs/superpowers/plans/2026-10-21-fase-0-fundacao.md`): Tarefas 1–3 concluídas; próxima: Tarefa 4 (mover o produto para `framework/`).
 
 ## Fora da porta de verificação
 

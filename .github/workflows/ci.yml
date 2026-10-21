@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   pull_request:
+permissions:
+  contents: read
 jobs:
   test:
     strategy:
@@ -17,7 +19,8 @@ jobs:
         with: { node-version: "${{ matrix.node }}", cache: npm }
       - run: npm ci
       - run: npm test
-      - run: bash scripts/check-docs.sh
+      - shell: bash
+        run: bash scripts/check-docs.sh
       - run: npm pack --dry-run
       - name: Instalar tarball em pasta com acento e rodar init/doctor
         shell: bash
