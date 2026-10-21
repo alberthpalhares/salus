@@ -13,7 +13,7 @@
 | `.agents/skills/salus-onboarding/templates/` | Arquivos de `Familia/` e dos perfis (humano, cão, gato). `Familia/_index.yaml` tem `schema_versao`. |
 | `Frameworks/PROTOCOLO_CLINICO.md` | Regras clínicas, tabela "quem lê, quem grava", privacidade. |
 | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `CODEX.md`, `.cursorrules` (raiz) | **Artefatos do produto**: stubs pré-onboarding copiados para o usuário. Um assistente de IA aberto neste repositório vai ler o stub — não coloque regras de desenvolvimento neles. |
-| `docs/` | Relatórios de auditoria e decisões. Fica fora do pacote npm. |
+| `docs/` | Auditorias (`docs/auditoria`), desenho e planos (`docs/superpowers`), ADRs (`docs/adr`). Fica fora do pacote npm. |
 | `_Caixa de Entrada/`, `Perfis/`, `Familia/` | Dados do usuário. Nunca entram no Git (ver `.gitignore`). |
 
 ## Antes de dizer "pronto"
