@@ -1,56 +1,68 @@
 name: Publish to NPM
 
+# Só a tag vX.Y.Z publica. Push na main e PRs rodam apenas a CI (ci.yml).
+# A tag roda primeiro a CI completa (ci.yml, via workflow_call: Linux e Windows,
+# Node 22 e 24); o job `publish` só começa se ela passar inteira.
+#
+# Publicação por trusted publishing (OIDC): não há token do npm neste repositório.
+# O pacote `salus-ai` precisa ter este repositório e este arquivo (`publish.yml`)
+# cadastrados como Trusted Publisher no npmjs.com; o npm CLI precisa ser >= 11.5.1
+# (Node 24 já traz). A proveniência (provenance) é gerada automaticamente.
 on:
   push:
-    branches:
-      - main
+    tags: ['v*']
 
-# Evita duas publicações concorrentes da mesma versão
+permissions:
+  contents: read
+  id-token: write
+
+# Evita duas publicações concorrentes
 concurrency:
   group: npm-publish
   cancel-in-progress: false
 
 jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   publish:
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
+          cache: npm
 
-      # Porta mínima antes de publicar: docs consistentes, e o CLI precisa carregar,
-      # inicializar uma pasta, passar no doctor e atualizar a si mesmo.
-      # Qualquer falha impede o publish.
-      - name: Smoke test do CLI e consistência das docs
+      - name: Conferir npm >= 11.5.1 (exigido pelo trusted publishing)
+        shell: bash
         run: |
           set -euo pipefail
-          bash scripts/check-docs.sh
-          node --check bin/cli.js
-          node bin/cli.js --version
-          SMOKE="$RUNNER_TEMP/salus-smoke"
-          node bin/cli.js init "$SMOKE"
-          test -f "$SMOKE/AGENTS.md"
-          test -f "$SMOKE/Frameworks/PROTOCOLO_CLINICO.md"
-          test -d "$SMOKE/.agents/skills/raio-x"
-          node bin/cli.js doctor "$SMOKE"
-          node bin/cli.js update "$SMOKE"
-          npm pack --dry-run
-
-      - name: Publish to NPM if version updated
-        run: |
-          PACKAGE_NAME=$(node -p "require('./package.json').name")
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-
-          if npm view "${PACKAGE_NAME}@${PACKAGE_VERSION}" version > /dev/null 2>&1; then
-            echo "A versão ${PACKAGE_VERSION} de ${PACKAGE_NAME} já está publicada no NPM. Pulando publicação."
-          else
-            echo "Publicando a versão ${PACKAGE_VERSION} de ${PACKAGE_NAME} no NPM..."
-            npm publish --access public
+          NPM_VERSAO="$(npm --version)"
+          if ! node -e "const [a,b,c]=process.argv[1].split('.').map(Number); process.exit((a>11||(a===11&&(b>5||(b===5&&c>=1))))?0:1)" "$NPM_VERSAO"; then
+            echo "::error::npm $NPM_VERSAO é anterior a 11.5.1; trusted publishing exige 11.5.1 ou mais recente"
+            exit 1
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Conferir tag × versão
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSAO="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$VERSAO" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME não corresponde à versão $VERSAO do package.json"
+            exit 1
+          fi
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Publish to NPM (trusted publishing, sem token)
+        run: npm publish --provenance --access public

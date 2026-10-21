@@ -8,11 +8,11 @@ set -u
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT" || exit 2
 
-TEMPLATE=".agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md"
-INDEX=".agents/skills/salus-onboarding/templates/Familia/_index.yaml"
-PROTO="Frameworks/PROTOCOLO_CLINICO.md"
-TEMPLATES_DIR=".agents/skills/salus-onboarding/templates"
-SKILLS=(.agents/skills/*/SKILL.md)
+TEMPLATE="framework/.agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md"
+INDEX="framework/.agents/skills/salus-onboarding/templates/Familia/_index.yaml"
+PROTO="framework/Frameworks/PROTOCOLO_CLINICO.md"
+TEMPLATES_DIR="framework/.agents/skills/salus-onboarding/templates"
+SKILLS=(framework/.agents/skills/*/SKILL.md)
 errors=0
 fail() { echo "FALHA: $*"; errors=$((errors + 1)); }
 
@@ -20,9 +20,10 @@ fail() { echo "FALHA: $*"; errors=$((errors + 1)); }
 residuos=$(grep -rn \
   -e 'alertas_cache' -e 'DD/MM/AAAA' -e '{{DATA_REVISAO}}' -e '{{LISTA_MEMBROS}}' \
   -e 'total privacidade' -e 'ChatGPT CLI' \
-  --include='*.md' --include='*.yaml' --include='*.yml' --include='*.js' \
+  --include='*.md' --include='*.yaml' --include='*.yml' --include='*.js' --include='*.ts' \
   --exclude-dir=.git --exclude-dir=graphify-out --exclude-dir=node_modules \
-  --exclude-dir=docs --exclude-dir=scripts --exclude=CHANGELOG.md . 2>/dev/null || true)
+  --exclude-dir=docs --exclude-dir=scripts --exclude-dir=dist --exclude-dir=.superpowers \
+  --exclude-dir=.claude --exclude-dir=fixtures --exclude=CHANGELOG.md . 2>/dev/null || true)
 if [ -n "$residuos" ]; then
   fail "resíduo proibido encontrado:"
   echo "$residuos"
@@ -32,7 +33,7 @@ fi
 for s in $(grep -oE 'skill `[a-z-]+`' "$TEMPLATE" | sed -E 's/skill `([a-z-]+)`/\1/' | sort -u); do
   grep -q "\`.agents/skills/$s/SKILL.md\`" "$TEMPLATE" || fail "skill '$s' citada no cérebro sem caminho na tabela de skills"
 done
-for d in .agents/skills/*/; do
+for d in framework/.agents/skills/*/; do
   s=$(basename "$d")
   grep -q "\`.agents/skills/$s/SKILL.md\`" "$TEMPLATE" || fail "skill '$s' existe em .agents/skills/ mas não está na tabela do cérebro"
 done
@@ -46,16 +47,16 @@ done
 
 # 4. Todo arquivo de perfil/família citado tem template correspondente
 for p in $(grep -rhoE 'Perfis/\[Nome[^]/]*\]/[A-Za-z_]+\.md|Familia/[A-Za-z_]+\.(md|yaml)' \
-  "${SKILLS[@]}" "$TEMPLATE" "$PROTO" README.md COMECE_AQUI.md | sort -u); do
+  "${SKILLS[@]}" "$TEMPLATE" "$PROTO" README.md framework/COMECE_AQUI.md | sort -u); do
   base=$(basename "$p")
   ls "$TEMPLATES_DIR"/*/"$base" >/dev/null 2>&1 || fail "arquivo '$p' citado sem template em $TEMPLATES_DIR"
 done
 
-# 5. Versão alinhada: package.json × marcador do cérebro × README × COMECE_AQUI
+# 5. Versão alinhada: package.json × marcador do cérebro × README × framework/COMECE_AQUI
 ver=$(node -p "require('./package.json').version")
 grep -q "salus-template: $ver" "$TEMPLATE" || fail "marcador salus-template no cérebro difere da versão do package.json ($ver): $(head -1 "$TEMPLATE")"
 grep -q "v$ver" README.md || fail "README.md não cita v$ver"
-grep -q "v$ver" COMECE_AQUI.md || fail "COMECE_AQUI.md não cita v$ver"
+grep -q "v$ver" framework/COMECE_AQUI.md || fail "framework/COMECE_AQUI.md não cita v$ver"
 
 if [ "$errors" -eq 0 ]; then
   echo "check-docs: OK"

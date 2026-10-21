@@ -1,9 +1,14 @@
-# Salus — Inicialização
+# Salus — instruções para quem desenvolve o framework
 
-Este diretório contém o framework **Salus**, mas ele ainda não foi inicializado para esta família.
+Este repositório é o **código-fonte** do Salus (`salus-ai` no npm), não uma pasta de família.
+Tudo que vai para a pasta do usuário fica em `framework/`; o CLI fica em `src/` e é empacotado em `dist/cli.js` (`npm run build`).
+Os `AGENTS.md`/`CLAUDE.md` dentro de `framework/` são artefatos do produto (stubs de onboarding): ignore-os ao desenvolver.
 
-**INSTRUÇÃO PARA A IA:**
-Se o usuário pedir para iniciar, montar ou configurar o Salus, você deve **obrigatoriamente** ler e executar as instruções localizadas em:
-`.agents/skills/salus-onboarding/SKILL.md`
+Antes de qualquer alteração, leia `STATUS.md` (estado, fase atual, adiados) e `CONTRIBUTING.md` (regras, porta de verificação, release).
+Desenho aprovado: `docs/superpowers/specs/2026-10-21-salus-v2-design.md`. Decisões: `docs/adr/`. Planos por fase: `docs/superpowers/plans/`.
 
-Não faça perguntas soltas. Leia a skill acima e inicie a entrevista guiada exatamente como instruído lá. Ao final da entrevista, este arquivo de inicialização será sobrescrito com o novo "cérebro" permanente do Salus.
+Regras que não se negociam:
+- `npm run typecheck`, `npm test` e `bash scripts/check-docs.sh` verdes antes de dizer "pronto".
+- Nunca `git push`, `git tag` ou `npm publish` sem pedido explícito do dono (a tag publica no npm).
+- Dados reais de qualquer família nunca entram neste repositório; testes usam pastas temporárias e os templates de `framework/`.
+- Textos para o usuário final em português do Brasil, UTF-8, LF.

@@ -14,7 +14,7 @@ Inspirado na mecânica do [Córtex](https://github.com/alberthpalhares/cortex), 
 ## ⚡ Instalação e Atualização Rápida (Via NPX 🚀)
 
 ### 📋 Pré-requisito
-Para utilizar o instalador via terminal, é necessário ter o **Node.js** instalado no seu computador.
+Para utilizar o instalador via terminal, é necessário ter o **Node.js 22 ou mais recente** instalado no seu computador.
 - Se você ainda não tem o Node.js instalado, faça o download da versão recomendada no site oficial: [Node.js (nodejs.org)](https://nodejs.org/).
 
 ### 🛠️ Comandos do CLI
@@ -80,28 +80,39 @@ Após inicializar, abra a pasta gerada na sua ferramenta de IA (Claude, Gemini, 
 
 ```text
 Salus/
-├── CLAUDE.md · GEMINI.md · CODEX.md · AGENTS.md · .cursorrules  ← Inicialização multi-IA
-├── COMECE_AQUI.md             ← Guia rápido do usuário final
+├── AGENTS.md · CLAUDE.md      ← Instruções de desenvolvimento deste repositório (não vão no pacote npm)
 ├── README.md                  ← Este arquivo
 ├── CHANGELOG.md               ← Histórico de versões
 ├── CONTRIBUTING.md · STATUS.md ← Para quem desenvolve o framework (não vão no pacote npm)
-├── docs/auditoria/            ← Relatórios de auditoria (não vão no pacote npm)
+├── docs/                      ← Auditorias, ADRs, desenho e planos (não vão no pacote npm)
 ├── scripts/check-docs.sh      ← Trava de consistência das docs (roda no CI antes de publicar)
 ├── LICENSE                    ← Licença MIT
 ├── package.json               ← Configuração do pacote NPX (salus-ai)
-├── bin/cli.js                 ← Script CLI (init, update, doctor)
-├── _Caixa de Entrada/         ← Pasta única para upload de novos arquivos (PDF, imagens, áudios)
-├── Frameworks/
-│   └── PROTOCOLO_CLINICO.md   ← Diretrizes de segurança, interações medicamentosas e regras de vínculo
-├── .agents/skills/
-│   ├── salus-onboarding/      ← Skill de entrevista inicial (parentesco, vínculo, criação de perfis)
-│   ├── raio-x/                ← Skill de panorama rápido da família e atualização da Agenda
-│   ├── registrar/             ← Skill de apontamento de eventos com sincronia completa
-│   ├── salus-organiza/        ← Skill de triagem da caixa de entrada com regra de prescrições
-│   ├── cruzar/                ← Skill de evolução temporal e salvamento de análises com timestamp
-│   ├── preparar-consulta/     ← Skill de preparo de relatórios para consultas médicas/vet e emergência
-│   └── salus-revisao/         ← Skill de auditoria periódica de saúde da família
-├── Perfis/                    ← (perfis criados no onboarding; vazio neste repositório)
+├── src/                       ← Código-fonte do CLI em TypeScript (init, update, doctor; não vai no pacote npm)
+│   ├── cli/                   ← Entrada e despacho dos comandos
+│   └── core/framework/        ← init, update, doctor e utilitários
+├── dist/cli.js                ← CLI empacotado, gerado por `npm run build` (não é commitado; é o binário do pacote)
+├── test/                      ← Testes do CLI: unitários e de caracterização (não vão no pacote npm)
+└── framework/                 ← Tudo que o `init` copia para a pasta do usuário (espelha o layout do cofre)
+    ├── CLAUDE.md · GEMINI.md · CODEX.md · AGENTS.md · .cursorrules  ← Inicialização multi-IA
+    ├── COMECE_AQUI.md         ← Guia rápido do usuário final
+    ├── _Caixa de Entrada/     ← Pasta única para upload de novos arquivos (PDF, imagens, áudios)
+    ├── Frameworks/
+    │   └── PROTOCOLO_CLINICO.md   ← Diretrizes de segurança, interações medicamentosas e regras de vínculo
+    └── .agents/skills/
+        ├── salus-onboarding/  ← Skill de entrevista inicial (parentesco, vínculo, criação de perfis)
+        ├── raio-x/            ← Skill de panorama rápido da família e atualização da Agenda
+        ├── registrar/         ← Skill de apontamento de eventos com sincronia completa
+        ├── salus-organiza/    ← Skill de triagem da caixa de entrada com regra de prescrições
+        ├── cruzar/            ← Skill de evolução temporal e salvamento de análises com timestamp
+        ├── preparar-consulta/ ← Skill de preparo de relatórios para consultas médicas/vet e emergência
+        └── salus-revisao/     ← Skill de auditoria periódica de saúde da família
+```
+
+Na pasta do usuário, o onboarding cria também `Perfis/` e `Familia/` (não existem neste repositório):
+
+```text
+├── Perfis/                    ← (perfis criados no onboarding)
 │   ├── [Nome da Pessoa]/
 │   │   ├── Ficha.md           ← Resumo de 1 página (tipo sanguíneo, alergias, condições, vacinas, contatos)
 │   │   ├── Medicamentos.md    ← Controle de medicamentos (Em uso, Prescritos, Descontinuados)
@@ -111,7 +122,7 @@ Salus/
 │   │   ├── Analises/          ← Análises e preparos de consulta salvos com timestamp e fontes
 │   │   └── Documentos/        ← Exames, laudos, receitas, requisições, vacinas e áudios originais
 │   └── [Nome do Pet]/         ← Estrutura adaptada para cão ou gato (com antiparasitários)
-└── Familia/                   ← (criada no onboarding a partir dos templates; não existe neste repositório)
+└── Familia/                   ← (criada no onboarding a partir dos templates)
     ├── _index.yaml            ← Fonte estruturada (vínculo, alergias, medicamentos, vacinas, antiparasitários, exames pendentes, marcadores)
     ├── Agenda.md              ← O que vence e quando — view derivada do índice
     ├── META.md                ← Índice legível por humano (membros, datas de revisão e mapa de arquivos)

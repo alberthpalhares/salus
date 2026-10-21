@@ -2,16 +2,22 @@
 graphify-out/
 .graphify_*
 
-# Dados pessoais e documentos de saúde do usuário (preserva estrutura e LEIA-ME.md)
-_Caixa de Entrada/*
-!_Caixa de Entrada/.gitkeep
-!_Caixa de Entrada/LEIA-ME.md
+# Rascunhos de execução de planos (superpowers)
+.superpowers/
 
-Perfis/*
-!Perfis/.gitkeep
+# Dependências, build e fixtures locais de teste
+node_modules/
+dist/
+test/fixtures/local/
 
-Familia/*
-!Familia/.gitkeep
+# Dados de família nunca entram no repositório (ancorados: não afetam framework/.agents/.../templates/Familia/)
+/Perfis/
+/Familia/
+/_Caixa de Entrada/
+/framework/Perfis/
+/framework/Familia/
+/framework/_Caixa de Entrada/*
+!/framework/_Caixa de Entrada/LEIA-ME.md
 
 # Arquivos do sistema operacional e IDEs
 .DS_Store
