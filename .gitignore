@@ -2,6 +2,14 @@
 graphify-out/
 .graphify_*
 
+# Rascunhos de execução de planos (superpowers)
+.superpowers/
+
+# Dependências, build e fixtures locais de teste
+node_modules/
+dist/
+test/fixtures/local/
+
 # Dados pessoais e documentos de saúde do usuário (preserva estrutura e LEIA-ME.md)
 _Caixa de Entrada/*
 !_Caixa de Entrada/.gitkeep

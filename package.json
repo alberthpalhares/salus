@@ -9,6 +9,10 @@
   "engines": {
     "node": ">=18"
   },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
   "files": [
     "bin",
     ".agents",
@@ -46,5 +50,9 @@
   "bugs": {
     "url": "https://github.com/alberthpalhares/salus/issues"
   },
-  "homepage": "https://github.com/alberthpalhares/salus#readme"
+  "homepage": "https://github.com/alberthpalhares/salus#readme",
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "vitest": "^5.0.5"
+  }
 }
