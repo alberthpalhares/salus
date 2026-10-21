@@ -4,9 +4,10 @@
   "description": "Central de Inteligência de Saúde da Família — pessoas e animais.",
   "main": "bin/cli.js",
   "bin": {
-    "salus": "bin/cli.js",
-    "salus-ai": "bin/cli.js",
-    "salus-framework": "bin/cli.js"
+    "salus-ai": "bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "files": [
     "bin",
@@ -33,8 +34,11 @@
     "framework",
     "agentic-ai"
   ],
-  "author": "Alberth Klinsmann <alberthpalhares@gmail.com>",
+  "author": "Alberth Palhares <alberthpalhares@gmail.com>",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alberthpalhares/salus.git"

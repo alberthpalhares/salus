@@ -48,8 +48,11 @@ const PROFILE_REQUIRED_FILES = [
   'Exames.md'
 ];
 
+const KNOWN_FLAGS = new Set(['--force', '-f', '--help', '-h', '--version', '-v']);
+
 const args = process.argv.slice(2);
 const flags = new Set(args.filter((a) => a.startsWith('-')));
+const unknownFlags = [...flags].filter((f) => !KNOWN_FLAGS.has(f));
 const positional = args.filter((a) => !a.startsWith('-'));
 const command = positional[0];
 
@@ -63,10 +66,11 @@ ${bold}USO:${reset}
 ${bold}COMANDOS:${reset}
   ${green}init [pasta]${reset}     Inicializa a estrutura do Salus na pasta especificada ou na pasta atual.
   ${green}update [pasta]${reset}   Atualiza skills, protocolos e guia preservando os perfis e o AGENTS.md da família.
-  ${green}doctor [pasta]${reset}   Verifica a integridade da estrutura, perfis e pendências na Caixa de Entrada.
+  ${green}doctor [pasta]${reset}   Verifica a integridade da estrutura, perfis e pendências na Caixa de Entrada
+                   (aliases: ${green}check${reset}, ${green}status${reset}).
 
 ${bold}OPÇÕES:${reset}
-  ${green}--force, -f${reset}      Força a sobrescrita de arquivos de inicialização durante o init.
+  ${green}--force, -f${reset}      Sobrescreve sem perguntar os arquivos de inicialização que já existirem (init).
   ${green}--help, -h${reset}       Exibe esta mensagem de ajuda.
   ${green}--version, -v${reset}    Exibe a versão atual do CLI.
 
@@ -122,6 +126,18 @@ function isAlreadyInitialized(targetDir) {
   return false;
 }
 
+// Itens de inicialização que já existem na pasta de destino (seriam sobrescritos/mesclados pelo init)
+function findInitCollisions(targetDir) {
+  return INIT_ITEMS.filter((item) => fs.existsSync(path.join(targetDir, item)));
+}
+
+function looksLikeSalus(targetDir) {
+  return (
+    fs.existsSync(path.join(targetDir, 'AGENTS.md')) ||
+    fs.existsSync(path.join(targetDir, '.agents'))
+  );
+}
+
 function askConfirmation(question) {
   if (!process.stdin.isTTY) {
     return Promise.resolve(false);
@@ -151,17 +167,34 @@ async function init(targetDirName) {
   }
 
   const force = flags.has('--force') || flags.has('-f');
-  if (isAlreadyInitialized(targetDir) && !force) {
-    console.log(`\n${yellow}⚠️  Atenção: Esta pasta já contém um Salus inicializado para uma família!${reset}`);
-    console.log(`   Se você apenas quer atualizar as skills e o protocolo clínico sem perder o cérebro atual, use:`);
-    console.log(`   ${bold}${cyan}npx salus-ai update${targetDirName ? ' ' + targetDirName : ''}${reset}\n`);
+  const alreadyInitialized = isAlreadyInitialized(targetDir);
+  const collisions = findInitCollisions(targetDir);
+
+  if ((alreadyInitialized || collisions.length > 0) && !force) {
+    if (alreadyInitialized) {
+      console.log(`\n${yellow}⚠️  Atenção: Esta pasta já contém um Salus inicializado para uma família!${reset}`);
+      console.log(`   Se você apenas quer atualizar as skills e o protocolo clínico sem perder o cérebro atual, use:`);
+      console.log(`   ${bold}${cyan}npx salus-ai update${targetDirName ? ' ' + targetDirName : ''}${reset}\n`);
+    } else {
+      console.log(`\n${yellow}⚠️  Atenção: Esta pasta já contém arquivos que o init sobrescreveria ou mesclaria:${reset}`);
+    }
+    for (const item of collisions) {
+      console.log(`   ${dim}•${reset} ${item}`);
+    }
+    console.log('');
+
+    if (!process.stdin.isTTY) {
+      console.log(`${red}✖ Sem terminal interativo para confirmar. Nenhum arquivo foi alterado.${reset}`);
+      console.log(`  Use ${bold}--force${reset} para sobrescrever, ou ${bold}npx salus-ai update${reset} para atualizar sem tocar nos perfis.\n`);
+      process.exit(1);
+    }
 
     const confirmed = await askConfirmation(
-      `${yellow}Deseja realmente sobrescrever os arquivos de inicialização (AGENTS.md, CLAUDE.md, etc.)? (s/N): ${reset}`
+      `${yellow}Deseja realmente sobrescrever estes arquivos? (s/N): ${reset}`
     );
     if (!confirmed) {
       console.log(`\n${dim}Operação cancelada. Nenhum arquivo foi alterado.${reset}\n`);
-      return;
+      process.exit(1);
     }
   }
 
@@ -195,6 +228,13 @@ function update(targetDirName) {
 
   if (!fs.existsSync(targetDir)) {
     console.error(`${red}Erro: A pasta especificada não existe (${targetDir}).${reset}`);
+    process.exit(1);
+  }
+
+  if (!looksLikeSalus(targetDir)) {
+    console.error(`${red}Erro: Esta pasta não parece conter um Salus (não há AGENTS.md nem .agents/).${reset}`);
+    console.error(`  Pasta analisada: ${dim}${targetDir}${reset}`);
+    console.error(`  Para criar um Salus novo, use: ${bold}npx salus-ai init [pasta]${reset}\n`);
     process.exit(1);
   }
 
@@ -255,7 +295,11 @@ function doctor(targetDirName) {
     if (fs.existsSync(full)) {
       console.log(`   ${green}✔${reset} ${rel}`);
     } else {
-      console.log(`   ${red}✖${reset} ${rel} ${dim}(ausente — rode "npx salus-ai update")${reset}`);
+      // update não recria AGENTS.md (é o cérebro da família); só o init o copia
+      const hint = rel === 'AGENTS.md'
+        ? 'rode "npx salus-ai init" (ele pergunta antes de sobrescrever)'
+        : 'rode "npx salus-ai update"';
+      console.log(`   ${red}✖${reset} ${rel} ${dim}(ausente — ${hint})${reset}`);
       warnings++;
     }
   }
@@ -280,7 +324,10 @@ function doctor(targetDirName) {
       if (fs.existsSync(filePath)) {
         console.log(`   ${green}✔${reset} ${label}`);
       } else {
-        console.log(`   ${yellow}⚠${reset} ${label} ${dim}(ausente — peça à IA para rodar "revisar salus")${reset}`);
+        const hint = filePath === indexYaml
+          ? 'peça à IA: "reconstruir o índice do Salus"'
+          : 'peça à IA: "revisar salus"';
+        console.log(`   ${yellow}⚠${reset} ${label} ${dim}(ausente — ${hint})${reset}`);
         warnings++;
       }
     }
@@ -334,12 +381,19 @@ function doctor(targetDirName) {
   }
 }
 
-if (flags.has('--version') || flags.has('-v')) {
+if (unknownFlags.length > 0) {
+  console.error(`${red}Opção desconhecida:${reset} ${unknownFlags.join(', ')}`);
+  printHelp();
+  process.exit(1);
+} else if (flags.has('--version') || flags.has('-v')) {
   printVersion();
 } else if (flags.has('--help') || flags.has('-h') || !command) {
   printHelp();
 } else if (command === 'init') {
-  init(positional[1]);
+  init(positional[1]).catch((err) => {
+    console.error(`${red}Erro ao inicializar o Salus:${reset}`, err.message);
+    process.exit(1);
+  });
 } else if (command === 'update') {
   update(positional[1]);
 } else if (command === 'doctor' || command === 'check' || command === 'status') {

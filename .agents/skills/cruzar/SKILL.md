@@ -32,9 +32,9 @@ Leia `Familia/_index.yaml` primeiro. Se o `marcadores_chave` do membro já cobre
 
 Após apresentar a análise no chat, **SEMPRE pergunte ao usuário**:
 
-> *"Quer que eu salve esta análise no Salus para referência futura?"*
+> *"Quer que eu salve esta análise no Salus para referência futura? Vou gravar o arquivo em `Perfis/[Nome]/Analises/`, uma linha no `Historico.md` e, se o marcador estiver em `marcadores_chave`, atualizar o valor mais recente no `Familia/_index.yaml`."*
 
-Se o usuário confirmar:
+Se o usuário confirmar (a confirmação cobre os três arquivos listados acima — nada além disso):
 1. Identifique o perfil principal (`Perfis/[Nome]/Analises/`).
 2. Gere o arquivo `AAAA-MM-DD_HHmm_[Descricao_Curta].md` com o seguinte formato — **guarde a tabela de dados e a conclusão enxuta, não a resposta inteira em prosa**:
 

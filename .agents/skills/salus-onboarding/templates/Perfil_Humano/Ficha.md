@@ -3,7 +3,7 @@
 <!-- Resumo de 1 página. É o que se mostra num pronto-socorro ou se leva a uma consulta. -->
 <!-- Nota: O vínculo biológico fica restrito ao Familia/_index.yaml por privacidade. -->
 
-**Nascimento:** [AAAA-MM-DD ou DD/MM/AAAA]
+**Nascimento:** [AAAA-MM-DD]
 **Tipo sanguíneo:** [ex: O+, ou "não informado"]
 **Plano de saúde:** [nome do plano/convênio, ou "particular"]
 

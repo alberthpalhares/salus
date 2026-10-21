@@ -23,11 +23,12 @@ Leia primeiro `Familia/_index.yaml` para localizar rapidamente o membro (`id`, `
 - **Medicamento novo ou alteração de dose**
   - Cheque primeiro `alergias` e `medicamentos_em_uso` do membro no `Familia/_index.yaml` (siga o `Frameworks/PROTOCOLO_CLINICO.md` caso haja alerta calmo de alergia ou interação).
   - Pergunte ao usuário: *"Você já comprou / está tomando este medicamento, ou é apenas a prescrição por enquanto?"*
+  - Pergunte quem prescreveu (`prescrito_por`); se o usuário não souber, deixe vazio. Se `alergias` do membro for `null` no índice, pergunte agora. Ao apresentar (ou não) um alerta de alergia/interação, diga que a checagem é um lembrete e pode estar incompleta.
   - **Se já está tomando (`Em uso`):**
     - Identifique se é de **uso contínuo** (`renova_em`) ou **tratamento com fim programado** (`termino_em`, ex: por 5 ou 7 dias).
     - Registra em `Perfis/[Nome]/Medicamentos.md` (seção `Em uso`), atualiza `Perfis/[Nome]/Ficha.md`, adiciona em `medicamentos_em_uso` de `Familia/_index.yaml`, e sincroniza `Familia/Medicamentos_Ativos.md` e `Familia/Agenda.md`.
   - **Se é apenas prescrição (`Prescrito`):**
-    - Registra em `Perfis/[Nome]/Medicamentos.md` (seção `Prescritos`), em `medicamentos_prescritos` de `Familia/_index.yaml` e na seção de acompanhamento da `Familia/Agenda.md`.
+    - Registra em `Perfis/[Nome]/Medicamentos.md` (seção `Prescritos`), em `medicamentos_prescritos` de `Familia/_index.yaml` (com `validade_receita`, se souber) e na seção de acompanhamento da `Familia/Agenda.md`.
 
 - **Encerramento / Descontinuação de medicamento** (ex: *"terminei o antibiótico"*, *"o médico suspendeu o remédio X"*)
   - Move o medicamento da seção `Em uso` para `Descontinuados / Histórico` em `Perfis/[Nome]/Medicamentos.md` (registrando período e motivo).
@@ -47,6 +48,10 @@ Leia primeiro `Familia/_index.yaml` para localizar rapidamente o membro (`id`, `
   - Adiciona em `Perfis/[Nome]/Exames.md` (perguntando faixa/flag do laudo se for exame laboratorial e não tiver sido informada).
   - Se for peso de pet ou marcador acompanhado em `marcadores_chave` no `Familia/_index.yaml`, atualiza lá também (e `Peso atual` na `Ficha.md` se for peso).
 
+- **Pedido de exame (requisição) ou exame feito, mencionados em texto** (ex: *"o médico pediu um hemograma"*, *"já fiz o ultrassom"*)
+  - Pedido novo: adiciona em `exames_pendentes` de `Familia/_index.yaml` (`tipo`, `solicitado_em`, `solicitado_por`, `realizar_ate`) e na `Familia/Agenda.md`.
+  - Exame feito: remove de `exames_pendentes`, registra no `Historico.md` e lembra o usuário de colocar o resultado na `_Caixa de Entrada/` quando chegar.
+
 ## 2. Formato de escrita
 
 - **Histórico individual:** `- **[AAAA-MM-DD]** [Descrição clara e objetiva]`
@@ -56,7 +61,7 @@ Leia primeiro `Familia/_index.yaml` para localizar rapidamente o membro (`id`, `
 ## 3. Fluxo de ação
 
 1. Leia `Familia/_index.yaml` e o(s) arquivo(s) de destino do perfil.
-2. Monte a alteração exata que será feita (perfil + `Familia/_index.yaml` + views derivadas).
+2. Monte a alteração exata que será feita (perfil + `Familia/_index.yaml`, inclusive `atualizado_em` + views derivadas). Datas sempre em `AAAA-MM-DD` nos arquivos.
 3. Mostre ao usuário:
    ```text
    📝 Posso registrar as seguintes informações?

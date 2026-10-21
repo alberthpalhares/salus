@@ -2,10 +2,11 @@
 
 <!--
 Este arquivo é uma VIEW DERIVADA do `Familia/_index.yaml` — não é editado à mão pelo
-usuário nem deve ser tratado como fonte de verdade. Ele é regenerado pelas skills
-`raio-x`, `salus-revisao`, `registrar` e `salus-organiza` a partir dos campos de
-medicamentos (renova_em / termino_em), vacinas (proxima_em), antiparasitários (proximo_em)
-e check-ups (data) do índice, ordenados por data.
+usuário nem deve ser tratado como fonte de verdade. Qualquer skill pode regenerá-lo sem
+nova confirmação, porque ele só reflete dados já aprovados no índice: medicamentos
+(renova_em / termino_em), receitas prescritas (validade_receita), vacinas (proxima_em),
+antiparasitários (proximo_em), exames pendentes (realizar_ate) e check-ups (data),
+ordenados por data em 4 faixas: vencido / 30 dias / 31–90 dias / sem data.
 
 Objetivo: responder de forma proativa "o que vem pela frente" — sem o usuário
 precisar perguntar. É o arquivo que o Raio-X resume e que a Revisão Periódica varre.
@@ -15,7 +16,7 @@ precisar perguntar. É o arquivo que o Raio-X resume e que a Revisão Periódica
 
 ## 🔴 Vencido ou ciclo encerrado (confirmar)
 
-- [ ] *(nada ainda — será preenchido conforme houver vacinas, antiparasitários, check-ups, renovações ou tratamentos com término atingido)*
+- [ ] *(nada ainda — será preenchido conforme houver vacinas, antiparasitários, check-ups, exames pendentes, renovações, receitas vencendo ou tratamentos com término atingido)*
 
 ## 🟡 Vencendo nos próximos 30 dias
 

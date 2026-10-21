@@ -1,8 +1,11 @@
 # META — Índice do Salus
 
-<!-- Este arquivo é a versão legível-por-humano do índice. A fonte de verdade que a
-IA usa para cálculos (vínculo, alergias, medicamentos, vacinas, antiparasitários, alertas)
-é `Familia/_index.yaml`. Mantenha os dois em sincronia, mas em caso de dúvida o `_index.yaml` manda. -->
+<!-- Este arquivo é a versão legível-por-humano do índice. A fonte estruturada que a
+IA usa para cálculos (vínculo, alergias, medicamentos, vacinas, antiparasitários, exames pendentes)
+é `Familia/_index.yaml`. PRECEDÊNCIA: o `_index.yaml` manda em datas, status e campos estruturados;
+os arquivos de perfil mandam na narrativa e no detalhe. Divergência = falha de sincronia a corrigir
+(com confirmação). As datas de onboarding/revisão abaixo são a referência oficial — o `AGENTS.md`
+não as repete. -->
 
 **Família:** [Sobrenome/identificação]
 **Onboarding realizado em:** [AAAA-MM-DD]

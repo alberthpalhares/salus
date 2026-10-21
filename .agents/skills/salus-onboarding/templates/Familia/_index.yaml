@@ -1,21 +1,25 @@
-# _index.yaml — Fonte única de verdade do Salus
+# _index.yaml — Fonte estruturada do Salus
 #
 # ATENÇÃO IA: este arquivo é o PRIMEIRO que você deve ler para qualquer pergunta
 # sobre o panorama da família (raio-x, cruzar, preparar-consulta, revisão, agenda).
 # Ele concentra os campos "quentes" (datas, alergias, status, medicamentos, vacinas,
-# antiparasitários, marcadores-chave) para que você não precise abrir todos os
-# arquivos de perfil a cada pergunta.
+# antiparasitários, exames pendentes, marcadores-chave) para que você não precise abrir
+# todos os arquivos de perfil a cada pergunta.
 #
-# Os arquivos de perfil (Ficha.md, Historico.md, Exames.md, Genetica.md, Documentos/)
-# continuam sendo a fonte narrativa completa e os documentos originais — abra-os
-# quando o usuário pedir detalhe ou quando o índice não tiver o campo necessário.
+# PRECEDÊNCIA: este índice manda em datas, status e campos estruturados; os arquivos de
+# perfil (Ficha.md, Historico.md, Exames.md, Genetica.md, Documentos/) mandam na narrativa
+# e no detalhe. Se um dado aqui e no perfil divergirem, trate como falha de sincronia:
+# aponte ao usuário e corrija os dois (com confirmação). A mesma regra está em
+# Familia/META.md e em Frameworks/PROTOCOLO_CLINICO.md.
 #
 # REGRA DE SINCRONIA: toda skill que grava um dado novo (registrar, salus-organiza,
-# salus-revisao) DEVE atualizar este arquivo no mesmo passo em que grava a prosa
-# correspondente, bem como as views derivadas afetadas (Agenda.md, Medicamentos_Ativos.md,
-# Linha_do_Tempo_Geral.md). Se um dado aqui e no perfil divergirem, o arquivo de perfil
-# vence (é o mais detalhado) — mas isso deve ser tratado como uma falha de sincronia a corrigir.
+# cruzar, preparar-consulta, salus-revisao) DEVE atualizar este arquivo (inclusive
+# `atualizado_em`) no mesmo passo em que grava a prosa correspondente, e regenerar as
+# views derivadas afetadas (Agenda.md, Medicamentos_Ativos.md, Linha_do_Tempo_Geral.md).
+#
+# DATAS: sempre AAAA-MM-DD. Campo sem informação: "" (string vazia) ou null, conforme o comentário.
 
+schema_versao: 1               # versão do formato deste arquivo (a skill salus-revisao migra formatos antigos)
 familia: "[Sobrenome/identificação]"
 atualizado_em: "[AAAA-MM-DD]"
 
@@ -26,19 +30,22 @@ membros:
     tipo: "pessoa"              # pessoa | cao | gato | outro
     perfil: "Perfis/[Nome]/"
     nascimento: "[AAAA-MM-DD]"  # ou "" se não informado
-    vinculo: "biologico"        # biologico | adotivo | enteado — biologico é o default para humanos
-                                 # (use "nao_aplicavel" para pets).
+    vinculo: "biologico"        # biologico | adotivo | enteado | nao_aplicavel
+                                 # biologico é o default para humanos; nao_aplicavel para pets.
                                  # Este campo é usado pela skill `cruzar` para decidir
                                  # se cruza genéticos/hereditários. NÃO exponha este
                                  # campo na Ficha.md do membro (fica só aqui, por privacidade).
 
-    alergias: []                # ex: ["Dipirona", "Mofo", "Proteína de frango"]
+    alergias: null              # null = ainda não perguntado/informado (a IA deve perguntar);
+                                 # [] = confirmado que não há alergia conhecida;
+                                 # ex: ["Dipirona", "Mofo", "Proteína de frango"]
     condicoes_ativas: []        # ex: ["Hipertensão", "Hipotireoidismo"]
 
     medicamentos_em_uso: []
       # - nome: "[Medicamento]"
       #   dose: "[dose e frequência, ex: 50mg 1x/dia]"
       #   desde: "[AAAA-MM-DD]"
+      #   prescrito_por: "[profissional ou vazio]"
       #   renova_em: "[AAAA-MM-DD ou vazio — use para uso contínuo com receita]"
       #   termino_em: "[AAAA-MM-DD ou vazio — use para tratamento de ciclo fechado, ex: 5 dias]"
 
@@ -46,6 +53,8 @@ membros:
       # - nome: "[Medicamento]"
       #   dose: "[dose e frequência]"
       #   data_receita: "[AAAA-MM-DD]"
+      #   prescrito_por: "[profissional ou vazio]"
+      #   validade_receita: "[AAAA-MM-DD ou vazio — para alertar receita não comprada que vence]"
 
     vacinas: []
       # - nome: "[Vacina]"
@@ -59,6 +68,14 @@ membros:
       #   tipo: "[antipulgas | vermifugo]"
       #   aplicado_em: "[AAAA-MM-DD]"
       #   proximo_em: "[AAAA-MM-DD]"
+
+    exames_pendentes: []
+      # Requisições/pedidos de exame ainda não realizados (arquivados em Documentos/Requisicoes/).
+      # Saem daqui quando o resultado chega (salus-organiza) ou quando o usuário diz que fez.
+      # - tipo: "[ex: Hemograma completo / Ultrassom abdominal]"
+      #   solicitado_em: "[AAAA-MM-DD]"
+      #   solicitado_por: "[profissional ou vazio]"
+      #   realizar_ate: "[AAAA-MM-DD ou vazio]"
 
     proximos_checkups: []
       # - tipo: "[ex: Retorno cardiologista]"
@@ -76,7 +93,3 @@ membros:
       #   data: "[AAAA-MM-DD]"
       #   flag: "normal"        # normal | alto | baixo — SEMPRE copiado do que o laudo sinalizou.
                                  # Nunca invente ou memorize faixa de referência aqui (ver Protocolo Clínico).
-
-# Alertas já calculados na última revisão/raio-x (opcional, acelera consultas repetidas).
-# Pode ficar vazio; a skill raio-x recalcula na hora a partir dos campos acima.
-alertas_cache: []

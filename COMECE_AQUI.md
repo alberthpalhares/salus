@@ -1,6 +1,6 @@
 # Bem-vindo ao Salus 🩺 (v0.4.0)
 
-O Salus é a central de saúde da sua família — pessoas e animais. Ele guarda seus exames, receitas, laudos, carteirinhas de vacinação e orientações médicas em um só lugar, e você pode conversar com a IA sobre tudo isso com total privacidade.
+O Salus é a central de saúde da sua família — pessoas e animais. Ele guarda seus exames, receitas, laudos, carteirinhas de vacinação e orientações médicas em um só lugar, no seu computador, e você conversa com a IA sobre tudo isso. Leia a seção **"Para onde vão seus dados"** antes de começar.
 
 ---
 
@@ -20,7 +20,9 @@ npx salus-ai init
 - *Para verificar a saúde da estrutura da pasta:* `npx salus-ai doctor`
 
 ### Método 2: Manual
-Abra esta pasta no seu assistente de IA preferido (Claude, Gemini, Cursor, Codex, etc.).
+Abra esta pasta no seu assistente de IA preferido.
+
+**Quais assistentes funcionam?** Qualquer um que leia os arquivos da pasta e siga instruções: Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf. Os aplicativos de chat comuns (Claude Desktop, ChatGPT no navegador) **não** leem a pasta sozinhos. Áudio (gravação da orientação do médico) só é ouvido por assistentes que transcrevem áudio — o Gemini sim; Claude Code, Codex e Cursor não (nesse caso, conte para a IA o que foi dito).
 
 ---
 
@@ -83,8 +85,14 @@ A IA lê o arquivo, entende do que se trata, e mostra um plano de arquivamento p
 
 ---
 
+## 🔐 Para onde vão seus dados
+
+- **Os arquivos ficam nesta pasta, no seu computador.** O Salus não tem servidor, conta nem sincronização própria.
+- **Mas a IA não é local.** Toda vez que você conversa, o assistente lê os arquivos necessários (um exame, o índice da família) e envia esse conteúdo ao provedor do assistente (Anthropic, Google, OpenAI, Cursor…). Dependendo do seu plano, esse conteúdo pode ser guardado ou usado para treinar modelos. Prefira um plano ou provedor cuja política **não treine com seus dados** — planos pagos e empresariais costumam oferecer isso.
+- **Dados de saúde são dados sensíveis (LGPD).** Peça consentimento às pessoas adultas cujos dados você vai guardar e tenha cuidado redobrado com dados de menores. Se alguém pedir para sair, diga à IA: *"remover [nome] do Salus"*.
+- **Backup em nuvem só com criptografia** (pasta criptografada, cofre do serviço ou uma ferramenta como Cryptomator). Nunca coloque esta pasta em um repositório público nem compartilhe o link dela sem senha.
+- **A IA pode errar ao ler números** (dose, frequência, valores de exame) em fotos e áudios. Por isso ela sempre mostra o que leu e pede para você confirmar antes de gravar. Confira.
+
 ## 🛡️ Importante
 
-O Salus **organiza e cruza informação — ele não diagnostica nem substitui médico ou veterinário.** Sempre que algo parecer alterado, ele vai sugerir que você mostre para um profissional.
-
-Tudo fica **salvo localmente nesta pasta**, no seu computador.
+O Salus **organiza e cruza informação — ele não diagnostica nem substitui médico ou veterinário.** Sempre que algo parecer alterado, ele vai sugerir que você mostre para um profissional. Os avisos de alergia e de combinação de remédios são lembretes e podem estar incompletos: quem valida é o médico, o farmacêutico ou o veterinário.
