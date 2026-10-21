@@ -11,7 +11,7 @@ export const REPO_ROOT: string = path.resolve(
 
 /** CLI sob teste; `SALUS_CLI` permite apontar para outra implementação. */
 export const CLI_PATH: string =
-  process.env.SALUS_CLI ?? path.join(REPO_ROOT, 'bin', 'cli.cjs');
+  process.env.SALUS_CLI ?? path.join(REPO_ROOT, 'dist', 'cli.js');
 
 /** Pasta que contém o framework distribuído (.agents, Frameworks, ...). */
 export const FRAMEWORK_SRC: string =

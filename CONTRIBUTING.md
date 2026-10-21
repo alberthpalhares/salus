@@ -7,7 +7,7 @@
 
 | Caminho | Papel |
 |---|---|
-| `bin/cli.cjs` | CLI sem dependências: `init`, `update`, `doctor`. |
+| `src/` → `dist/cli.js` | CLI em TypeScript, sem dependências de runtime: `init`, `update`, `doctor`. O `npm run build` gera `dist/cli.js` (o binário publicado; não é commitado). |
 | `framework/` | Tudo que é copiado para a pasta do usuário; espelha o layout do cofre. |
 | `framework/.agents/skills/<nome>/SKILL.md` | Instruções que a IA segue para cada tarefa. |
 | `framework/.agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md` | O "cérebro" gerado no onboarding (vira o `AGENTS.md` do usuário). Carrega um marcador `salus-template: <versão>` na primeira linha. |
@@ -21,7 +21,7 @@
 
 0. `bash scripts/check-docs.sh` — trava de consistência (skills na tabela do cérebro, campos do índice, arquivos citados, versão, resíduos). A CI e o workflow de publicação rodam o mesmo script.
 1. `npm test` — suíte de caracterização do CLI (`init`, `update`, `doctor`, colisões, `--force`, pasta vazia); cobre o antigo roteiro manual. A CI roda em Linux e Windows.
-2. `npm pack --dry-run` — só `bin/`, `framework/`, `README.md`, `LICENSE` e `package.json` entram.
+2. `npm pack --dry-run` — só `dist/`, `framework/`, `README.md`, `LICENSE` e `package.json` entram.
 3. Mudou um campo de `Familia/_index.yaml`? Atualize, no mesmo commit: o template do índice, `SALUS_TEMPLATE.md`, `PROTOCOLO_CLINICO.md`, cada skill que lê ou grava o campo, a seção "Reconstruir ou migrar o índice" de `salus-revisao` e o `CHANGELOG.md`.
 4. Mudou, criou ou renomeou uma skill? Confira a tabela "Skills" do `SALUS_TEMPLATE.md` e a tabela "Quem lê, quem grava" do protocolo.
 5. Mudou uma promessa de comportamento? Confira se `README.md` e `framework/COMECE_AQUI.md` ainda dizem a verdade.

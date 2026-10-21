@@ -5,6 +5,16 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [Não publicado]
+
+### Alterado
+- CLI reescrito em TypeScript e empacotado em `dist/cli.js` (comportamento idêntico, coberto por testes).
+- Node mínimo passa a 22.
+- `require('salus-ai')` não executa mais o CLI (use `npx salus-ai`).
+
+### Interno
+- Produto movido para `framework/`; CI em Linux e Windows; publicação só por tag.
+
 ## [0.4.0] - 2026-10-20
 
 ### Adicionado
