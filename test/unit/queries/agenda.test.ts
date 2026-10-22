@@ -83,6 +83,15 @@ describe('calcularAgenda — limites das faixas (Losartana renova em 2026-11-05)
     expect(faixaDe(agenda, 'Atorvastatina')).toBe('vencido');
   });
 
+  it('o antiparasitário é rotulado pelo tipo: vermífugo na linha do Drontal (2027-02-10, d = 41 de 2026-12-31)', () => {
+    const agenda = calcularAgenda(vault, '2026-12-31');
+    expect(agenda.de31a90).toContainEqual(
+      item({ membro: 'mia', nome: 'Mia', tipo: 'antiparasitario', descricao: 'Vermífugo Drontal Gatos', data: '2027-02-10' }),
+    );
+    // e o antipulgas continua rotulado como tal (2026-10-30 já passou em 2026-12-31: vencido)
+    expect(agenda.vencido.map((i) => i.descricao)).toContain('Antipulgas Revolution 45 mg');
+  });
+
   it('29 de fevereiro de ano bissexto é aceito como `hoje`: tudo o que veio antes está vencido, em ordem', () => {
     const agenda = calcularAgenda(vault, '2028-02-29');
     expect(agenda.hoje).toBe('2028-02-29');

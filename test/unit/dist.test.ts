@@ -17,7 +17,23 @@ describe('dist/cli.js', () => {
     expect(primeiraLinha).toBe('#!/usr/bin/env node');
   });
 
-  it('não embute nada de node_modules/', () => {
-    expect(fs.readFileSync(DIST_CLI, 'utf8')).not.toContain('node_modules/');
+  it('só importa módulos do Node (node:*): as bibliotecas de runtime vão inlinadas no bundle', () => {
+    // Sem os comentários: as bibliotecas inlinadas trazem exemplos `import x from 'pacote'` na documentação.
+    const fonte = fs
+      .readFileSync(DIST_CLI, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '');
+    const especificadores = [
+      ...fonte.matchAll(/^[ \t]*(?:import|export)\b[^'";]*?\bfrom\s*['"]([^'"]+)['"]/gm),
+      ...fonte.matchAll(/^[ \t]*import\s*['"]([^'"]+)['"]/gm),
+      ...fonte.matchAll(/\bimport\(\s*['"]([^'"]+)['"]\s*\)/g),
+      ...fonte.matchAll(/\brequire\(\s*['"]([^'"]+)['"]\s*\)/g),
+    ].map((m) => m[1] ?? '');
+    expect(especificadores.length).toBeGreaterThan(0);
+    expect(especificadores.filter((spec) => !spec.startsWith('node:'))).toEqual([]);
+  });
+
+  it('o bundle não passa de 2 MB', () => {
+    expect(fs.statSync(DIST_CLI).size).toBeLessThanOrEqual(2 * 1024 * 1024);
   });
 });

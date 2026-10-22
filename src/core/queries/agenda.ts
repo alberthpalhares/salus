@@ -1,4 +1,4 @@
-import type { DataIso, DataOuVazia } from '../schema/comuns.js';
+import type { DataIso, DataOuVazia, TipoAntiparasitario } from '../schema/comuns.js';
 import type { Membro } from '../schema/membro.js';
 import type { Vault } from '../vault/Vault.js';
 import { compararDatas, diasEntre, exigirDataValida } from './datas.js';
@@ -38,6 +38,12 @@ export type Agenda = {
   semData: ItemAgenda[];
 };
 
+/** Um novo `TipoAntiparasitario` sem rótulo aqui não compila. */
+const ROTULO_DO_ANTIPARASITARIO: Record<TipoAntiparasitario, string> = {
+  antipulgas: 'Antipulgas',
+  vermifugo: 'Vermífugo',
+};
+
 const ULTIMO_DIA_DE_ATE30 = 30;
 const ULTIMO_DIA_DE_DE31A90 = 90;
 
@@ -67,8 +73,7 @@ function itensDoMembro(membro: Membro): ItemAgenda[] {
   }
   for (const a of membro.antiparasitarios) {
     if (a.proximo_em === '') continue;
-    const rotulo = a.tipo === 'vermifugo' ? 'Vermífugo' : 'Antipulgas';
-    itens.push(criar(dono, 'antiparasitario', `${rotulo} ${a.produto}`, a.proximo_em));
+    itens.push(criar(dono, 'antiparasitario', `${ROTULO_DO_ANTIPARASITARIO[a.tipo]} ${a.produto}`, a.proximo_em));
   }
   for (const e of membro.pendencias.examesSolicitados) {
     itens.push(criar(dono, 'exame_solicitado', `${e.exame} (solicitado)`, e.realizar_ate));

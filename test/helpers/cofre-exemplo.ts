@@ -18,7 +18,7 @@ export function copiaDoExemplo(): string {
 
 /** Apaga as cópias criadas por `copiaDoExemplo` (chamar num `afterAll`). */
 export function removerCopias(): void {
-  for (const dir of temporarias.splice(0)) rmSync(join(dir, '..'), { recursive: true, force: true });
+  for (const dir of temporarias.splice(0)) rmSync(join(dir, '..'), { recursive: true, force: true, maxRetries: 5 });
 }
 
 /** Troca `de` por `para` no arquivo (caminho relativo ao cofre); falha se `de` não está lá: nada de troca silenciosa. */
