@@ -43,6 +43,7 @@ export const CODEC_DO_ARQUIVO = {
 } as const satisfies Record<ArquivoDeVerdade, keyof typeof codecs>;
 
 export { manifesto };
+export { linhaDaChaveNoFrontmatter } from './leitura.js';
 export type { EstadoManifesto } from './manifesto.js';
 export type { DadosDoses } from './doses.js';
 export type { DadosExames } from './exames.js';

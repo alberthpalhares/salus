@@ -55,7 +55,16 @@ export function ler(
     problema(`o salus.yaml tem YAML inválido na linha ${linha}; corrija à mão`, linha);
     return resultado(undefined);
   }
-  const valor: unknown = documento.toJS();
+  let valor: unknown;
+  try {
+    valor = documento.toJS();
+  } catch (erro) {
+    // `toJS` lança (ReferenceError) para alias sem âncora ou em excesso, que o `parseDocument` não
+    // aponta como erro: é conteúdo do arquivo, não falha do programa.
+    if (!(erro instanceof Error)) throw erro;
+    problema('o salus.yaml usa um alias (*nome) sem âncora, ou alias demais; corrija à mão', 1);
+    return resultado(undefined);
+  }
   if (!ehObjeto(valor)) {
     problema('o salus.yaml deve ser um mapa de chaves (chave: valor)', 1);
     return resultado(undefined);

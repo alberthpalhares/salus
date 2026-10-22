@@ -82,12 +82,17 @@ function dividirCelulas(linha: string): string[] {
   return s.split(/(?<!\\)\|/).map((celula) => desescaparCelula(celula.trim()));
 }
 
+/**
+ * Problemas do cabeçalho. As mensagens dizem só a posição da coluna e o nome **esperado** (que vem do
+ * FORMATO.md), nunca o texto achado: o cabeçalho de uma tabela larga é escrito por quem usa, e um
+ * nome de marcador ou de exame iria parar no log do `doctor`.
+ */
 function problemasDoCabecalho(cabecalho: readonly string[], esperadas: readonly string[]): string[] {
   const problemas: string[] = [];
   esperadas.forEach((esperada, i) => {
     const achada = cabecalho[i];
     if (achada !== undefined && normalizarCabecalho(achada) !== normalizarCabecalho(esperada)) {
-      problemas.push(`cabeçalho: a coluna ${i + 1} é '${achada}', esperada '${esperada}'`);
+      problemas.push(`cabeçalho: a coluna ${i + 1} deveria ser '${esperada}'`);
     }
   });
   if (cabecalho.length < esperadas.length) {
@@ -95,12 +100,16 @@ function problemasDoCabecalho(cabecalho: readonly string[], esperadas: readonly 
     problemas.push(`cabeçalho: faltam colunas no fim: ${faltam.join(', ')}`);
   }
   const vistas = new Set<string>();
-  for (const extra of cabecalho.slice(esperadas.length)) {
+  cabecalho.slice(esperadas.length).forEach((extra, j) => {
     if (vistas.has(extra)) {
-      problemas.push(`cabeçalho: a coluna extra '${extra}' se repete (uma linha regenerada repetiria a primeira)`);
+      const posicao = esperadas.length + j + 1;
+      problemas.push(
+        `cabeçalho: a coluna extra ${posicao} repete o nome de uma coluna extra anterior ` +
+          '(uma linha regenerada repetiria a primeira)',
+      );
     }
     vistas.add(extra);
-  }
+  });
   return problemas;
 }
 

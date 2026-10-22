@@ -58,9 +58,17 @@ describe('parseTabela — cabeçalho', () => {
     const { tabela, problemas } = parseTabela(trecho, ['Medicamento', 'Dose', 'Obs']);
     expect(problemas).toHaveLength(2);
     expect(problemas.every((p) => p.includes('cabeçalho'))).toBe(true);
-    expect(problemas[0]).toContain("'Dose'");
+    expect(problemas[0]).toContain('coluna 1');
+    expect(problemas[0]).toContain("'Medicamento'");
     expect(tabela.colunas).toEqual(['Dose', 'Medicamento', 'Obs']);
     expect(tabela.linhas.map((l) => l.celulas)).toEqual([['50 mg', 'Losartana', '']]);
+  });
+
+  it('o problema de cabeçalho cita só a posição e o nome esperado, nunca o texto achado', () => {
+    const trecho = linhas('| Glicose do Fulano | Dose | Obs |', '|---|---|---|', '| a | b | c |');
+    const { problemas } = parseTabela(trecho, ['Medicamento', 'Dose', 'Obs']);
+    expect(problemas).toEqual(["cabeçalho: a coluna 1 deveria ser 'Medicamento'"]);
+    expect(problemas.join(' ')).not.toContain('Glicose');
   });
 
   it('compara normalizado: pontas, caixa, espaços repetidos e NFC', () => {
@@ -115,7 +123,8 @@ describe('parseTabela — cabeçalho', () => {
     const { tabela, problemas } = parseTabela(trecho, ['A']);
     expect(tabela.colunasExtras).toEqual(['X', 'X']);
     expect(problemas).toHaveLength(1);
-    expect(problemas[0]).toContain("'X'");
+    expect(problemas[0]).toContain('coluna extra 3');
+    expect(problemas[0]).not.toContain("'X'"); // a posição, não o nome escrito no cabeçalho
     expect(emitirTabela(tabela)).toBe(trecho);
     expect(() => emitirTabela(tabela, [['4', '5', '6']])).toThrow(/coluna extra 'X' se repete/);
     const linha = tabela.linhas[0];

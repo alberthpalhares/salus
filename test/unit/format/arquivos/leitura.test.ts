@@ -134,6 +134,22 @@ describe('Ana — leitura do cofre de exemplo', () => {
     expect(problemas).toEqual([]);
   });
 
+  it('Vacinas: `## Antiparasitários` presente, mas sem tabela, também não é problema', () => {
+    const arquivo = perfil('Ana', 'Vacinas.md');
+    const fonte = `${lerFixture(arquivo)}\n## Antiparasitários\n\nNenhum registrado ainda.\n`;
+    const { dados, problemas, estado } = vacinas.ler(fonte, ctx(arquivo));
+    expect(problemas).toEqual([]);
+    expect(dados.antiparasitarios).toEqual([]);
+    expect(dados.vacinas).toHaveLength(3);
+    expect(estado.regioes.map((r) => r.chave)).toEqual(['vacinas']);
+  });
+
+  it('Vacinas: `## Vacinas` (obrigatória) sem tabela continua sendo `secao_ausente`', () => {
+    const fonte = '# Vacinas — X\n\n## Vacinas\n\nNenhuma.\n';
+    const { problemas } = vacinas.ler(fonte, ctx('V.md'));
+    expect(problemas).toEqual([problema('V.md', 'secao_ausente', 3)]);
+  });
+
   it('Pendencias, Doses e Genetica', () => {
     const pend = pendencias.ler(lerFixture(perfil('Ana', 'Pendencias.md')), ctx('Pendencias.md'));
     expect(pend.dados.examesSolicitados).toEqual([
@@ -332,6 +348,22 @@ describe('problemas de leitura', () => {
     expect(estado.regioes.some((r) => r.chave === 'emUso')).toBe(false);
   });
 
+  it('`cabecalho_invalido` cita só a posição da coluna e o nome esperado, nunca o texto achado', () => {
+    const achado = 'Glicose da Fulana';
+    const fonte = MEDS.replace('| Medicamento | Dose | Frequência | Via |', `| ${achado} | Dose | Frequência | Via |`);
+    const { problemas } = medicamentos.ler(fonte, ctx('M.md'));
+    expect(problemas).toHaveLength(1);
+    expect(problemas[0]?.mensagem).toContain('coluna 1');
+    expect(problemas[0]?.mensagem).toContain("'Medicamento'");
+    expect(problemas[0]?.mensagem).not.toContain('Glicose');
+    expect(problemas[0]?.mensagem).not.toContain('Fulana');
+    // uma coluna extra com nome repetido tampouco é citada pelo nome
+    const repetida = MEDS.replace('| Obs |\n|---|---|---|---|---|---|---|---|---|', '| Obs | Lab Secreto | Lab Secreto |\n|---|---|---|---|---|---|---|---|---|---|---|');
+    const { problemas: p2 } = medicamentos.ler(repetida, ctx('M.md'));
+    expect(p2.map((p) => p.codigo)).toEqual(['cabecalho_invalido']);
+    expect(p2[0]?.mensagem).not.toContain('Secreto');
+  });
+
   it('Exames: `##` não canônico com tabela fora do formato → `cabecalho_invalido`; só texto → nada', () => {
     const fonte = linhas(
       EXAMES,
@@ -422,6 +454,24 @@ describe('problemas de leitura', () => {
       expect(problemas[0]?.mensagem).not.toContain('Outro');
       expect(dados.frontmatter).toBeUndefined();
       expect(dados.contatos).toHaveLength(1);
+    });
+
+    it('alias sem âncora (ou em excesso) não lança: `yaml_invalido`, frontmatter undefined, sem citar o conteúdo', () => {
+      const semAncora = ficha.ler(BRUNO.replace('nome: Bruno', 'nome: *segredo'), ctx('F.md'));
+      expect(semAncora.problemas).toEqual([problema('F.md', 'yaml_invalido', 1)]);
+      expect(semAncora.problemas[0]?.mensagem).not.toContain('segredo');
+      expect(semAncora.dados.frontmatter).toBeUndefined();
+      expect(semAncora.dados.contatos).toHaveLength(1);
+      expect(semAncora.estado.frontmatter?.lido).toBeUndefined(); // não se grava por cima
+      const bomba = [
+        'a: &a [x, x, x, x, x, x, x, x, x, x]',
+        'b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a, *a]',
+        'c: &c [*b, *b, *b, *b, *b, *b, *b, *b, *b, *b]',
+        'd: [*c, *c, *c, *c, *c, *c, *c, *c, *c, *c]',
+      ];
+      const excesso = ficha.ler(['---', ...bomba, '---', ''].join('\n'), ctx('F.md'));
+      expect(excesso.problemas.filter((p) => p.codigo === 'yaml_invalido')).toHaveLength(1);
+      expect(excesso.dados.frontmatter).toBeUndefined();
     });
 
     it('`id` inválido → `id_invalido` na linha do id; frontmatter undefined', () => {

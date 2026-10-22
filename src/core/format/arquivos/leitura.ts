@@ -12,7 +12,7 @@ import { parseListaEventos } from '../lista.js';
 import type { CodigoProblema, Problema } from '../problema.js';
 import { contarLinhas, type LinhaOpaca, parseTabela } from '../tabela.js';
 import { detectarEol, normalizarCabecalho, removerBom } from '../texto.js';
-import type { FrontmatterLido, Opaca, Regiao, RegistroLido, ResultadoLeitura } from './estado.js';
+import type { EstadoArquivo, FrontmatterLido, Opaca, Regiao, RegistroLido, ResultadoLeitura } from './estado.js';
 import {
   descreverIssue,
   ehFaixaObrigatoria,
@@ -47,6 +47,14 @@ export function linhaDaChave(
     }
   }
   return undefined;
+}
+
+/** Linha da chave de primeiro nível `chave` do frontmatter de um arquivo já lido, se ele a tem. */
+export function linhaDaChaveNoFrontmatter(estado: EstadoArquivo, chave: string): number | undefined {
+  const frontmatter = estado.frontmatter;
+  if (frontmatter === undefined) return undefined;
+  const inicioYaml = estado.fonte.indexOf('\n', frontmatter.faixa.inicio) + 1;
+  return linhaDaChave(frontmatter.documento, estado.fonte, inicioYaml, chave);
 }
 
 /** Rótulo dos campos do evento nas mensagens. */
@@ -113,8 +121,9 @@ export class Leitura {
   }
 
   /**
-   * Região canônica `## <spec.secao>`: ausente → `secao_ausente` (a não ser que `opcional`) e lista
-   * vazia; seção sem tabela → `secao_ausente` na linha do cabeçalho.
+   * Região canônica `## <spec.secao>`: ausente → `secao_ausente` e lista vazia; seção sem tabela →
+   * `secao_ausente` na linha do cabeçalho. Seção `opcional` (`## Antiparasitários`, só de animais)
+   * ausente ou presente sem tabela não é problema: a lista vem vazia.
    */
   regiao<E extends object>(spec: SpecTabela<E>, opcional = false): E[] {
     const titulo = spec.secao ?? '';
@@ -125,7 +134,9 @@ export class Leitura {
       return [];
     }
     if (secao.tabela === undefined) {
-      this.problema('secao_ausente', `a seção '## ${titulo}' não tem a tabela`, this.linhaDe(secao.inicio));
+      if (!opcional) {
+        this.problema('secao_ausente', `a seção '## ${titulo}' não tem a tabela`, this.linhaDe(secao.inicio));
+      }
       return [];
     }
     return this.tabela(secao, spec, `de '## ${titulo}'`);
@@ -255,7 +266,20 @@ export class Leitura {
     const estado: FrontmatterLido = { documento, faixa };
     this.frontmatterLido = estado;
 
-    const valor: unknown = documento.toJS();
+    let valor: unknown;
+    try {
+      valor = documento.toJS();
+    } catch (erro) {
+      // `toJS` lança (ReferenceError) para alias sem âncora ou em excesso, que o `parseDocument` não
+      // aponta como erro. É conteúdo do arquivo: vira problema, e o texto do erro (que cita o alias) fica de fora.
+      if (!(erro instanceof Error)) throw erro;
+      this.problema(
+        'yaml_invalido',
+        'o frontmatter usa um alias (*nome) sem âncora, ou alias demais; corrija à mão',
+        this.linhaDe(faixa.inicio),
+      );
+      return undefined;
+    }
     const entrada = ehObjeto(valor) ? valor : {};
     const r = schema.safeParse(entrada);
     if (r.success) {

@@ -87,6 +87,23 @@ describe('manifesto (salus.yaml)', () => {
     expect(dados).toBeUndefined();
   });
 
+  it('alias sem âncora (ou em excesso) não lança: `manifesto_invalido` na linha 1, sem citar o conteúdo', () => {
+    const semAncora = manifesto.ler('schema_versao: 2\nfamilia: *segredo\n', ctx);
+    expect(semAncora.dados).toBeUndefined();
+    expect(semAncora.problemas).toEqual([problema(ARQUIVO, 'manifesto_invalido', 1)]);
+    expect(semAncora.problemas[0]?.mensagem).not.toContain('segredo');
+    const excesso = [
+      'a: &a [x, x, x, x, x, x, x, x, x, x]',
+      'b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a, *a]',
+      'c: &c [*b, *b, *b, *b, *b, *b, *b, *b, *b, *b]',
+      'd: [*c, *c, *c, *c, *c, *c, *c, *c, *c, *c]',
+      '',
+    ].join('\n');
+    const lido = manifesto.ler(excesso, ctx);
+    expect(lido.dados).toBeUndefined();
+    expect(lido.problemas.map((p) => p.codigo)).toEqual(['manifesto_invalido']);
+  });
+
   it('BOM → problema `bom`; o no-op devolve a fonte sem o BOM', () => {
     const { dados, problemas, estado } = manifesto.ler(BOM + FONTE, ctx);
     expect(problemas.map((p) => p.codigo)).toEqual(['bom']);
