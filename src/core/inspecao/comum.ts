@@ -22,6 +22,9 @@ import { compararTexto, normalizarParaBusca } from '../queries/normalizar.js';
 import { FORMATO_DATA } from '../schema/comuns.js';
 import { ehPastaDePerfil } from '../vault/perfil.js';
 
+/** Relatório que o `anonimizar` grava na raiz do destino (o `inspecionar` o reconhece pelo nome). */
+export const ARQUIVO_RELATORIO = 'ANONIMIZACAO.md';
+
 // ---------------------------------------------------------------------------------------------
 // Passeio pela pasta
 

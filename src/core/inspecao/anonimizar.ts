@@ -35,6 +35,7 @@ import { ehDataValida } from '../schema/comuns.js';
 import { somarDias } from '../queries/datas.js';
 import { normalizarParaBusca } from '../queries/normalizar.js';
 import {
+  ARQUIVO_RELATORIO,
   blocosMarkdown,
   CHAVES_LIVRES,
   CHAVES_PESSOAS,
@@ -73,7 +74,6 @@ export type RelatorioAnonimizacao = {
   ignorados: number;
 };
 
-export const ARQUIVO_RELATORIO = 'ANONIMIZACAO.md';
 
 const TELEFONE = '(00) 00000-0000';
 const EMAIL = 'pessoa@exemplo.com';
@@ -134,11 +134,13 @@ function dentroDe(filho: string, pai: string): boolean {
 }
 
 /**
- * Rótulo em negrito (`**Nascimento:**`) só é estrutura com até 4 palavras; mais longo é uma frase
- * (`**Ana teve febre após vacina:**`) e vai para o texto livre.
+ * Rótulo em negrito (`**Nascimento:**`, `**Data de nascimento / idade estimada:**`) só é estrutura
+ * com até 6 palavras, contando só as que têm letra (`/`, `-` e `—` não contam); mais longo é uma
+ * frase (`**Ana teve febre alta após vacina hoje cedo:**`) e vai para o texto livre.
  */
 function ehRotuloCurto(rotulo: string): boolean {
-  return rotulo.replace(/:\s*$/, '').trim().split(/\s+/).length <= 4;
+  const palavras = rotulo.replace(/:\s*$/, '').trim().split(/\s+/).filter((p) => /\p{L}/u.test(p));
+  return palavras.length <= 6;
 }
 
 const NUMERO = /^([<>≤≥~]\s*)?([+-]?)(\d+)(?:([.,])(\d+))?$/;
@@ -671,11 +673,34 @@ export function anonimizar(origem: string, destino: string, opcoes: OpcoesAnonim
     ocupados.add(candidato.toLowerCase());
     return candidato;
   };
+  /**
+   * Falha do disco no meio da cópia: a mensagem cita só o caminho relativo ao destino (já
+   * anonimizado) e o código do erro; nunca o caminho da origem nem a mensagem do Node.
+   */
+  const falhaAoGravar = (rel: string, erro: unknown): Error => {
+    const codigo =
+      typeof erro === 'object' && erro !== null && 'code' in erro && typeof erro.code === 'string' ? ` (${erro.code})` : '';
+    return new Error(
+      `Não foi possível gravar '${rel}' no destino${codigo}. A cópia ficou pela metade: ` +
+        'esvazie a pasta de destino antes de rodar de novo.',
+    );
+  };
+  const criarPasta = (rel: string, caminho: string): void => {
+    try {
+      mkdirSync(caminho, { recursive: true });
+    } catch (erro) {
+      throw falhaAoGravar(rel, erro);
+    }
+  };
   const gravar = (rel: string, conteudo: string): void => {
     const caminho = resolve(alvo, rel);
     if (!dentroDe(caminho, alvo)) throw new Error('caminho de destino fora da pasta de destino');
-    mkdirSync(dirname(caminho), { recursive: true });
-    writeFileSync(caminho, conteudo, { flag: 'wx' });
+    try {
+      mkdirSync(dirname(caminho), { recursive: true });
+      writeFileSync(caminho, conteudo, { flag: 'wx' });
+    } catch (erro) {
+      throw falhaAoGravar(rel, erro);
+    }
   };
 
   mkdirSync(alvo, { recursive: true });
@@ -686,7 +711,7 @@ export function anonimizar(origem: string, destino: string, opcoes: OpcoesAnonim
     if (entrada.tipo === 'pasta') {
       const caminho = resolve(alvo, relDestino);
       if (!dentroDe(caminho, alvo)) throw new Error('caminho de destino fora da pasta de destino');
-      mkdirSync(caminho, { recursive: true });
+      criarPasta(relDestino, caminho);
       continue;
     }
     const texto = textos.get(entrada.rel);
@@ -696,7 +721,7 @@ export function anonimizar(origem: string, destino: string, opcoes: OpcoesAnonim
       continue;
     }
     const conteudo = anonimizador.arquivo(extname(entrada.rel).toLowerCase(), texto);
-    gravar(reservar(relDestino), (bons.has(entrada.rel) ? '﻿' : '') + conteudo);
+    gravar(reservar(relDestino), (bons.has(entrada.rel) ? '\uFEFF' : '') + conteudo);
     arquivosTexto++;
   }
 

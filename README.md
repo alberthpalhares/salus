@@ -71,7 +71,7 @@ Os comandos abaixo são **para agentes e scripts**: leem um cofre no formato v2 
 | `npx salus-ai agenda --json` | O que vence: vencido, até 30 dias, de 31 a 90 dias e sem data; `--hoje AAAA-MM-DD` fixa a data de referência. |
 | `npx salus-ai buscar <texto> --json` | Procura o texto nos arquivos dos membros, sem distinguir acento nem maiúscula. |
 | `npx salus-ai marcador <id> <nome> --json` | Série de um marcador de exame (ex.: `"Colesterol total"`) por data. |
-| `npx salus-ai inspecionar [pasta]` | Mostra a estrutura de uma pasta (arquivos, seções, colunas, chaves) sem nenhum valor; `--json` para a saída em JSON. |
+| `npx salus-ai inspecionar [pasta]` | Mostra a estrutura de uma pasta (arquivos, seções, colunas, chaves) sem os valores. Só os títulos e nomes de arquivo do formato ficam como estão; os outros viram marcadores (`<título com N palavras>`, `<nome>`). Revise a saída antes de compartilhá-la; `--json` para a saída em JSON. |
 | `npx salus-ai anonimizar <origem> <destino>` | Grava em `<destino>` (pasta nova ou vazia) uma cópia anonimizada de `<origem>`, com nomes, datas, telefones, e-mails e textos livres trocados; `--semente <n>` repete a mesma cópia. Rode sempre numa **cópia** do cofre. |
 
 > [!WARNING]

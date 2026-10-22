@@ -25,7 +25,8 @@ ${bold}COMANDOS:${reset}
                    Os comandos de leitura exigem ${green}--json${reset} por enquanto.
   ${green}inspecionar [pasta]${reset}
                    Mostra a estrutura da pasta (pastas, arquivos, seções, colunas, chaves) sem
-                   nenhum valor; ${green}--json${reset} para a saída em JSON.
+                   valores; títulos e nomes fora do formato viram marcadores. Revise antes de
+                   compartilhar. ${green}--json${reset} para a saída em JSON.
   ${green}anonimizar <origem> <destino>${reset}
                    Grava em <destino> (pasta nova ou vazia) uma cópia anonimizada de <origem>:
                    nomes, datas, telefones, e-mails e textos livres trocados. Rode numa cópia.

@@ -496,24 +496,47 @@ describe('anonimizar: estruturas que escapavam (rodada de correção 1)', () => 
     expect(fs.readdirSync(path.join(destino, '_Caixa de Entrada'))).toContain(esperado);
   });
 
-  it('rótulo em negrito com até 4 palavras fica; mais longo é texto livre', () => {
+  it('rótulo em negrito com até 6 palavras (só as com letras contam) fica; mais longo é texto livre', () => {
     const destino = anonimizarCom({
       'Familia/rotulos.md': [
         '# Rótulos',
         '',
         '**Próxima revisão sugerida:** 2026-10-02',
-        '**Ana teve febre após vacina:** sim',
+        '**Data de nascimento / idade estimada:** 3 anos',
+        '**Contato de emergência / Tutor:** a definir',
+        '**Ana teve febre alta após vacina hoje cedo:** sim',
         '',
-        '- **Bruno caiu da bicicleta ontem:** nada grave',
+        '- **Bruno caiu da bicicleta ontem à tarde:** nada grave',
         '- **Peso atual:** 70 kg',
         '',
       ].join('\n'),
     });
     const texto = fs.readFileSync(path.join(destino, 'Familia', 'rotulos.md'), 'utf8');
     expect(texto).toContain('**Próxima revisão sugerida:** Texto anonimizado (10 caracteres).\n');
-    expect(texto).toContain('\nTexto anonimizado (35 caracteres).\n');
-    expect(texto).toContain('- Texto anonimizado (45 caracteres).\n');
+    expect(texto).toContain('**Data de nascimento / idade estimada:** Texto anonimizado (6 caracteres).\n');
+    expect(texto).toContain('**Contato de emergência / Tutor:** Texto anonimizado (9 caracteres).\n');
+    expect(texto).toContain('\nTexto anonimizado (50 caracteres).\n');
+    expect(texto).toContain('- Texto anonimizado (53 caracteres).\n');
     expect(texto).toContain('- **Peso atual:** Texto anonimizado (5 caracteres).\n');
-    expect(texto).not.toMatch(/febre|bicicleta|vacina/);
+    expect(texto).not.toMatch(/febre|bicicleta|vacina|tarde/);
+  });
+
+  it('erro de gravação no meio da cópia: a mensagem cita só o caminho no destino e pede para esvaziá-lo', () => {
+    // `Familia/Ana/` (pasta) vira `Familia/Membro A/`; depois, o arquivo `Familia/Membro A` não pode ser gravado
+    const origem = copiaDoExemplo();
+    fs.mkdirSync(path.join(origem, 'Familia', 'Ana'));
+    fs.writeFileSync(path.join(origem, 'Familia', 'Membro A'), 'x');
+    const destino = destinoNovo();
+    let mensagem = '';
+    try {
+      anonimizar(origem, destino, { semente: 1 });
+    } catch (erro) {
+      mensagem = erro instanceof Error ? erro.message : String(erro);
+    }
+    expect(mensagem).toMatch(/^Não foi possível gravar 'Familia\/Membro A' no destino \(E[A-Z]+\)\./);
+    expect(mensagem).toContain('esvazie a pasta de destino antes de rodar de novo');
+    expect(mensagem).not.toContain(origem);
+    expect(mensagem).not.toContain(destino);
+    expect(mensagem).not.toMatch(/Ana|Bruno|Mia/);
   });
 });

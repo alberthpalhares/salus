@@ -38,7 +38,7 @@ function descreverArquivo(arquivo: ArquivoInspecionado): string {
   return partes.join(' · ');
 }
 
-/** A inspeção em texto: cada pasta numa linha e, abaixo dela, uma linha por arquivo de texto. */
+/** A inspeção em texto: cada pasta numa linha e, abaixo dela, uma linha por arquivo de texto; o aviso no fim. */
 export function formatarInspecao(inspecao: Inspecao): string {
   const porPasta = new Map<string, ArquivoInspecionado[]>();
   for (const pasta of ['', ...inspecao.pastas]) porPasta.set(pasta, []);
@@ -62,6 +62,7 @@ export function formatarInspecao(inspecao: Inspecao): string {
       linhas.push(`  ${nome}  ${descreverArquivo(arquivo)}`);
     }
   }
+  linhas.push('', inspecao.aviso);
   return linhas.join('\n');
 }
 

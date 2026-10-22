@@ -18,8 +18,10 @@ describe('inspecionar', () => {
   it('--json devolve a estrutura sem nenhum valor', async () => {
     const r = await runCli(['inspecionar', cofre, '--json']);
     expect(r.code, r.out).toBe(0);
-    const dados = JSON.parse(r.stdout) as { versao_detectada: string; pastas: string[] };
+    const dados = JSON.parse(r.stdout) as { versao_detectada: string; pastas: string[]; raiz: string; aviso: string };
     expect(dados.versao_detectada).toBe('v2');
+    expect(dados.raiz).toBe(path.basename(cofre));
+    expect(dados.aviso).toContain('revise antes de compartilhar');
     expect(dados.pastas).toContain('Perfis/membro-1');
     for (const valor of VALORES) expect(r.stdout, valor).not.toContain(valor);
   });
@@ -30,6 +32,7 @@ describe('inspecionar', () => {
     expect(r.out).toContain('Perfis/membro-1/');
     expect(r.out).toContain('Ficha.md');
     expect(r.out).toContain('Nome | Relação | Telefone');
+    expect(r.out.trimEnd()).toMatch(/revise antes de compartilhar\.$/);
     for (const valor of VALORES) expect(r.out, valor).not.toContain(valor);
   });
 
