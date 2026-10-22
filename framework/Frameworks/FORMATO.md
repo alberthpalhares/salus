@@ -236,7 +236,7 @@ Exemplo de animal, com antiparasitários:
 
 ### `Exames.md`
 
-Quatro tipos de tabela. Peso, pressão e glicemia têm cabeçalhos fixos; **qualquer outro cabeçalho `##` é um exame de laboratório** (`## Hemograma`, `## Perfil lipídico`) e usa a tabela de marcadores.
+Quatro tipos de tabela. Peso, pressão e glicemia têm cabeçalhos fixos; **qualquer outro cabeçalho `##` é um exame de laboratório** (`## Hemograma`, `## Perfil lipídico`) e usa a tabela de marcadores. Um `##` sem tabela é texto livre; se a tabela dele não tiver as colunas de marcadores, o Salus a ignora e o `doctor` avisa.
 
 - `## Peso` → `| Data | Peso (kg) | Obs |`
 - `## Pressão arterial` → `| Data | Sistólica | Diastólica | FC | Obs |`
