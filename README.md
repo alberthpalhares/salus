@@ -62,6 +62,21 @@ Após inicializar, abra a pasta gerada na sua ferramenta de IA (Claude, Gemini, 
 | `npx salus-ai update [pasta]` | Atualiza skills, protocolos e guia preservando `Perfis/`, `Familia/` e o `AGENTS.md` da família. Só roda em pasta que já é um Salus. |
 | `npx salus-ai doctor [pasta]` | Diagnóstico rápido da integridade da pasta, perfis e documentos pendentes. |
 
+Os comandos abaixo são **para agentes e scripts**: leem um cofre no formato v2 (`framework/Frameworks/FORMATO.md`), nunca gravam nada nele e, por enquanto, só respondem em JSON (`--json` é obrigatório). `--cofre <pasta>` aponta o cofre (padrão: a pasta atual).
+
+| Comando | O que faz |
+|---|---|
+| `npx salus-ai membros --json` | Lista os membros do cofre e os arquivos com problema de leitura. |
+| `npx salus-ai perfil <id> --json` | Mostra o perfil de um membro; `--secao ficha,medicamentos` escolhe as seções. |
+| `npx salus-ai agenda --json` | O que vence: vencido, até 30 dias, de 31 a 90 dias e sem data; `--hoje AAAA-MM-DD` fixa a data de referência. |
+| `npx salus-ai buscar <texto> --json` | Procura o texto nos arquivos dos membros, sem distinguir acento nem maiúscula. |
+| `npx salus-ai marcador <id> <nome> --json` | Série de um marcador de exame (ex.: `"Colesterol total"`) por data. |
+| `npx salus-ai inspecionar [pasta]` | Mostra a estrutura de uma pasta (arquivos, seções, colunas, chaves) sem nenhum valor; `--json` para a saída em JSON. |
+| `npx salus-ai anonimizar <origem> <destino>` | Grava em `<destino>` (pasta nova ou vazia) uma cópia anonimizada de `<origem>`, com nomes, datas, telefones, e-mails e textos livres trocados; `--semente <n>` repete a mesma cópia. Rode sempre numa **cópia** do cofre. |
+
+> [!WARNING]
+> O `anonimizar` **não pega** nomes de pessoas sem perfil (médicos, parentes) quando aparecem em títulos, em colunas genéricas de tabela, em valores do YAML ou em nomes de arquivo, nem datas em outros formatos (como "10 de março de 2026"). **Revise o resultado antes de compartilhá-lo** ou de colocá-lo em `test/fixtures/local/`.
+
 **No chat com a IA** (linguagem natural; os atalhos são só exemplos):
 
 | Frase | O que faz |
@@ -88,11 +103,11 @@ Salus/
 ├── scripts/check-docs.sh      ← Trava de consistência das docs (roda no CI antes de publicar)
 ├── LICENSE                    ← Licença MIT
 ├── package.json               ← Configuração do pacote NPX (salus-ai)
-├── src/                       ← Código-fonte do CLI em TypeScript (init, update, doctor; não vai no pacote npm)
+├── src/                       ← Código-fonte do CLI em TypeScript (não vai no pacote npm)
 │   ├── cli/                   ← Entrada e despacho dos comandos
-│   └── core/framework/        ← init, update, doctor e utilitários
+│   └── core/                  ← framework (init, update, doctor), schema, format (codecs), vault, queries e inspecao
 ├── dist/cli.js                ← CLI empacotado, gerado por `npm run build` (não é commitado; é o binário do pacote)
-├── test/                      ← Testes do CLI: unitários e de caracterização (não vão no pacote npm)
+├── test/                      ← Testes: unitários, caracterização do CLI e fixtures (não vão no pacote npm)
 └── framework/                 ← Tudo que o `init` copia para a pasta do usuário (espelha o layout do cofre)
     ├── CLAUDE.md · GEMINI.md · CODEX.md · AGENTS.md · .cursorrules  ← Inicialização multi-IA
     ├── COMECE_AQUI.md         ← Guia rápido do usuário final

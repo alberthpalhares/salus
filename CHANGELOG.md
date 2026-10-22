@@ -7,6 +7,12 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+### Adicionado
+- Formato v2 do cofre especificado em `framework/Frameworks/FORMATO.md`, com os modelos de arquivo em `framework/templates/`.
+- Leitura do cofre v2 no CLI, só leitura e com saída `--json` (para agentes e scripts): `membros`, `perfil`, `agenda`, `buscar` e `marcador`, com `--cofre`, `--secao` e `--hoje`. Cada arquivo com problema é apontado sem derrubar a leitura dos demais.
+- `npx salus-ai inspecionar [pasta]`: mostra a estrutura de uma pasta (arquivos, seções, colunas, chaves) sem nenhum valor.
+- `npx salus-ai anonimizar <origem> <destino>`: grava uma cópia anonimizada de um cofre (nomes, datas, telefones, e-mails e textos livres trocados), repetível com `--semente`. Não pega tudo (nomes de quem não tem perfil em títulos, colunas genéricas, valores YAML e nomes de arquivo; datas em outros formatos): revise a cópia antes de compartilhá-la.
+
 ### Alterado
 - CLI reescrito em TypeScript e empacotado em `dist/cli.js` (comportamento idêntico, coberto por testes).
 - Node mínimo passa a 22.
@@ -15,6 +21,8 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - `init` não cria mais `_Caixa de Entrada/.gitkeep` na pasta do usuário (a pasta continua sendo criada).
 
 ### Interno
+- Bibliotecas de runtime (`zod`, `yaml`, `unified`, `remark-parse`, `remark-gfm`, `remark-frontmatter`) inlinadas em `dist/cli.js` e declaradas em `devDependencies`, sem `dependencies` no pacote publicado (ADR-0008); o teste do bundle confere que ele só importa módulos nativos do Node.
+- Núcleo em `src/core/{schema,format,vault,queries,inspecao}`: schema único (Zod), codecs de Markdown e YAML que regravam byte a byte quando nada muda, `Vault.abrir` e as consultas; corpus de arquivos "sujos" em `test/fixtures/dirty/`.
 - Produto movido para `framework/`; CI em Linux e Windows; publicação só por tag, por trusted publishing (OIDC) e sem token do npm no repositório.
 
 ## [0.4.0] - 2026-10-20

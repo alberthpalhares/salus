@@ -4,7 +4,8 @@
 # Sai com 1 se encontrar: resíduo de versão antiga / promessa falsa, skill citada no cérebro
 # sem caminho na tabela, pasta de skill fora da tabela, campo do índice citado sem definição
 # no template, arquivo de perfil/família citado sem template (v1 ou v2), versão desalinhada, ou
-# cabeçalho canônico do FORMATO.md ausente dos templates v2.
+# cabeçalho canônico do FORMATO.md ausente dos templates v2, ou comando citado na seção
+# "Comandos de terminal" do README que não existe na ajuda do CLI (src/cli/help.ts).
 set -u
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT" || exit 2
@@ -78,6 +79,25 @@ else
     grep -rqxF -- "$h" "$TEMPLATES_V2_DIR" \
       || fail "cabeçalho canônico '$h' de $FORMATO ausente nos templates de $TEMPLATES_V2_DIR"
   done <<< "$canonicos"
+fi
+
+# 7. Todo comando citado na seção "Comandos de terminal" do README (`salus-ai <comando>` ou
+#    `npx salus-ai <comando>`, no início da linha ou entre crases) existe na ajuda do CLI
+HELP="src/cli/help.ts"
+if [ ! -f "$HELP" ]; then
+  fail "$HELP não encontrado"
+else
+  conhecidos=$(grep -oE '\$\{green\}[a-z]+' "$HELP" | sed -E 's/^.*\}//' | sort -u)
+  citados=$(awk '/^## .*Comandos de terminal/{f=1; next} /^## /{f=0} f' README.md \
+    | tr -d '\r' | grep -oE '(^[[:space:]]*|`)(npx )?salus-ai [a-z]+' \
+    | sed -E 's/^.*salus-ai //' | sort -u)
+  if [ -z "$citados" ]; then
+    fail "nenhum comando 'salus-ai <comando>' encontrado na seção 'Comandos de terminal' do README.md"
+  fi
+  for c in $citados; do
+    printf '%s\n' "$conhecidos" | grep -qxF -- "$c" \
+      || fail "comando '$c' citado no README.md (seção 'Comandos de terminal') mas ausente em $HELP"
+  done
 fi
 
 if [ "$errors" -eq 0 ]; then

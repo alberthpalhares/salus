@@ -7,10 +7,17 @@
 
 | Caminho | Papel |
 |---|---|
-| `src/cli/` | Entrada e despacho do CLI (`bin.ts`, `main.ts`, `help.ts`, `io.ts`), em TypeScript e sem dependências de runtime. |
+| `src/cli/` | Entrada e despacho do CLI (`bin.ts`, `main.ts`, `args.ts`, `help.ts`, `io.ts`, `comandos/`), em TypeScript. Importa o núcleo (`src/core`) e as bibliotecas de runtime do [ADR-0008](docs/adr/0008-dependencias-de-runtime.md), inlinadas no bundle; o registro `comandos` de `main.ts` é a fonte dos comandos e opções. |
 | `src/core/framework/` | `init`, `update`, `doctor` e utilitários (`manifest`, `fs`, `detect`), em módulos testáveis. |
+| `src/core/schema/` | Schema único (Zod) do formato v2: tipos e validação de frontmatter, tabelas e índice. |
+| `src/core/format/` | Codecs de Markdown e YAML: localizam as regiões gerenciadas e regravam só o que mudou (splice, [ADR-0003](docs/adr/0003-splice-nao-reserializa.md)); problema de leitura vira dado, não exceção. |
+| `src/core/vault/` | `Vault.abrir`: leitura do cofre v2, só leitura, com os problemas listados por arquivo. |
+| `src/core/queries/` | Consultas sobre o `Vault` (`membros`, `perfil`, `agenda`, `buscar`, `marcador`), expostas no CLI com `--json`. |
+| `src/core/inspecao/` | `inspecionar` (estrutura sem valores) e `anonimizar` (cópia anonimizada determinística por semente). |
 | `dist/` | Gerado pelo `npm run build` (tsdown); `dist/cli.js` é o binário publicado. Não commitar (está no `.gitignore`). |
-| `test/` | Unitários em `test/unit`, caracterização do CLI em `test/cli` e helpers em `test/helpers`; usam pastas temporárias. |
+| `test/` | Unitários em `test/unit`, caracterização e comandos do CLI em `test/cli`, helpers em `test/helpers`; usam pastas temporárias. |
+| `test/fixtures/` | `vaults/` (cofres v2 de exemplo, com dados inventados) e `dirty/` (corpus de arquivos "sujos": BOM, CRLF, espaço final, pipe escapado, HTML em célula etc., que os codecs precisam ler e regravar sem perder nada). `local/` é ignorada pelo git e guarda só a cópia anonimizada do cofre real, nunca dado real. |
+| `framework/Frameworks/FORMATO.md` | Especificação do formato v2 do cofre (cabeçalhos canônicos, tabelas, frontmatter). `check-docs` confere que os cabeçalhos canônicos existem nos modelos de `framework/templates/`. |
 | `framework/` | Tudo que é copiado para a pasta do usuário; espelha o layout do cofre. |
 | `framework/.agents/skills/<nome>/SKILL.md` | Instruções que a IA segue para cada tarefa. |
 | `framework/.agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md` | O "cérebro" gerado no onboarding (vira o `AGENTS.md` do usuário). Carrega um marcador `salus-template: <versão>` na primeira linha. |
@@ -25,7 +32,7 @@
 1. `npm run typecheck` — TypeScript estrito, sem emitir arquivos (`tsc --noEmit`).
 2. `npm test` — o `pretest` gera o `dist/cli.js` e a suíte roda: unitários dos módulos e caracterização do CLI (`init`, `update`, `doctor`, colisões, `--force`, pasta vazia); cobre o antigo roteiro manual. A CI roda em Linux e Windows.
    `npm run test:watch` e o runner da IDE não reconstroem `dist/`; rode `npm run build` antes se mudou `src/`.
-3. `bash scripts/check-docs.sh` — trava de consistência (skills na tabela do cérebro, campos do índice, arquivos citados, versão, resíduos). A CI (e, por ela, o workflow de publicação) roda o mesmo script.
+3. `bash scripts/check-docs.sh` — trava de consistência (skills na tabela do cérebro, campos do índice, arquivos citados, versão, resíduos, cabeçalhos canônicos e comandos do README que existem na ajuda do CLI). A CI (e, por ela, o workflow de publicação) roda o mesmo script.
 4. `npm pack --dry-run` — só `dist/`, `framework/`, `README.md`, `LICENSE` e `package.json` entram.
 5. Mudou um campo de `Familia/_index.yaml`? Atualize, no mesmo commit: o template do índice, `SALUS_TEMPLATE.md`, `PROTOCOLO_CLINICO.md`, cada skill que lê ou grava o campo, a seção "Reconstruir ou migrar o índice" de `salus-revisao` e o `CHANGELOG.md`.
 6. Mudou, criou ou renomeou uma skill? Confira a tabela "Skills" do `SALUS_TEMPLATE.md` e a tabela "Quem lê, quem grava" do protocolo.
@@ -47,6 +54,7 @@
 
 ## Estilo
 
+- Todo codec de `src/core/format/` tem teste de no-op byte-idêntico: ler um arquivo e regravá-lo sem mudar nada devolve exatamente os mesmos bytes (BOM, CRLF, espaços e células opacas incluídos). Codec novo sem esse teste não entra; e todo arquivo "sujo" que quebrou um codec vira um caso novo em `test/fixtures/dirty/`.
 - TypeScript estrito, ESM, imports com sufixo `.js`; as bibliotecas de runtime são as do [ADR-0008](docs/adr/0008-dependencias-de-runtime.md) (inlinadas no bundle e declaradas em `devDependencies`); importar qualquer outra de `src/` exige um novo ADR.
 - Português do Brasil com acentos, UTF-8, LF (`.gitattributes` cuida disso).
 - Datas em `AAAA-MM-DD` em qualquer arquivo gerado para o usuário.

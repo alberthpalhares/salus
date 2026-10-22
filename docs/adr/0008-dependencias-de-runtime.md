@@ -16,6 +16,6 @@ O Salus usa em runtime somente `zod`, `yaml`, `unified`, `remark-parse`, `remark
 ## Consequências
 
 - Positivo: schema, YAML e AST de Markdown vêm de bibliotecas mantidas, e o Zod dá tipo e validação a partir de uma única definição.
-- Positivo: continua um bundle único sem nada nativo, e o `npx` frio baixa só o pacote, sem as cerca de 70 dependências transitivas das seis. No `tsdown.config.ts`, `deps.onlyImport: []` faz a build falhar se a saída importar qualquer pacote do npm (só `node:*` passa).
+- Positivo: continua um bundle único sem nada nativo, e o `npx` frio baixa só o pacote, sem as cerca de 70 dependências transitivas das seis. No `tsdown.config.ts`, `deps.onlyImport: []` faz a build falhar se a saída importar qualquer pacote do npm: o bundle só pode conter módulos nativos do Node (alguns aparecem sem o prefixo `node:`, via `__require`, como `process` e `buffer`).
 - Custo: o pacote cresce (as seis bibliotecas inteiras somam cerca de 340 KB minificadas, antes do tree-shaking do uso real); o tamanho aparece no `npm pack --dry-run` da CI e é conferido a cada fase. Corrigir uma vulnerabilidade numa delas exige publicar uma nova versão do Salus, porque o usuário não recebe atualização das dependências inlinadas.
 - Custo: a guarda tem um limite: `onlyImport: []` só barra o que a saída importa, e um `npm i -D x` importado de `src/` seria inlinado em silêncio. Por isso toda biblioteca nova continua exigindo ADR, e `deps.alwaysBundle` lista as seis permitidas.
