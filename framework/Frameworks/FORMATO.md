@@ -44,7 +44,7 @@ Dentro de uma região gerenciada, o Salus preserva sem alterar tudo o que não e
 - linha dentro da tabela que não começa com `|` (por exemplo, uma frase solta; espaços antes do `|` não contam);
 - item de lista do histórico fora da gramática (por exemplo, `- Primeira consulta em março`).
 
-Linhas de tabela só com células vazias (`| | |`, o resto de um modelo) também são opacas, mas são ignoradas na leitura: não viram registro. Linha opaca nunca é apagada nem reordenada; para corrigi-la, edite à mão.
+Linhas de tabela só com células vazias (`| | |`, o resto de um modelo) e linhas em branco dentro da lista do histórico também são opacas (motivo `vazia`), mas são ignoradas na leitura: não viram registro. Linha opaca nunca é apagada nem reordenada; para corrigi-la, edite à mão.
 
 ## Cabeçalhos canônicos
 
@@ -291,15 +291,15 @@ Log de eventos, na lista da região `## Eventos`. Cada item segue a gramática:
 - **AAAA-MM-DD** [tipo] texto
 ```
 
-`[tipo]` é opcional e vale `consulta`, `sintoma`, `procedimento` ou `observacao`. Um evento pode continuar nas linhas seguintes, desde que indentadas com dois ou mais espaços; elas fazem parte do texto. Eventos não se editam: um fato novo ou uma correção é um novo item no fim. Item fora da gramática é opaco.
+`[tipo]` é opcional e vale `consulta`, `sintoma`, `procedimento` ou `observacao`. Um evento pode continuar nas linhas seguintes, desde que indentadas com dois ou mais espaços; elas fazem parte do texto. Eventos não se editam: um fato novo ou uma correção é um novo item no fim. Item fora da gramática é opaco. Uma linha em branco dentro da lista também é opaca (motivo `vazia`), como nas tabelas: é preservada e ignorada na leitura.
 
 ```markdown
 # Histórico de Saúde — Ana
 
 ## Eventos
 
-- **2026-03-10** [consulta] Consulta de rotina com a cardiologista; pressão controlada.
 - **2026-03-09** Coleta de sangue para hemograma e colesterol.
+- **2026-03-10** [consulta] Consulta de rotina com a cardiologista; pressão controlada.
 - **2026-06-05** [sintoma] Dor de cabeça leve por três dias; melhorou com repouso.
 - **2026-09-15** [procedimento] Exames de controle colhidos em jejum.
 - **2026-10-10** [observacao] A cardiologista sugeriu iniciar atorvastatina; receita retirada.

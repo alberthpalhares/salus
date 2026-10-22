@@ -87,7 +87,14 @@ function formatarEvento(evento: EventoNovo, eol: string): string {
     item.tipo === evento.tipo &&
     item.texto === [primeira, ...resto].join('\n');
   if (!igual) {
-    throw new Error(`evento fora da gramática '- **AAAA-MM-DD** [tipo] texto': ${JSON.stringify(evento)}`);
+    // A mensagem diz só o que conferir, nunca o conteúdo (dado de saúde pode ir parar em log).
+    let parte = 'o texto (linha em branco ou quebra solta no meio)';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(evento.data)) parte = 'a data (AAAA-MM-DD)';
+    else if (evento.tipo !== null && !/^[a-z]+$/.test(evento.tipo)) parte = 'o tipo (só letras minúsculas)';
+    else if (item !== undefined && item.tipo !== evento.tipo) {
+      parte = 'o texto (sem tipo, não pode começar com [tipo])';
+    }
+    throw new Error(`evento fora da gramática '- **AAAA-MM-DD** [tipo] texto': confira ${parte}`);
   }
   return saida;
 }
@@ -95,16 +102,19 @@ function formatarEvento(evento: EventoNovo, eol: string): string {
 /**
  * Escreve a lista. Itens não modificados e opacas voltam com `raw` e `eol` originais, na ordem
  * original; só os itens `modificada` são regenerados (mantendo o `eol` do item); `novos` vão para o
- * fim. O fim de linha das linhas regeneradas e novas é o dominante da lista lida (LF se não houver
- * nenhum). Lança se um evento a gravar não couber na gramática.
+ * fim. O fim de linha das linhas regeneradas e novas é `eolPadrao` quando informado (quem conhece o
+ * fim de linha do arquivo inteiro deve passá-lo: uma lista de um item só não tem quebra para
+ * detectar) e, sem ele, o dominante da lista lida (LF se não houver nenhum). Lança se um evento a
+ * gravar não couber na gramática.
  */
 export function emitirListaEventos(
   itens: readonly ItemEvento[],
   opacas: readonly LinhaOpaca[],
   novos: readonly EventoNovo[] = [],
+  eolPadrao?: string,
 ): string {
   const lido = [...itens, ...opacas].map((l) => l.raw + l.eol).join('');
-  const eol = detectarEol(lido) === 'CRLF' ? '\r\n' : '\n';
+  const eol = eolPadrao ?? (detectarEol(lido) === 'CRLF' ? '\r\n' : '\n');
   const registros = itens.map((item) => ({
     texto: item.modificada ? formatarEvento(item, eol) : item.raw,
     eol: item.eol,

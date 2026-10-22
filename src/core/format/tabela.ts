@@ -202,10 +202,10 @@ function formatarLinha(celulas: readonly string[], total: number): string {
     throw new Error(`linha com ${celulas.length} células numa tabela de ${total} colunas`);
   }
   const completas = [...celulas, ...Array<string>(total - celulas.length).fill('')];
-  for (const celula of completas) {
-    if (/[\r\n]/.test(celula)) {
-      throw new Error(`célula com quebra de linha não cabe numa linha de tabela: ${JSON.stringify(celula)}`);
-    }
+  // A mensagem diz só a posição, nunca o conteúdo (dado de saúde pode ir parar em log).
+  const comQuebra = completas.findIndex((celula) => /[\r\n]/.test(celula));
+  if (comQuebra !== -1) {
+    throw new Error(`a célula ${comQuebra + 1} tem quebra de linha, que não cabe numa linha de tabela`);
   }
   return `|${completas.map((c) => (c === '' ? ' ' : ` ${escaparCelula(c)} `)).join('|')}|`;
 }
@@ -258,11 +258,19 @@ export function acrescentarLinhas(saida: string, novas: readonly string[], eol: 
  * voltam com o `raw` e o `eol` originais, na ordem original; só as linhas `modificada` são
  * regeneradas (células com `escaparCelula`, formato `| a | b |`, o mesmo `eol` da linha). Cada item
  * de `novasLinhas` é uma linha nova, posicional (colunas e depois as extras, completada com `''`),
- * acrescentada no fim com `eolPadrao`. Lança se uma célula a gravar tiver quebra de linha ou se uma
- * linha tiver mais células que a tabela tem colunas.
+ * acrescentada no fim com `eolPadrao`. Lança se uma célula a gravar tiver quebra de linha, se uma
+ * linha tiver mais células que a tabela tem colunas, ou se for preciso regenerar ou acrescentar
+ * linhas numa tabela com colunas extras repetidas (as células delas se misturariam; reemitir cru vale).
  */
 export function emitirTabela(tabela: Tabela, novasLinhas: readonly (readonly string[])[] = []): string {
   const total = tabela.colunas.length + tabela.colunasExtras.length;
+  const repetida = tabela.colunasExtras.find((nome, i) => tabela.colunasExtras.indexOf(nome) !== i);
+  if (repetida !== undefined && (novasLinhas.length > 0 || tabela.linhas.some((l) => l.modificada))) {
+    throw new Error(
+      `a coluna extra '${repetida}' se repete no cabeçalho: não dá para regenerar nem acrescentar linhas ` +
+        'sem misturar as células dela; renomeie a coluna à mão',
+    );
+  }
   const regenerar = (linha: LinhaTabela): string => {
     if (linha.celulas.length > tabela.colunas.length) {
       throw new Error(`linha com ${linha.celulas.length} células para ${tabela.colunas.length} colunas esperadas`);

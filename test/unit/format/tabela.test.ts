@@ -110,11 +110,18 @@ describe('parseTabela — cabeçalho', () => {
     expect(problemas[0]).toContain('delimitador');
   });
 
-  it('coluna extra repetida → problema', () => {
-    const { tabela, problemas } = parseTabela(linhas('| A | X | X |', '|---|---|---|', '| 1 | 2 | 3 |'), ['A']);
+  it('coluna extra repetida → problema; reemitir cru vale, regenerar ou acrescentar lança', () => {
+    const trecho = linhas('| A | X | X |', '|---|---|---|', '| 1 | 2 | 3 |');
+    const { tabela, problemas } = parseTabela(trecho, ['A']);
     expect(tabela.colunasExtras).toEqual(['X', 'X']);
     expect(problemas).toHaveLength(1);
     expect(problemas[0]).toContain("'X'");
+    expect(emitirTabela(tabela)).toBe(trecho);
+    expect(() => emitirTabela(tabela, [['4', '5', '6']])).toThrow(/coluna extra 'X' se repete/);
+    const linha = tabela.linhas[0];
+    if (linha === undefined) throw new Error('sem linha');
+    linha.modificada = true;
+    expect(() => emitirTabela(tabela)).toThrow(/coluna extra 'X' se repete/);
   });
 });
 
@@ -303,7 +310,15 @@ describe('emitirTabela', () => {
 
   it('recusa célula com quebra de linha e linha com células demais', () => {
     const { tabela } = parseTabela(linhas('| A | B |', '|---|---|', '| 1 | 2 |'), ['A', 'B']);
-    expect(() => emitirTabela(tabela, [['a\nb', '']])).toThrow(/quebra de linha/);
+    // A mensagem diz a posição e não carrega o conteúdo da célula (dado de saúde pode ir parar em log).
+    let mensagem = '';
+    try {
+      emitirTabela(tabela, [['', 'segredo\nclinico']]);
+    } catch (erro) {
+      mensagem = (erro as Error).message;
+    }
+    expect(mensagem).toMatch(/célula 2 tem quebra de linha/);
+    expect(mensagem).not.toContain('segredo');
     expect(() => emitirTabela(tabela, [['1', '2', '3']])).toThrow(/células/);
     const linha = tabela.linhas[0];
     if (linha === undefined) throw new Error('sem linha');

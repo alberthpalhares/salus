@@ -53,8 +53,8 @@ describe('parseListaEventos', () => {
     const { itens, opacas } = parseListaEventos(trecho);
     expect(opacas).toEqual([]);
     expect(itens.map((i) => [i.data, i.tipo])).toEqual([
-      ['2026-03-10', 'consulta'],
       ['2026-03-09', null],
+      ['2026-03-10', 'consulta'],
       ['2026-06-05', 'sintoma'],
       ['2026-09-15', 'procedimento'],
       ['2026-10-10', 'observacao'],
@@ -172,6 +172,26 @@ describe('emitirListaEventos', () => {
     );
   });
 
+  it('eolPadrao informado (fim de linha do arquivo) vale para lista de 1 item sem quebra', () => {
+    const trecho = '- **2026-02-12** [consulta] Check-up.';
+    const lista = parseListaEventos(trecho);
+    const novo = { data: '2026-10-21', tipo: null, texto: 'Retorno.\nSem queixas.' };
+    expect(emitirListaEventos(lista.itens, lista.opacas, [novo], '\r\n')).toBe(
+      `${trecho}\r\n- **2026-10-21** Retorno.\r\n  Sem queixas.`,
+    );
+    // Sem eolPadrao, uma lista sem quebra nenhuma cai no LF (comportamento anterior).
+    expect(emitirListaEventos(lista.itens, lista.opacas, [novo])).toBe(
+      `${trecho}\n- **2026-10-21** Retorno.\n  Sem queixas.`,
+    );
+    const item = lista.itens[0];
+    if (item === undefined) throw new Error('sem item');
+    item.texto = 'Check-up.\nTudo normal.';
+    item.modificada = true;
+    expect(emitirListaEventos(lista.itens, lista.opacas, [], '\r\n')).toBe(
+      '- **2026-02-12** [consulta] Check-up.\r\n  Tudo normal.',
+    );
+  });
+
   it('regenera só o item modificado; os outros e as opacas voltam crus', () => {
     const trecho = linhas('- **2026-02-12**   [consulta] Check-up.  ', '- Primeira consulta em março', '- **2026-08-20** Coleta.');
     const lista = parseListaEventos(trecho);
@@ -193,11 +213,25 @@ describe('emitirListaEventos', () => {
   it('recusa evento que não cabe na gramática (não grava o que não relê igual)', () => {
     const emitir = (data: string, tipo: string | null, texto: string) => () =>
       emitirListaEventos([], [], [{ data, tipo, texto }]);
-    expect(emitir('21/10/2026', null, 'x')).toThrow(/gramática/);
-    expect(emitir('2026-10-21', 'Consulta', 'x')).toThrow(/gramática/);
-    expect(emitir('2026-10-21', null, '[consulta] parece tipo')).toThrow(/gramática/);
-    expect(emitir('2026-10-21', null, 'a\n\nb')).toThrow(/gramática/);
+    expect(emitir('21/10/2026', null, 'x')).toThrow(/gramática.*a data/);
+    expect(emitir('2026-10-21', 'Consulta', 'x')).toThrow(/gramática.*o tipo/);
+    expect(emitir('2026-10-21', null, '[consulta] parece tipo')).toThrow(/gramática.*não pode começar com \[tipo\]/);
+    expect(emitir('2026-10-21', null, 'a\n\nb')).toThrow(/gramática.*o texto/);
     expect(emitir('2026-10-21', null, 'ok')).not.toThrow();
+  });
+
+  it('a mensagem de erro não carrega o conteúdo do evento (dado de saúde)', () => {
+    const evento = { data: '2026-10-21', tipo: 'Consulta', texto: 'Diagnóstico sigiloso do paciente' };
+    let mensagem = '';
+    try {
+      emitirListaEventos([], [], [evento]);
+    } catch (erro) {
+      mensagem = (erro as Error).message;
+    }
+    expect(mensagem).toMatch(/gramática/);
+    expect(mensagem).not.toContain('sigiloso');
+    expect(mensagem).not.toContain('Consulta');
+    expect(mensagem).not.toContain('2026-10-21');
   });
 
   it('lista vazia com evento novo: só o evento, sem fim de linha', () => {
