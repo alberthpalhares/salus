@@ -160,6 +160,50 @@ describe('parseArgumentos: opções com valor e posicionais obrigatórios', () =
   });
 });
 
+describe('parseArgumentos: posicional a mais', () => {
+  it('nos comandos novos, um posicional além dos declarados é erro argumento_extra com o primeiro extra', () => {
+    expect(parse(['buscar', 'colesterol', 'total', '--json']).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'total' });
+    expect(parse(['membros', 'sobra', 'outra']).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'sobra' });
+    expect(parse(['perfil', 'ana', 'bruno']).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'bruno' });
+    expect(parse(['marcador', 'ana', 'Colesterol', 'total']).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'total' });
+    expect(parse(['agenda', 'x']).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'x' });
+    expect(parse(['inspecionar', 'a', 'b']).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'b' });
+    expect(parse(['anonimizar', 'a', 'b', 'c']).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'c' });
+  });
+
+  it('texto com espaços entre aspas é um posicional só: não é extra', () => {
+    expect(parse(['buscar', 'colesterol total', '--json']).erro).toBeUndefined();
+    expect(parse(['marcador', 'ana', 'Colesterol total']).erro).toBeUndefined();
+  });
+
+  it('init, update e doctor (e os aliases) aceitam extras, como antes', () => {
+    for (const comando of ['init', 'update', 'doctor', 'check', 'status']) {
+      const r = parse([comando, 'Pasta', 'sobra']);
+      expect(r.erro, comando).toBeUndefined();
+      expect(r.posicionais, comando).toEqual(['Pasta', 'sobra']);
+    }
+  });
+
+  it('posicional faltando vem antes de argumento a mais; --help e --version não dão erro', () => {
+    const specs: EspecComando[] = [
+      { nome: 'c', posicionais: [{ nome: 'x', obrigatorio: true }], opcoes: {} },
+    ];
+    expect(parseArgumentos(['c'], specs).erro).toEqual({ tipo: 'posicional_faltando', detalhe: 'x' });
+    expect(parseArgumentos(['c', 'a', 'b'], specs).erro).toEqual({ tipo: 'argumento_extra', detalhe: 'b' });
+    expect(parseArgumentos(['c', 'a', 'b', '--help'], specs).erro).toBeUndefined();
+    expect(parseArgumentos(['c', 'a', 'b', '--version'], specs).erro).toBeUndefined();
+    const comExtras: EspecComando[] = [
+      { nome: 'c', posicionais: [{ nome: 'x', obrigatorio: true }], opcoes: {}, aceitaExtras: true },
+    ];
+    expect(parseArgumentos(['c', 'a', 'b'], comExtras).erro).toBeUndefined();
+  });
+
+  it('opção desconhecida e valor ausente vencem argumento a mais', () => {
+    expect(parse(['buscar', 'a', 'b', '--xpto']).erro?.tipo).toBe('opcao_desconhecida');
+    expect(parse(['buscar', 'a', 'b', '--cofre']).erro?.tipo).toBe('valor_faltando');
+  });
+});
+
 describe('parseArgumentos: opção booleana com =valor é desconhecida (como antes)', () => {
   it('--force=false não liga o force: é opcao_desconhecida com a opção inteira', () => {
     const r = parse(['init', '--force=false']);

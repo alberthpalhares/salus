@@ -8,7 +8,8 @@ export function helpText(version: string): string {
 ${bold}${cyan}🩺 Salus CLI — Central de Inteligência de Saúde da Família${reset} (v${version})
 
 ${bold}USO:${reset}
-  $ npx salus-ai <comando> [nome-da-pasta] [opções]
+  $ npx salus-ai <comando> [argumentos] [opções]
+  Os argumentos de cada comando estão abaixo; texto com espaços vai entre aspas.
 
 ${bold}COMANDOS:${reset}
   ${green}init [pasta]${reset}     Inicializa a estrutura do Salus na pasta especificada ou na pasta atual.

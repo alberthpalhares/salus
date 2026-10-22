@@ -20,13 +20,15 @@ export const comandos: EspecComando[] = [
     nome: 'init',
     posicionais: [{ nome: 'pasta', obrigatorio: false }],
     opcoes: { force: { tipo: 'boolean', curto: 'f' } },
+    aceitaExtras: true,
   },
-  { nome: 'update', posicionais: [{ nome: 'pasta', obrigatorio: false }], opcoes: {} },
+  { nome: 'update', posicionais: [{ nome: 'pasta', obrigatorio: false }], opcoes: {}, aceitaExtras: true },
   {
     nome: 'doctor',
     aliases: ['check', 'status'],
     posicionais: [{ nome: 'pasta', obrigatorio: false }],
     opcoes: {},
+    aceitaExtras: true,
   },
   ...especsConsultas,
   especInspecionar,
@@ -40,7 +42,7 @@ validarRegistro(comandos);
  * Ponto de entrada do CLI: interpreta `argv` (sem `node` e o script) e devolve o código de saída.
  * Opções valem em qualquer posição; o 1º posicional é o comando e os seguintes, os argumentos dele.
  * Ordem: opção desconhecida > valor ausente > `--version` > `--help`/sem comando > comando desconhecido
- * > argumento obrigatório ausente > comando.
+ * > argumento obrigatório ausente > argumento a mais > comando.
  */
 export async function main(
   argv: string[],
@@ -74,6 +76,10 @@ export async function main(
   }
   if (erro?.tipo === 'posicional_faltando') {
     io.err(`${red}Argumento obrigatório ausente:${reset} ${erro.detalhe}`);
+    return 1;
+  }
+  if (erro?.tipo === 'argumento_extra') {
+    io.err(`${red}Argumento a mais:${reset} ${erro.detalhe} (use aspas para texto com espaços)`);
     return 1;
   }
 

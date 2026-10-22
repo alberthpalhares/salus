@@ -9,13 +9,19 @@ export type EspecComando = {
   aliases?: string[];
   posicionais: { nome: string; obrigatorio: boolean }[];
   opcoes: Record<string, EspecOpcao>;
+  /**
+   * Posicionais além dos declarados são aceitos (e ignorados por quem executa)? Padrão `false`: um a
+   * mais é `argumento_extra`. Só `init`, `update` e `doctor` aceitam, para não mudar o que já existia.
+   */
+  aceitaExtras?: boolean;
 };
 
 export type ErroDeArgumentos = {
-  tipo: 'opcao_desconhecida' | 'valor_faltando' | 'comando_desconhecido' | 'posicional_faltando';
+  tipo: 'opcao_desconhecida' | 'valor_faltando' | 'comando_desconhecido' | 'posicional_faltando' | 'argumento_extra';
   /**
    * `opcao_desconhecida`: as opções, separadas por vírgula; `valor_faltando`: a opção (`--cofre`);
-   * `comando_desconhecido`: o texto digitado; `posicional_faltando`: o nome do argumento.
+   * `comando_desconhecido`: o texto digitado; `posicional_faltando`: o nome do argumento;
+   * `argumento_extra`: o primeiro posicional a mais, como foi digitado.
    */
   detalhe: string;
 };
@@ -132,7 +138,8 @@ function resolverComando(texto: string, specs: ReadonlyArray<EspecComando>): Esp
  * Interpreta `argv` (sem `node` e o script) contra o registro de comandos. Opções valem em qualquer
  * posição; o 1º posicional é o comando e os seguintes são os argumentos dele. Só devolve `erro` pela
  * ordem: opção desconhecida > valor ausente > (`--version`, `--help` ou sem comando: nenhum erro, quem
- * chama mostra a versão ou a ajuda) > comando desconhecido > posicional obrigatório ausente.
+ * chama mostra a versão ou a ajuda) > comando desconhecido > posicional obrigatório ausente >
+ * posicional a mais (só nos comandos sem `aceitaExtras`).
  */
 export function parseArgumentos(argv: ReadonlyArray<string>, specs: ReadonlyArray<EspecComando>): Argumentos {
   const conhecidas = opcoesConhecidas(specs);
@@ -172,6 +179,10 @@ export function parseArgumentos(argv: ReadonlyArray<string>, specs: ReadonlyArra
   const faltando = spec.posicionais.find((p, indice) => p.obrigatorio && posicionais[indice] === undefined);
   if (faltando !== undefined) {
     return { ...resultado, erro: { tipo: 'posicional_faltando', detalhe: faltando.nome } };
+  }
+  const extra = spec.aceitaExtras === true ? undefined : posicionais[spec.posicionais.length];
+  if (extra !== undefined) {
+    return { ...resultado, erro: { tipo: 'argumento_extra', detalhe: extra } };
   }
   return resultado;
 }

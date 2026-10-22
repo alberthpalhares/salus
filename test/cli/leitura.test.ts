@@ -148,6 +148,13 @@ describe('buscar', () => {
     expect(code).toBe(0);
     expect(dados).toEqual([]);
   });
+
+  it('texto com espaço sem aspas (`buscar colesterol total`) devolve 1 e pede aspas, sem buscar', async () => {
+    const r = await runCli(['buscar', 'colesterol', 'total', '--cofre', cofre, '--json']);
+    expect(r.code).toBe(1);
+    expect(r.stdout).toBe('');
+    expect(r.out).toContain('Argumento a mais: total (use aspas para texto com espaços)');
+  });
 });
 
 describe('marcador', () => {
@@ -186,5 +193,11 @@ describe('ajuda', () => {
       expect(r.out, nome).toContain(nome);
     }
     expect(r.out).toContain('--json');
+  });
+
+  it('a linha de uso não promete `[nome-da-pasta]` a todo comando', async () => {
+    const r = await runCli(['--help']);
+    expect(r.out).not.toContain('[nome-da-pasta]');
+    expect(r.out).toContain('salus-ai <comando> [argumentos] [opções]');
   });
 });
