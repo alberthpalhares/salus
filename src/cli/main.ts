@@ -2,7 +2,7 @@ import { doctor } from '../core/framework/doctor.js';
 import { init } from '../core/framework/init.js';
 import { packageVersion } from '../core/framework/manifest.js';
 import { update } from '../core/framework/update.js';
-import { type EspecComando, parseArgumentos } from './args.js';
+import { type EspecComando, parseArgumentos, validarRegistro } from './args.js';
 import { ehConsulta, especsConsultas, executarConsulta } from './comandos/consultas.js';
 import { helpText } from './help.js';
 import { ansi, type Io } from './io.js';
@@ -28,6 +28,9 @@ export const comandos: EspecComando[] = [
   },
   ...especsConsultas,
 ];
+
+// Opção repetida com tipo ou forma curta diferentes é erro de programação: falha já ao carregar o módulo.
+validarRegistro(comandos);
 
 /**
  * Ponto de entrada do CLI: interpreta `argv` (sem `node` e o script) e devolve o código de saída.

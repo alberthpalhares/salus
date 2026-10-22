@@ -36,13 +36,28 @@ const OPCOES_GLOBAIS: Record<string, EspecOpcao> = {
   help: { tipo: 'boolean', curto: 'h' },
 };
 
-/** Globais ∪ opções de todos os comandos: uma opção de outro comando é aceita (e ignorada). */
+/**
+ * Globais ∪ opções de todos os comandos: uma opção de outro comando é aceita (e ignorada). A mesma opção
+ * em dois lugares tem de ter o mesmo `tipo` e o mesmo `curto`: se não, é erro de programação (lança).
+ */
 function opcoesConhecidas(specs: ReadonlyArray<EspecComando>): Record<string, EspecOpcao> {
   const todas: Record<string, EspecOpcao> = { ...OPCOES_GLOBAIS };
   for (const spec of specs) {
-    for (const [nome, opcao] of Object.entries(spec.opcoes)) todas[nome] ??= opcao;
+    for (const [nome, opcao] of Object.entries(spec.opcoes)) {
+      const existente = Object.hasOwn(todas, nome) ? todas[nome] : undefined;
+      if (existente === undefined) {
+        todas[nome] = opcao;
+      } else if (existente.tipo !== opcao.tipo || existente.curto !== opcao.curto) {
+        throw new Error(`Registro de comandos inconsistente: --${nome} declarada com tipo ou forma curta diferente em '${spec.nome}'`);
+      }
+    }
   }
   return todas;
+}
+
+/** Lança se o registro declara a mesma opção com `tipo` ou `curto` diferentes (chamar ao montar o registro). */
+export function validarRegistro(specs: ReadonlyArray<EspecComando>): void {
+  opcoesConhecidas(specs);
 }
 
 /** Parece o início de outra opção (e não um valor)? `-` sozinho é valor, como em qualquer CLI. */
@@ -85,12 +100,13 @@ function varrer(argv: ReadonlyArray<string>, opcoes: Record<string, EspecOpcao>)
     const nome = bruto.startsWith('--') ? bruto.slice(2) : arg.length === 2 ? porCurto.get(arg.slice(1)) : undefined;
     const opcao = nome === undefined ? undefined : Object.hasOwn(opcoes, nome) ? opcoes[nome] : undefined;
     if (nome === undefined || opcao === undefined) {
-      desconhecidas.add(bruto);
+      desconhecidas.add(arg);
       continue;
     }
     if (opcao.tipo === 'boolean') {
-      // `--json=x` não é válido para quem não leva valor: vale a presença, sem o `=x`.
-      args.push(`--${nome}`);
+      // `--force=false` não é válido para quem não leva valor (e não pode virar `--force`): é desconhecida, como antes.
+      if (comValor) desconhecidas.add(arg);
+      else args.push(`--${nome}`);
       continue;
     }
     if (comValor) {

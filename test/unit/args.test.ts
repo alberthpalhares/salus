@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type EspecComando, parseArgumentos } from '../../src/cli/args.js';
+import { type EspecComando, parseArgumentos, validarRegistro } from '../../src/cli/args.js';
 import { comandos } from '../../src/cli/main.js';
 
 // `parseArgumentos` contra o registro de verdade: as flags válidas vêm dele, não de uma lista à parte.
@@ -160,7 +160,86 @@ describe('parseArgumentos: opções com valor e posicionais obrigatórios', () =
   });
 });
 
+describe('parseArgumentos: opção booleana com =valor é desconhecida (como antes)', () => {
+  it('--force=false não liga o force: é opcao_desconhecida com a opção inteira', () => {
+    const r = parse(['init', '--force=false']);
+    expect(r.erro).toEqual({ tipo: 'opcao_desconhecida', detalhe: '--force=false' });
+    expect(r.opcoes.force).toBeUndefined();
+  });
+
+  it('--json=x, --help=1 e --version=1 também', () => {
+    expect(parse(['membros', '--json=x']).erro).toEqual({ tipo: 'opcao_desconhecida', detalhe: '--json=x' });
+    expect(parse(['--help=1']).erro).toEqual({ tipo: 'opcao_desconhecida', detalhe: '--help=1' });
+    expect(parse(['--version=1']).erro).toEqual({ tipo: 'opcao_desconhecida', detalhe: '--version=1' });
+  });
+
+  it('entra na lista junto com as outras desconhecidas, na ordem digitada', () => {
+    expect(parse(['--froce=1', 'init', '--force=0']).erro).toEqual({
+      tipo: 'opcao_desconhecida',
+      detalhe: '--froce=1, --force=0',
+    });
+  });
+
+  it('vence --version', () => {
+    expect(parse(['--version', '--force=false']).erro?.tipo).toBe('opcao_desconhecida');
+  });
+});
+
+describe('parseArgumentos: casos de borda fixados', () => {
+  it('-- sozinho: sem comando (cai na ajuda)', () => {
+    const r = parse(['--']);
+    expect(r.comando).toBeUndefined();
+    expect(r.posicionais).toEqual([]);
+    expect(r.erro).toBeUndefined();
+  });
+
+  it('depois de --, o que parece opção é posicional: init -- -x', () => {
+    const r = parse(['init', '--', '-x']);
+    expect(r.erro).toBeUndefined();
+    expect(r.comando).toBe('init');
+    expect(r.posicionais).toEqual(['-x']);
+  });
+
+  it('- sozinho é posicional (e, como 1º posicional, um comando desconhecido)', () => {
+    const r = parse(['-']);
+    expect(r.erro).toEqual({ tipo: 'comando_desconhecido', detalhe: '-' });
+    expect(parse(['init', '-']).posicionais).toEqual(['-']);
+  });
+
+  it('init --cofre Nova: --cofre (de outro comando) consome Nova e não sobra posicional', () => {
+    const r = parse(['init', '--cofre', 'Nova']);
+    expect(r.erro).toBeUndefined();
+    expect(r.posicionais).toEqual([]);
+    expect(r.opcoes.cofre).toBe('Nova');
+  });
+});
+
 describe('parseArgumentos: registro próprio', () => {
+  const comOpcao = (opcoes: EspecComando['opcoes']): EspecComando[] => [
+    { nome: 'a', posicionais: [], opcoes: { x: { tipo: 'boolean' } } },
+    { nome: 'b', posicionais: [], opcoes },
+  ];
+
+  it('mesma opção com o mesmo tipo e o mesmo curto em dois comandos é aceita', () => {
+    expect(() => parseArgumentos(['a'], comOpcao({ x: { tipo: 'boolean' } }))).not.toThrow();
+  });
+
+  it('mesma opção com tipos diferentes em dois comandos é erro de programação', () => {
+    expect(() => parseArgumentos(['a'], comOpcao({ x: { tipo: 'string' } }))).toThrow(/--x/);
+  });
+
+  it('mesma opção com curtos diferentes em dois comandos é erro de programação', () => {
+    expect(() => parseArgumentos(['a'], comOpcao({ x: { tipo: 'boolean', curto: 'x' } }))).toThrow(/--x/);
+  });
+
+  it('opção de comando que redefine uma global (help) com outro tipo também é erro', () => {
+    expect(() => parseArgumentos([], comOpcao({ help: { tipo: 'string' } }))).toThrow(/--help/);
+  });
+
+  it('o registro de verdade não tem conflito', () => {
+    expect(() => validarRegistro(comandos)).not.toThrow();
+  });
+
   const specs: EspecComando[] = [
     {
       nome: 'copiar',
