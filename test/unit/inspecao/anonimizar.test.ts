@@ -5,7 +5,7 @@ import { anonimizar, type RelatorioAnonimizacao } from '../../../src/core/inspec
 import { inspecionar } from '../../../src/core/inspecao/inspecionar.js';
 import { normalizarParaBusca } from '../../../src/core/queries/normalizar.js';
 import { somarDias } from '../../../src/core/queries/datas.js';
-import { copiaDoExemplo, EXEMPLO, removerCopias } from '../../helpers/cofre-exemplo.js';
+import { copiaDoExemplo, EXEMPLO, removerCopias, substituir } from '../../helpers/cofre-exemplo.js';
 import {
   type CofreV1,
   criarCofreV1,
@@ -67,6 +67,31 @@ function datasDe(dir: string): string[] {
   return [...datas];
 }
 
+/** A data deslocada por `dias` no mesmo formato (`undefined` se não existe no calendário). */
+function deslocar(data: string, dias: number): string | undefined {
+  const br = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(data);
+  const iso = br === null ? data : `${br[3]}-${br[2]}-${br[1]}`;
+  let saida: string;
+  try {
+    saida = somarDias(iso, dias);
+  } catch {
+    return undefined;
+  }
+  if (br === null) return saida;
+  const [a, m, d] = saida.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+/**
+ * Datas originais que precisam sumir do destino: tira as que são também a imagem deslocada de outra
+ * data original (essa coincidência não é vazamento: no destino a data representa a outra).
+ */
+function datasQueNaoPodemSobrar(dir: string, dias: number): string[] {
+  const datas = datasDe(dir);
+  const imagens = new Set(datas.map((d) => deslocar(d, dias)));
+  return datas.filter((d) => !imagens.has(d));
+}
+
 function escaparRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -114,7 +139,7 @@ describe('anonimizar: cofre v2 de exemplo (semente 42)', () => {
   });
 
   it('nenhum nome, data, telefone, identificador ou profissional original sobra no destino', () => {
-    const datas = datasDe(EXEMPLO);
+    const datas = datasQueNaoPodemSobrar(EXEMPLO, relatorio.deslocamentoDias);
     expect(datas.length).toBeGreaterThan(30);
     semVazamento(
       destino,
@@ -209,8 +234,8 @@ describe('anonimizar: cofre v1 (semente 42)', () => {
   });
 
   it('nenhum nome, data, telefone ou e-mail original sobra no destino', () => {
-    const datas = datasDe(v1.dir);
-    expect(datas).toEqual(expect.arrayContaining(['2026-03-10', '2025-11-28', '2026-04-02', DATA_BR_V1]));
+    expect(datasDe(v1.dir)).toEqual(expect.arrayContaining(['2026-03-10', '2025-11-28', '2026-04-02', '2026-05-30', DATA_BR_V1]));
+    const datas = datasQueNaoPodemSobrar(v1.dir, relatorio.deslocamentoDias);
     semVazamento(destino, [...NOMES_V1, ...TERCEIROS_V1], [...datas, ...TELEFONES_V1, ...EMAILS_V1]);
   });
 
@@ -242,6 +267,32 @@ describe('anonimizar: cofre v1 (semente 42)', () => {
     expect(meta).toContain('| Membro B | Humano | Mãe | `Perfis/Membro B/` |');
     expect(meta).toContain('| Membro A | Humano | Pai | `Perfis/Membro A/` |');
     expect(meta).toMatch(/^\*\*Família:\*\* Texto anonimizado \(7 caracteres\)\.$/m);
+  });
+
+  it('comentários YAML (do índice e do modelo copiado com o framework) viram texto anonimizado', () => {
+    const arquivos = [
+      path.join(destino, 'Familia', '_index.yaml'),
+      path.join(destino, '.agents', 'skills', 'salus-onboarding', 'templates', 'Familia', '_index.yaml'),
+    ];
+    for (const arquivo of arquivos) {
+      const linhas = fs.readFileSync(arquivo, 'utf8').split('\n');
+      const comentarios = linhas.filter((l) => /(^|\s)#/.test(l));
+      expect(comentarios.length, arquivo).toBeGreaterThan(2);
+      for (const linha of comentarios) {
+        const comentario = linha.slice(linha.search(/(^|\s)#/)).trimStart();
+        expect(comentario, `${arquivo}: ${linha}`).toMatch(/^#\s*(Texto anonimizado \(\d+ caracteres\)\.)?$/);
+      }
+    }
+    const indice = fs.readFileSync(arquivos[0] ?? '', 'utf8');
+    expect(indice).toMatch(/^ {6}# {3}Texto anonimizado \(\d+ caracteres\)\.$/m);
+  });
+
+  it('Arvore.md: Mermaid e bloco de código anonimizados, callout com o prefixo mantido', () => {
+    const arvore = fs.readFileSync(path.join(destino, 'Familia', 'Arvore.md'), 'utf8');
+    expect(arvore).toContain('# Árvore da família Sobrenome');
+    expect(arvore).toContain('```mermaid\n');
+    expect(arvore).toMatch(/^> Texto anonimizado \(\d+ caracteres\)\.$/m);
+    expect(arvore).not.toMatch(/Gertrudes|Ramalho|Ofélia|Ofelia|Caetano/);
   });
 
   it('data dia/mês/ano deslocada no mesmo formato; CRLF preservado', () => {
@@ -324,7 +375,7 @@ describe('anonimizar: regras de segurança', () => {
     anonimizar(origem, destino, { semente: 3 });
     const texto = fs.readFileSync(path.join(destino, 'Familia', 'extra.yaml'), 'utf8');
     expect(texto).not.toMatch(/Bruno|2026-01-02|12345678901|tia/);
-    expect(texto).toContain('# Notas de Membro B em ');
+    expect(texto).toMatch(/^# Texto anonimizado \(28 caracteres\)\.$/m);
     expect(texto).toContain('versao: 3\n');
     expect(texto).toContain('cpf: 0\n');
     expect(texto).toContain('obs: "Texto anonimizado (16 caracteres)."');
@@ -347,5 +398,122 @@ describe('anonimizar: regras de segurança', () => {
     const texto = fs.readFileSync(path.join(destino, 'Familia', 'contatos.md'), 'utf8');
     expect(texto).toContain('# Contatos de pessoa@exemplo.com');
     expect(texto).toContain('| (00) 00000-0000 · pessoa@exemplo.com | casa |');
+  });
+});
+
+describe('anonimizar: estruturas que escapavam (rodada de correção 1)', () => {
+  /** Grava `arquivos` (caminho relativo → conteúdo) numa cópia do v2-exemplo, anonimiza e devolve o destino. */
+  function anonimizarCom(arquivos: Record<string, string>, ajustar?: (origem: string) => void): string {
+    const origem = copiaDoExemplo();
+    for (const [rel, conteudo] of Object.entries(arquivos)) {
+      fs.mkdirSync(path.dirname(path.join(origem, rel)), { recursive: true });
+      fs.writeFileSync(path.join(origem, rel), conteudo);
+    }
+    ajustar?.(origem);
+    const destino = destinoNovo();
+    anonimizar(origem, destino, { semente: 5 });
+    return destino;
+  }
+
+  it('linha colada logo abaixo da tabela (sem |) vira texto anonimizado', () => {
+    const destino = anonimizarCom({
+      'Familia/colada.md': [
+        '# Colada',
+        '',
+        '| Data | Flag |',
+        '|---|---|',
+        '| 2026-01-01 | normal |',
+        'Linha livre colada na tabela com Roberto e sua vizinha Gertrudes Ramalho',
+        '',
+        '| Data | Flag |',
+        '|---|---|',
+        '| 2026-01-02 | normal |',
+        '*Fonte: laudo do Dr. Silva*',
+        '',
+      ].join('\n'),
+    });
+    const texto = fs.readFileSync(path.join(destino, 'Familia', 'colada.md'), 'utf8');
+    expect(texto).not.toMatch(/Roberto|Gertrudes|Ramalho|Silva|Fonte/);
+    expect(texto).toContain('\nTexto anonimizado (72 caracteres).\n');
+    expect(texto).toContain('\nTexto anonimizado (27 caracteres).\n');
+    expect(texto).toMatch(/\| \d{4}-\d{2}-\d{2} \| normal \|/);
+  });
+
+  it('comentários YAML (linha inteira e no fim da linha) viram texto anonimizado; # entre aspas fica', () => {
+    const destino = anonimizarCom({
+      'Familia/notas.yaml': [
+        '# Família Souza Lima — anotação: Ana parou o remédio por causa do enjoo forte',
+        'dose: "50 mg # manhã" # tomar junto com a Gertrudes',
+        'lista:',
+        '  # vizinha Gertrudes ajuda',
+        '  - item',
+        '#   prescrito_por: "Dra. Iolanda Barros"',
+        '',
+      ].join('\n'),
+    });
+    const texto = fs.readFileSync(path.join(destino, 'Familia', 'notas.yaml'), 'utf8');
+    expect(texto).not.toMatch(/Souza|Lima|anotação|enjoo|Ana|Gertrudes|Iolanda|Barros|prescrito/);
+    expect(texto).toContain('# Texto anonimizado (75 caracteres).\n');
+    expect(texto).toContain('dose: "50 mg # manhã" # Texto anonimizado (27 caracteres).\n');
+    expect(texto).toContain('  # Texto anonimizado (23 caracteres).\n');
+    expect(texto).toContain('#   Texto anonimizado (36 caracteres).\n');
+  });
+
+  it('frontmatter: o comentário também vira texto anonimizado', () => {
+    const destino = anonimizarCom({});
+    const ficha = fs.readFileSync(path.join(destino, 'Perfis', 'Membro A', 'Ficha.md'), 'utf8');
+    expect(ficha).toMatch(/^# Texto anonimizado \(\d+ caracteres\)\.\nalergias: \["Dipirona"\]$/m);
+  });
+
+  it('destino numa pasta da origem cujo nome começa com ".." → lança', () => {
+    const origem = copiaDoExemplo();
+    expect(() => anonimizar(origem, path.join(origem, '..copia'), { semente: 1 })).toThrow(/dentro/);
+    expect(fs.existsSync(path.join(origem, '..copia'))).toBe(false);
+  });
+
+  it('nome colado a dígito, hífen ou outro nome em nome de arquivo é trocado; no texto, Anabela fica', () => {
+    const destino = anonimizarCom(
+      {
+        'Perfis/Ana/Documentos/Exame-Ana2026.pdf': '',
+        'Perfis/Ana/Documentos/AnaSouza.pdf': '',
+        'Perfis/Ana/Documentos/Anabela.md': '# Anabela\n',
+      },
+      (origem) => substituir(origem, 'Perfis/Ana/Ficha.md', 'nome: Ana\n', 'nome: Ana Souza\n'),
+    );
+    const documentos = fs.readdirSync(path.join(destino, 'Perfis', 'Membro A', 'Documentos')).sort();
+    expect(documentos).toEqual(['Anabela.md', 'Exame-Membro A2026.pdf', 'Membro A.pdf']);
+    expect(fs.readFileSync(path.join(destino, 'Perfis', 'Membro A', 'Documentos', 'Anabela.md'), 'utf8')).toBe(
+      '# Anabela\n',
+    );
+  });
+
+  it('data com sublinhado em nome de arquivo é deslocada, mantendo o sublinhado', () => {
+    const origem = copiaDoExemplo();
+    fs.writeFileSync(path.join(origem, '_Caixa de Entrada', '2026_03_10_laudo.pdf'), '');
+    const destino = destinoNovo();
+    const { deslocamentoDias } = anonimizar(origem, destino, { semente: 5 });
+    const esperado = `${somarDias('2026-03-10', deslocamentoDias).replaceAll('-', '_')}_laudo.pdf`;
+    expect(fs.readdirSync(path.join(destino, '_Caixa de Entrada'))).toContain(esperado);
+  });
+
+  it('rótulo em negrito com até 4 palavras fica; mais longo é texto livre', () => {
+    const destino = anonimizarCom({
+      'Familia/rotulos.md': [
+        '# Rótulos',
+        '',
+        '**Próxima revisão sugerida:** 2026-10-02',
+        '**Ana teve febre após vacina:** sim',
+        '',
+        '- **Bruno caiu da bicicleta ontem:** nada grave',
+        '- **Peso atual:** 70 kg',
+        '',
+      ].join('\n'),
+    });
+    const texto = fs.readFileSync(path.join(destino, 'Familia', 'rotulos.md'), 'utf8');
+    expect(texto).toContain('**Próxima revisão sugerida:** Texto anonimizado (10 caracteres).\n');
+    expect(texto).toContain('\nTexto anonimizado (35 caracteres).\n');
+    expect(texto).toContain('- Texto anonimizado (45 caracteres).\n');
+    expect(texto).toContain('- **Peso atual:** Texto anonimizado (5 caracteres).\n');
+    expect(texto).not.toMatch(/febre|bicicleta|vacina/);
   });
 });

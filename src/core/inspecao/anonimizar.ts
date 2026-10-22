@@ -27,8 +27,8 @@
  * `ignorados`) e grava só dentro de `destino` (um dentro do outro é recusado antes de ler).
  */
 import { existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
-import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
-import { type Document, isMap, isScalar, isSeq, parseDocument, type Scalar } from 'yaml';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { type Document, isMap, isScalar, isSeq, parseDocument, type Scalar, visit } from 'yaml';
 import { escaparCelula, detectarEol, dividirLinhas } from '../format/texto.js';
 import { ehDataValida } from '../schema/comuns.js';
 import { somarDias } from '../queries/datas.js';
@@ -123,9 +123,22 @@ function caminhoReal(p: string): string {
   return join(real, ...resto);
 }
 
+/**
+ * `filho` é `pai` ou fica dentro dele? Um nome que só começa com `..` (`..copia`) é dentro; `rel`
+ * absoluto (outro drive no Windows) é fora.
+ */
 function dentroDe(filho: string, pai: string): boolean {
   const rel = relative(pai, filho);
-  return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel));
+  if (rel === '') return true;
+  return !(rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel));
+}
+
+/**
+ * Rótulo em negrito (`**Nascimento:**`) só é estrutura com até 4 palavras; mais longo é uma frase
+ * (`**Ana teve febre após vacina:**`) e vai para o texto livre.
+ */
+function ehRotuloCurto(rotulo: string): boolean {
+  return rotulo.replace(/:\s*$/, '').trim().split(/\s+/).length <= 4;
 }
 
 const NUMERO = /^([<>≤≥~]\s*)?([+-]?)(\d+)(?:([.,])(\d+))?$/;
@@ -165,16 +178,24 @@ class Anonimizador {
     return `${d}/${m}/${a}`;
   }
 
-  /** E-mail, data, telefone e dígitos trocados; depois os nomes. Serve a todo texto que fica. */
-  generico(texto: string): string {
+  /**
+   * E-mail, data, telefone e dígitos trocados; depois os nomes. Serve a todo texto que fica.
+   * `emNomeDeArquivo`: o nome também é achado colado a dígito, `_`, `-` ou `.` (`Exame-Ana2026.pdf`).
+   */
+  generico(texto: string, emNomeDeArquivo = false): string {
     const semPadroes = substituirPadroes(texto, {
       email: () => EMAIL,
-      dataIso: (d) => this.deslocarIso(d),
+      dataIso: (d) => {
+        // `AAAA_MM_DD` (nome de arquivo) é deslocada como `AAAA-MM-DD` e volta com o sublinhado.
+        const separador = d.charAt(4);
+        const deslocada = this.deslocarIso(d.replaceAll(separador, '-'));
+        return deslocada.replaceAll('-', separador);
+      },
       dataBr: (d) => this.deslocarBr(d),
       telefone: () => TELEFONE,
       digitos: (s) => s.replace(/\d/g, '0'),
     });
-    return substituirNomes(semPadroes, this.termos);
+    return substituirNomes(semPadroes, this.termos, emNomeDeArquivo);
   }
 
   /** Texto livre → `Texto anonimizado (N caracteres).` (vazio fica vazio). */
@@ -260,12 +281,7 @@ class Anonimizador {
   }
 
   private anonimizarDocumentoYaml(doc: Document, fonte: string): void {
-    const comentar = (no: { commentBefore?: string | null; comment?: string | null }): void => {
-      if (typeof no.commentBefore === 'string') no.commentBefore = this.generico(no.commentBefore);
-      if (typeof no.comment === 'string') no.comment = this.generico(no.comment);
-    };
     const escalar = (no: Scalar, chaves: readonly string[]): void => {
-      comentar(no);
       const valor = no.value;
       if (typeof valor === 'string') {
         no.value = this.textoYaml(valor, chaves);
@@ -280,11 +296,9 @@ class Anonimizador {
     };
     const andar = (no: unknown, chaves: readonly string[]): void => {
       if (isMap(no)) {
-        comentar(no);
         for (const par of no.items) {
           const chave = isScalar(par.key) ? String(par.key.value) : '';
           if (isScalar(par.key)) {
-            comentar(par.key);
             if (typeof par.key.value === 'string') par.key.value = this.chaveYaml(par.key.value);
           } else {
             andar(par.key, chaves);
@@ -293,7 +307,6 @@ class Anonimizador {
           else andar(par.value, [...chaves, chave]);
         }
       } else if (isSeq(no)) {
-        comentar(no);
         for (const item of no.items) {
           if (isScalar(item)) escalar(item, [...chaves, '[]']);
           else andar(item, [...chaves, '[]']);
@@ -302,9 +315,28 @@ class Anonimizador {
         escalar(no, chaves);
       }
     };
-    if (typeof doc.commentBefore === 'string') doc.commentBefore = this.generico(doc.commentBefore);
-    if (typeof doc.comment === 'string') doc.comment = this.generico(doc.comment);
     andar(doc.contents, []);
+    // Comentário não tem valor estrutural: todo comentário (linha inteira ou no fim da linha), em
+    // qualquer nó, vira texto anonimizado. O `yaml` já separa o `#` de um comentário do `#` dentro
+    // de um texto entre aspas, então este último fica como está.
+    const comentar = (no: { commentBefore?: string | null; comment?: string | null }): void => {
+      if (typeof no.commentBefore === 'string') no.commentBefore = this.comentario(no.commentBefore);
+      if (typeof no.comment === 'string') no.comment = this.comentario(no.comment);
+    };
+    comentar(doc);
+    visit(doc, {
+      Node: (_chave, no) => {
+        comentar(no);
+      },
+    });
+  }
+
+  /** Cada linha do comentário (o texto depois do `#`) vira texto anonimizado; a indentação fica. */
+  private comentario(texto: string): string {
+    return texto
+      .split('\n')
+      .map((linha) => (linha.trim() === '' ? linha : (/^\s*/.exec(linha)?.[0] ?? '') + this.livre(linha)))
+      .join('\n');
   }
 
   private chaveYaml(chave: string): string {
@@ -458,7 +490,7 @@ class Anonimizador {
     const m = /^(\s*)(\*\*|__)(.+?)\2(:?)(\s*)(.*)$/.exec(linha);
     if (m !== null) {
       const [, indentacao = '', marca = '', rotulo = '', doisPontos = '', espaco = '', resto = ''] = m;
-      if (rotulo.trimEnd().endsWith(':') || doisPontos === ':') {
+      if ((rotulo.trimEnd().endsWith(':') || doisPontos === ':') && ehRotuloCurto(rotulo)) {
         const prefixo = indentacao + this.generico(`${marca}${rotulo}${marca}${doisPontos}`);
         return resto.trim() === '' ? prefixo + espaco + resto : `${prefixo} ${this.livre(resto)}`;
       }
@@ -484,7 +516,7 @@ class Anonimizador {
     const negrito = /^(\*\*|__)(.+?)\1(:?)(\s*)/.exec(resto);
     if (negrito !== null) {
       const interno = (negrito[2] ?? '').trim();
-      if (ehData(interno) || interno.endsWith(':') || negrito[3] === ':') {
+      if (ehData(interno) || ((interno.endsWith(':') || negrito[3] === ':') && ehRotuloCurto(interno))) {
         prefixo += this.generico(negrito[0]);
         resto = resto.slice(negrito[0].length);
       }
@@ -509,6 +541,9 @@ class Anonimizador {
         const novas = celulas.map((c) => this.generico(c));
         return this.linhaDeTabela(linha, celulas, novas);
       }
+      // Linha colada logo abaixo da tabela, sem `|`: pelo GFM vira uma linha de uma célula, mas é
+      // texto livre (uma frase, uma fonte) e não um valor de coluna.
+      if (!/(?<!\\)\|/.test(linha)) return this.linhaLivre(linha);
       if (celulas.every((c) => c === '')) return linha;
       const novas = celulas.map((c, k) => this.valor(c, tipos[k] ?? 'livre'));
       return this.linhaDeTabela(linha, celulas, novas);
@@ -549,7 +584,7 @@ class Anonimizador {
 
   /** Nome de pasta ou arquivo tratado (nunca vazio, `.`, `..` nem com separador). */
   nomeDeArquivo(nome: string): string {
-    const tratado = this.generico(nome).replace(/[\\/]/g, '_');
+    const tratado = this.generico(nome, true).replace(/[\\/]/g, '_');
     return tratado === '' || tratado === '.' || tratado === '..' ? '_' : tratado;
   }
 }

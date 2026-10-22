@@ -509,6 +509,8 @@ export type Termos = {
   mapa: ReadonlyMap<string, string>;
   /** Alternância de todos os termos, o mais longo primeiro (sobre o texto normalizado). */
   regex: RegExp | undefined;
+  /** A mesma alternância com fronteira só de letra, para nomes de arquivo e pasta. */
+  regexArquivo: RegExp | undefined;
 };
 
 function escaparRegex(s: string): string {
@@ -553,6 +555,13 @@ export function construirTermos(
       ocupar(normalizarParaBusca(semParenteses(nome)), fabrica.membro(i));
     }
   });
+  // Nome completo colado, sem espaço (`AnaSouza.pdf`): só para nomes de mais de uma parte.
+  nomes.membros.forEach((membro, i) => {
+    for (const nome of membro.nomes) {
+      const partes = normalizarParaBusca(semParenteses(nome)).split(/[^\p{L}]+/u).filter((p) => p !== '');
+      if (partes.length > 1) ocupar(partes.join(''), fabrica.membro(i));
+    }
+  });
   porPartes(
     nomes.membros.map((m) => m.nomes),
     (i) => fabrica.membro(i),
@@ -574,14 +583,14 @@ export function construirTermos(
   }
 
   const chaves = [...mapa.keys()].sort((a, b) => b.length - a.length || (a < b ? -1 : a > b ? 1 : 0));
-  const regex =
-    chaves.length === 0
-      ? undefined
-      : new RegExp(
-          `(?<![\\p{L}\\p{N}])(?:${chaves.map((c) => escaparRegex(c).replace(/ /g, '\\s+')).join('|')})(?![\\p{L}\\p{N}])`,
-          'gu',
-        );
-  return { mapa, regex };
+  const alternancia = chaves.map((c) => escaparRegex(c).replace(/ /g, '\\s+')).join('|');
+  if (chaves.length === 0) return { mapa, regex: undefined, regexArquivo: undefined };
+  return {
+    mapa,
+    regex: new RegExp(`(?<![\\p{L}\\p{N}])(?:${alternancia})(?![\\p{L}\\p{N}])`, 'gu'),
+    // Em nome de arquivo ou pasta só letra cola: dígito, `_`, `-` e `.` separam (`Exame-Ana2026.pdf`).
+    regexArquivo: new RegExp(`(?<!\\p{L})(?:${alternancia})(?!\\p{L})`, 'gu'),
+  };
 }
 
 /**
@@ -607,13 +616,16 @@ function normalizarComMapa(texto: string): { normal: string; origem: number[] } 
 /**
  * Troca cada termo achado em `texto` (palavra inteira, sem distinguir acento nem caixa, o mais longo
  * primeiro) pelo alias. Um alias igual ao termo (a família `Exemplo`) deixa o texto como estava.
+ * `emNomeDeArquivo`: o termo também vale colado a dígito, `_`, `-` ou `.` (no texto, `Anabela` e
+ * `Ana2` ficam; em nome de arquivo, só `Anabela`).
  */
-export function substituirNomes(texto: string, termos: Termos): string {
-  if (termos.regex === undefined || texto === '') return texto;
+export function substituirNomes(texto: string, termos: Termos, emNomeDeArquivo = false): string {
+  const regex = emNomeDeArquivo ? termos.regexArquivo : termos.regex;
+  if (regex === undefined || texto === '') return texto;
   const { normal, origem } = normalizarComMapa(texto);
   let saida = '';
   let cursor = 0;
-  for (const achado of normal.matchAll(termos.regex)) {
+  for (const achado of normal.matchAll(regex)) {
     const chave = achado[0].replace(/\s+/g, ' ');
     const alias = termos.mapa.get(chave);
     if (alias === undefined || normalizarParaBusca(alias) === chave) continue;
@@ -631,7 +643,7 @@ export function substituirNomes(texto: string, termos: Termos): string {
 
 export type TrocaDePadroes = {
   email(valor: string): string;
-  /** `AAAA-MM-DD`. */
+  /** `AAAA-MM-DD` ou `AAAA_MM_DD` (nome de arquivo). */
   dataIso(valor: string): string;
   /** Dia/mês/ano com barras. */
   dataBr(valor: string): string;
@@ -644,7 +656,7 @@ export type TrocaDePadroes = {
 const PADROES = new RegExp(
   [
     '(?<email>[\\p{L}\\p{N}._%+-]+@[\\p{L}\\p{N}-]+(?:\\.[\\p{L}\\p{N}-]+)*\\.\\p{L}{2,})',
-    '(?<iso>(?<!\\d)\\d{4}-\\d{2}-\\d{2}(?!\\d))',
+    '(?<iso>(?<!\\d)\\d{4}(?<sep>[-_])\\d{2}\\k<sep>\\d{2}(?!\\d))',
     '(?<br>(?<!\\d)\\d{2}/\\d{2}/\\d{4}(?!\\d))',
     '(?<tel>(?<![\\d+])(?:\\+\\d{2}\\s?)?(?:\\(\\d{2}\\)\\s?9?\\d{4}[-.\\s]?\\d{4}|\\d{2}\\s9?\\d{4}[-.\\s]\\d{4}|9?\\d{4}-\\d{4})(?!\\d))',
     '(?<dig>(?<!\\d)\\d(?:[./-]?\\d){7,}(?!\\d))',

@@ -229,6 +229,7 @@ export function inspecionar(dir: string): Inspecao {
     terceiro: (j) => `profissional-${j + 1}`,
   });
   const mascarar = (s: string): string => substituirNomes(substituirPadroes(s, MARCADORES), termos);
+  const mascararNome = (s: string): string => substituirNomes(substituirPadroes(s, MARCADORES), termos, true);
 
   const indiceDaPasta = new Map<string, number>();
   nomes.membros.forEach((membro, i) => {
@@ -239,7 +240,7 @@ export function inspecionar(dir: string): Inspecao {
       .split('/')
       .map((parte, k, partes) => {
         const indice = k === 1 && partes[0] === 'Perfis' ? indiceDaPasta.get(parte) : undefined;
-        return indice === undefined ? mascarar(parte) : `membro-${indice + 1}`;
+        return indice === undefined ? mascararNome(parte) : `membro-${indice + 1}`;
       })
       .join('/');
 

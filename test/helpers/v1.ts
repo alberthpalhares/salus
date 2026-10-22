@@ -13,8 +13,11 @@ export type CofreV1 = { dir: string; limpar: () => Promise<void> };
 
 /** Partes de nome (≥3 letras) de membros e da família que nunca podem sobrar numa cópia anonimizada. */
 export const NOMES_V1 = ['Ofélia', 'Caetano', 'Tavares'] as const;
-/** Nomes de terceiros (profissionais e parentes sem perfil) que aparecem em células e no índice. */
-export const TERCEIROS_V1 = ['Rubens', 'Aguiar', 'Lívia', 'Barros', 'Iolanda'] as const;
+/**
+ * Nomes de terceiros (profissionais e parentes sem perfil): em células, no índice (inclusive em
+ * comentário), em texto livre e na árvore Mermaid, na citação e no bloco de código do Arvore.md.
+ */
+export const TERCEIROS_V1 = ['Rubens', 'Aguiar', 'Lívia', 'Barros', 'Iolanda', 'Gertrudes', 'Ramalho'] as const;
 /** Telefones e e-mails do cofre v1. */
 export const TELEFONES_V1 = ['(21) 98765-4321', '98765-4321', '(21) 3222-1100', '3222-1100'] as const;
 export const EMAILS_V1 = ['caetano.t@provedor.com.br', 'rubens.aguiar@clinica.com.br'] as const;
@@ -45,6 +48,9 @@ membros:
         renova_em: "2026-08-01"
         termino_em: ""
     medicamentos_prescritos: []
+      # - nome: "[Medicamento]"
+      #   prescrito_por: "Dra. Iolanda Barros"
+      #   validade_receita: "2026-05-30"
     vacinas:
       - nome: "Influenza"
         aplicada_em: "2026-04-15"
@@ -157,6 +163,25 @@ const MEDICAMENTOS_OFELIA = `# Medicamentos — Ofélia Tavares
 | Levotiroxina | 50 mcg | 1x ao dia | 2024-02-01 | Dr. Rubens Aguiar | 2026-08-01 | Em uso |
 `;
 
+/** Árvore com Mermaid (membros e um terceiro), callout com nome e bloco de código com nome. */
+const ARVORE_MD = [
+  '# Árvore da família Tavares',
+  '',
+  '```mermaid',
+  'graph TD',
+  '  Gertrudes[Gertrudes Ramalho - avó] --> Ofelia[Ofélia Tavares]',
+  '  Ofelia --- Caetano[Caetano Tavares]',
+  '```',
+  '',
+  '> [!note] Caetano cuida da agenda da Ofélia',
+  '> Ligar para a Gertrudes Ramalho aos domingos.',
+  '',
+  '```',
+  'Remédio da Ofélia: comprar com a vizinha Gertrudes',
+  '```',
+  '',
+].join('\n');
+
 /** Os 5 arquivos v1 de um perfil a partir do template `Perfil_Humano`, com o nome preenchido. */
 function perfilDoTemplate(vault: string, pasta: string, nome: string): void {
   const templates = path.join(vault, '.agents', 'skills', 'salus-onboarding', 'templates', 'Perfil_Humano');
@@ -185,6 +210,7 @@ export async function criarCofreV1(): Promise<CofreV1> {
   );
   fs.writeFileSync(path.join(dir, 'Familia', '_index.yaml'), INDEX_YAML);
   fs.writeFileSync(path.join(dir, 'Familia', 'META.md'), META_MD);
+  fs.writeFileSync(path.join(dir, 'Familia', 'Arvore.md'), ARVORE_MD);
 
   perfilDoTemplate(dir, 'Ofélia', 'Ofélia Tavares');
   perfilDoTemplate(dir, 'Caetano', 'Caetano Tavares');
