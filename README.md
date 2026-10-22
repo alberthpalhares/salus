@@ -62,7 +62,10 @@ Após inicializar, abra a pasta gerada na sua ferramenta de IA (Claude, Gemini, 
 | `npx salus-ai update [pasta]` | Atualiza skills, protocolos e guia preservando `Perfis/`, `Familia/` e o `AGENTS.md` da família. Só roda em pasta que já é um Salus. |
 | `npx salus-ai doctor [pasta]` | Diagnóstico rápido da integridade da pasta, perfis e documentos pendentes. |
 
-Os comandos abaixo são **para agentes e scripts**: leem um cofre no formato v2 (`framework/Frameworks/FORMATO.md`), nunca gravam nada nele e, por enquanto, só respondem em JSON (`--json` é obrigatório). `--cofre <pasta>` aponta o cofre (padrão: a pasta atual).
+Os comandos abaixo são **para agentes e scripts**, em dois grupos:
+
+- **Comandos de leitura** (`membros`, `perfil`, `agenda`, `buscar`, `marcador`): leem um cofre no formato v2 (`framework/Frameworks/FORMATO.md`), nunca gravam nada nele e, por enquanto, só respondem em JSON (`--json` é obrigatório). `--cofre <pasta>` aponta o cofre (padrão: a pasta atual). Texto com espaços vai entre aspas (`buscar "colesterol total"`).
+- **Ferramentas de apoio** (`inspecionar`, `anonimizar`): trabalham sobre qualquer pasta, v1 ou v2, e servem para preparar e conferir a migração; respondem em texto (o `inspecionar` também em JSON, com `--json`).
 
 | Comando | O que faz |
 |---|---|
@@ -75,7 +78,7 @@ Os comandos abaixo são **para agentes e scripts**: leem um cofre no formato v2 
 | `npx salus-ai anonimizar <origem> <destino>` | Grava em `<destino>` (pasta nova ou vazia) uma cópia anonimizada de `<origem>`, com nomes, datas, telefones, e-mails e textos livres trocados; `--semente <n>` repete a mesma cópia. Rode sempre numa **cópia** do cofre. |
 
 > [!WARNING]
-> O `anonimizar` **não pega** nomes de pessoas sem perfil (médicos, parentes) quando aparecem em títulos, em colunas genéricas de tabela, em valores do YAML ou em nomes de arquivo, nem datas em outros formatos (como "10 de março de 2026"). **Revise o resultado antes de compartilhá-lo** ou de colocá-lo em `test/fixtures/local/`.
+> O `anonimizar` **não pega** nomes de pessoas sem perfil (médicos, parentes) quando aparecem em títulos, em colunas genéricas de tabela, em valores do YAML ou em nomes de arquivo, datas em outros formatos (como "10 de março de 2026"), lugares (fora das colunas de laboratório e clínica) nem telefones em formatos incomuns; o conteúdo clínico (medicamentos, exames, valores) fica de propósito. **Revise o resultado antes de compartilhá-lo** ou de colocá-lo em `test/fixtures/local/`.
 
 **No chat com a IA** (linguagem natural; os atalhos são só exemplos):
 

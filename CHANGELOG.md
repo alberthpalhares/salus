@@ -9,8 +9,9 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 - Formato v2 do cofre especificado em `framework/Frameworks/FORMATO.md`, com os modelos de arquivo em `framework/templates/`.
-- Leitura do cofre v2 no CLI, só leitura e com saída `--json` (para agentes e scripts): `membros`, `perfil`, `agenda`, `buscar` e `marcador`, com `--cofre`, `--secao` e `--hoje`. Cada arquivo com problema é apontado sem derrubar a leitura dos demais.
-- `npx salus-ai inspecionar [pasta]`: mostra a estrutura de uma pasta (arquivos, seções, colunas, chaves) sem nenhum valor.
+- Leitura do cofre v2 no CLI, só leitura e com saída `--json` (para agentes e scripts): `membros`, `perfil`, `agenda`, `buscar` e `marcador`, com `--cofre`, `--secao` e `--hoje`. Cada arquivo com problema é apontado sem derrubar a leitura dos demais, com um código da lista do `FORMATO.md` ("Problemas que o Salus aponta"), entre eles `secao_duplicada` (cabeçalho canônico repetido), `tabela_nao_reconhecida` (linhas com `|` que não formam tabela) e `frontmatter_ausente` (`Ficha.md` ou `Genetica.md` sem o bloco `---`).
+- Argumento a mais nos comandos novos é erro (`argumento_extra`, código 1): `buscar colesterol total` pede aspas em vez de buscar só "colesterol". `init`, `update` e `doctor` continuam aceitando argumentos a mais.
+- `npx salus-ai inspecionar [pasta]`: mostra a estrutura de uma pasta (arquivos, seções, colunas, chaves) sem os valores; títulos e nomes de arquivo fora do formato viram marcadores (`<título com N palavras>`, `<nome>`), com um aviso para revisar antes de compartilhar.
 - `npx salus-ai anonimizar <origem> <destino>`: grava uma cópia anonimizada de um cofre (nomes, datas, telefones, e-mails e textos livres trocados), repetível com `--semente`. Não pega tudo (nomes de quem não tem perfil em títulos, colunas genéricas, valores YAML e nomes de arquivo; datas em outros formatos): revise a cópia antes de compartilhá-la.
 
 ### Alterado
