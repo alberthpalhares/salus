@@ -30,15 +30,6 @@ export const PROFILE_REQUIRED_FILES: readonly string[] = [
   'Exames.md',
 ];
 
-export const KNOWN_FLAGS: ReadonlySet<string> = new Set([
-  '--force',
-  '-f',
-  '--help',
-  '-h',
-  '--version',
-  '-v',
-]);
-
 const NOME_DO_PACOTE = 'salus-ai';
 const VERSAO_PADRAO = '0.0.0';
 

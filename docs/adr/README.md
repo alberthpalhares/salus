@@ -20,3 +20,4 @@ Cada decisão estrutural do Salus fica em um arquivo `docs/adr/NNNN-slug.md`, e 
 - [ADR-0005: Consentimento em duas etapas](0005-consentimento-em-duas-etapas.md)
 - [ADR-0006: Pasta sincronizada e auditoria por máquina](0006-pasta-sincronizada-e-auditoria-por-maquina.md)
 - [ADR-0007: Histórico são eventos, tabelas são estado](0007-historico-eventos-tabelas-estado.md)
+- [ADR-0008: Dependências de runtime](0008-dependencias-de-runtime.md)

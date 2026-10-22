@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 import {
   frameworkRoot,
   INIT_ITEMS,
-  KNOWN_FLAGS,
   packageRoot,
   packageVersion,
   PROFILE_REQUIRED_FILES,
@@ -48,11 +47,5 @@ describe('manifest', () => {
       'Historico.md',
       'Exames.md',
     ]);
-  });
-
-  it('flags conhecidas iguais às do CLI atual', () => {
-    expect([...KNOWN_FLAGS].sort()).toEqual(
-      ['--force', '-f', '--help', '-h', '--version', '-v'].sort(),
-    );
   });
 });

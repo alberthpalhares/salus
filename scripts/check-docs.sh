@@ -3,7 +3,9 @@
 # Uso: bash scripts/check-docs.sh [raiz-do-repo]
 # Sai com 1 se encontrar: resíduo de versão antiga / promessa falsa, skill citada no cérebro
 # sem caminho na tabela, pasta de skill fora da tabela, campo do índice citado sem definição
-# no template, arquivo de perfil/família citado sem template, ou versão desalinhada.
+# no template, arquivo de perfil/família citado sem template (v1 ou v2), versão desalinhada, ou
+# cabeçalho canônico do FORMATO.md ausente dos templates v2, ou comando citado na seção
+# "Comandos de terminal" do README que não existe na ajuda do CLI (src/cli/help.ts).
 set -u
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 cd "$ROOT" || exit 2
@@ -12,6 +14,8 @@ TEMPLATE="framework/.agents/skills/salus-onboarding/resources/SALUS_TEMPLATE.md"
 INDEX="framework/.agents/skills/salus-onboarding/templates/Familia/_index.yaml"
 PROTO="framework/Frameworks/PROTOCOLO_CLINICO.md"
 TEMPLATES_DIR="framework/.agents/skills/salus-onboarding/templates"
+TEMPLATES_V2_DIR="framework/templates"
+FORMATO="framework/Frameworks/FORMATO.md"
 SKILLS=(framework/.agents/skills/*/SKILL.md)
 errors=0
 fail() { echo "FALHA: $*"; errors=$((errors + 1)); }
@@ -45,11 +49,13 @@ for f in $(grep -rhoE '`[a-z]+(_[a-z]+)+`' "${SKILLS[@]}" "$TEMPLATE" "$PROTO" |
   grep -qE "(^|[^a-z_])$f:" "$INDEX" || fail "campo '$f' citado mas não definido em $INDEX"
 done
 
-# 4. Todo arquivo de perfil/família citado tem template correspondente
+# 4. Todo arquivo de perfil/família citado tem template correspondente (v1 ou v2)
 for p in $(grep -rhoE 'Perfis/\[Nome[^]/]*\]/[A-Za-z_]+\.md|Familia/[A-Za-z_]+\.(md|yaml)' \
   "${SKILLS[@]}" "$TEMPLATE" "$PROTO" README.md framework/COMECE_AQUI.md | sort -u); do
   base=$(basename "$p")
-  ls "$TEMPLATES_DIR"/*/"$base" >/dev/null 2>&1 || fail "arquivo '$p' citado sem template em $TEMPLATES_DIR"
+  ls "$TEMPLATES_DIR"/*/"$base" >/dev/null 2>&1 \
+    || ls "$TEMPLATES_V2_DIR"/*/"$base" >/dev/null 2>&1 \
+    || fail "arquivo '$p' citado sem template em $TEMPLATES_DIR nem em $TEMPLATES_V2_DIR"
 done
 
 # 5. Versão alinhada: package.json × marcador do cérebro × README × framework/COMECE_AQUI
@@ -57,6 +63,42 @@ ver=$(node -p "require('./package.json').version")
 grep -q "salus-template: $ver" "$TEMPLATE" || fail "marcador salus-template no cérebro difere da versão do package.json ($ver): $(head -1 "$TEMPLATE")"
 grep -q "v$ver" README.md || fail "README.md não cita v$ver"
 grep -q "v$ver" framework/COMECE_AQUI.md || fail "framework/COMECE_AQUI.md não cita v$ver"
+
+# 6. Todo cabeçalho canônico listado em FORMATO.md (seção "Cabeçalhos canônicos": um por linha,
+#    entre crases) existe, como linha inteira, em pelo menos um template v2
+if [ ! -f "$FORMATO" ]; then
+  fail "$FORMATO não encontrado"
+else
+  canonicos=$(awk '/^## Cabeçalhos canônicos/{f=1; next} /^## /{f=0} f' "$FORMATO" \
+    | tr -d '\r' | grep -oE '`## [^`]+`' | sed -E 's/^`(.*)`$/\1/' | sort -u)
+  if [ -z "$canonicos" ]; then
+    fail "nenhum cabeçalho canônico encontrado na seção 'Cabeçalhos canônicos' de $FORMATO"
+  fi
+  while IFS= read -r h; do
+    [ -z "$h" ] && continue
+    grep -rqxF -- "$h" "$TEMPLATES_V2_DIR" \
+      || fail "cabeçalho canônico '$h' de $FORMATO ausente nos templates de $TEMPLATES_V2_DIR"
+  done <<< "$canonicos"
+fi
+
+# 7. Todo comando citado na seção "Comandos de terminal" do README (`salus-ai <comando>` ou
+#    `npx salus-ai <comando>`, no início da linha ou entre crases) existe na ajuda do CLI
+HELP="src/cli/help.ts"
+if [ ! -f "$HELP" ]; then
+  fail "$HELP não encontrado"
+else
+  conhecidos=$(grep -oE '\$\{green\}[a-z]+' "$HELP" | sed -E 's/^.*\}//' | sort -u)
+  citados=$(awk '/^## .*Comandos de terminal/{f=1; next} /^## /{f=0} f' README.md \
+    | tr -d '\r' | grep -oE '(^[[:space:]]*|`)(npx )?salus-ai [a-z]+' \
+    | sed -E 's/^.*salus-ai //' | sort -u)
+  if [ -z "$citados" ]; then
+    fail "nenhum comando 'salus-ai <comando>' encontrado na seção 'Comandos de terminal' do README.md"
+  fi
+  for c in $citados; do
+    printf '%s\n' "$conhecidos" | grep -qxF -- "$c" \
+      || fail "comando '$c' citado no README.md (seção 'Comandos de terminal') mas ausente em $HELP"
+  done
+fi
 
 if [ "$errors" -eq 0 ]; then
   echo "check-docs: OK"
