@@ -16,8 +16,11 @@ import { unified } from 'unified';
 import { isMap, isScalar, isSeq, parseDocument, type Document } from 'yaml';
 import { parseDocumento } from '../format/documento.js';
 import { lerFrontmatter } from '../format/frontmatter.js';
-import { desescaparCelula, dividirLinhas, removerBom } from '../format/texto.js';
+import { dividirCelulas } from '../format/tabela.js';
+import { dividirLinhas, removerBom } from '../format/texto.js';
 import { compararTexto, normalizarParaBusca } from '../queries/normalizar.js';
+import { FORMATO_DATA } from '../schema/comuns.js';
+import { ehPastaDePerfil } from '../vault/perfil.js';
 
 // ---------------------------------------------------------------------------------------------
 // Passeio pela pasta
@@ -71,11 +74,6 @@ export function lerTexto(caminho: string): { texto: string; bom: boolean } {
   return { texto, bom: tinhaBom };
 }
 
-/** Pasta de perfil de membro em `Perfis/` (as ocultas e as de sistema, `_Backups…`, não contam). */
-export function ehPastaDeMembro(nome: string): boolean {
-  return !nome.startsWith('.') && !nome.startsWith('_');
-}
-
 // ---------------------------------------------------------------------------------------------
 // Markdown: blocos do nível superior e tabelas
 
@@ -95,17 +93,6 @@ export function blocosMarkdown(fonte: string): Bloco[] {
     if (inicio === undefined || fim === undefined) throw new Error(`o remark não informou a posição do nó '${no.type}'`);
     return { tipo: no.type, inicio, fim };
   });
-}
-
-/**
- * Células de uma linha de tabela GFM: tira o `|` das pontas (o final só se não escapado), corta em
- * `|` não escapado e devolve cada célula aparada, com `\|` lido como `|`.
- */
-export function celulasDaLinha(linha: string): string[] {
-  let s = linha.trim();
-  if (s.startsWith('|')) s = s.slice(1);
-  if (s.endsWith('|') && !s.endsWith('\\|')) s = s.slice(0, -1);
-  return s.split(/(?<!\\)\|/).map((celula) => desescaparCelula(celula.trim()));
 }
 
 /** Como uma coluna de tabela é tratada pelo anonimizador (pelo nome do cabeçalho). */
@@ -236,7 +223,7 @@ function pastaDoCaminho(s: string): string | undefined {
  */
 export function coletarNomes(pastas: readonly string[], textos: ReadonlyMap<string, string>): NomesColetados {
   const comPasta: MembroColetado[] = [...pastas]
-    .filter(ehPastaDeMembro)
+    .filter(ehPastaDePerfil)
     .sort(compararTexto)
     .map((pasta) => ({ pasta, nomes: [pasta], ids: [] }));
   const semPasta: MembroColetado[] = [];
@@ -334,8 +321,8 @@ export function tabelasDe(fonte: string): { secao: string; cabecalho: string[]; 
     const { linhas } = dividirLinhas(trecho);
     tabelas.push({
       secao,
-      cabecalho: celulasDaLinha(linhas[0] ?? ''),
-      linhas: linhas.slice(2).map(celulasDaLinha),
+      cabecalho: dividirCelulas(linhas[0] ?? ''),
+      linhas: linhas.slice(2).map(dividirCelulas),
     });
   }
   return tabelas;
@@ -677,5 +664,5 @@ export function substituirPadroes(texto: string, troca: TrocaDePadroes): string 
 
 /** O texto inteiro é uma data (`AAAA-MM-DD` ou dia/mês/ano)? */
 export function ehData(s: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s);
+  return FORMATO_DATA.test(s) || /^\d{2}\/\d{2}\/\d{4}$/.test(s);
 }

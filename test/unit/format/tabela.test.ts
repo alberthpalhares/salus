@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { type Faixa, parseDocumento } from '../../../src/core/format/documento.js';
 import { aplicarEdicoes, type Edicao } from '../../../src/core/format/splice.js';
-import { contarLinhas, emitirTabela, parseTabela, type Tabela } from '../../../src/core/format/tabela.js';
+import { contarLinhas, dividirCelulas, emitirTabela, parseTabela, type Tabela } from '../../../src/core/format/tabela.js';
 import { removerBom } from '../../../src/core/format/texto.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/', import.meta.url));
@@ -390,5 +390,13 @@ describe('no-op byte a byte e invariante em todas as tabelas do cofre de exemplo
       edicoes.push({ ...faixa, texto: emitirTabela(parseTabela(trecho, []).tabela) });
     }
     expect(aplicarEdicoes(fonte, edicoes)).toBe(fonte);
+  });
+});
+
+describe('dividirCelulas (exportada: o inspecionar e o anonimizar leem as células do mesmo jeito)', () => {
+  it('tira os `|` das pontas, corta em `|` não escapado e lê `\|` como `|`', () => {
+    expect(dividirCelulas('| a | b \\| c |  ')).toEqual(['a', 'b | c']);
+    expect(dividirCelulas('a|b')).toEqual(['a', 'b']);
+    expect(dividirCelulas('| x \\|')).toEqual(['x |']);
   });
 });

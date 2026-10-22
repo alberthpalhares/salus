@@ -7,32 +7,28 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
+  type ArquivoDeVerdade,
   type EstadoArquivo,
   type EstadoManifesto,
   linhaDaChaveNoFrontmatter,
   manifesto as codecManifesto,
   type Opaca,
 } from '../format/arquivos/index.js';
+import { compararTexto } from '../format/texto.js';
 import type { Membro } from '../schema/membro.js';
 import type { SalusYaml } from '../schema/manifesto.js';
-import { classificarFalha, lerPerfil, lerTextoDoDisco, PASTA_PERFIS, type PerfilLido } from './perfil.js';
+import {
+  caminhoNoCofre,
+  classificarFalha,
+  ehPastaDePerfil,
+  lerPerfil,
+  lerTextoDoDisco,
+  PASTA_PERFIS,
+  type PerfilLido,
+} from './perfil.js';
 import type { Problema } from './problemas.js';
 
 const ARQUIVO_MANIFESTO = 'salus.yaml';
-
-/**
- * A ordem de nome de pasta do Explorer: sem distinguir acento nem caixa à primeira vista, e números
- * por valor (`Ana 2` antes de `Ana 10`); empate pelo texto, para a ordem ser a mesma em qualquer SO.
- */
-const colador = new Intl.Collator('pt-BR', { numeric: true });
-function compararPastas(a: string, b: string): number {
-  return colador.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
-}
-
-/** Pasta de perfil: qualquer uma de `Perfis/`, menos as ocultas (`.`) e as de backup (`_Backups…`). */
-function ehPastaDePerfil(nome: string): boolean {
-  return !nome.startsWith('.') && !nome.toLowerCase().startsWith('_backups');
-}
 
 function ehPasta(caminho: string): boolean {
   try {
@@ -59,7 +55,7 @@ function problemaDeIdDuplicado(
         `${outras.join(', ')}; só esta pasta, a primeira em ordem de nome, entra no cofre`
       : `o 'id' do frontmatter já é usado pela pasta '${primeira}', a primeira em ordem de nome, que entra no ` +
         `cofre; esta fica de fora até o 'id' ser trocado`;
-  const arquivo = `${PASTA_PERFIS}/${pasta}/Ficha.md`;
+  const arquivo = caminhoNoCofre(pasta, 'Ficha.md');
   const linha = ficha === undefined ? undefined : linhaDaChaveNoFrontmatter(ficha, 'id');
   return linha === undefined
     ? { arquivo, codigo: 'id_duplicado', mensagem }
@@ -79,7 +75,10 @@ export class Vault {
   readonly problemas: ReadonlyArray<Problema>;
   /** Linhas opacas de todos os arquivos de verdade lidos (as que o `doctor` lista). */
   readonly opacas: ReadonlyArray<Opaca>;
-  /** `"<pasta>/<arquivo>"` → estado de leitura, de todo arquivo de verdade lido (inclusive de perfil sem membro). */
+  /**
+   * Caminho no cofre (`Perfis/<pasta>/<arquivo>`, o mesmo `estado.arquivo`) → estado de leitura, de
+   * todo arquivo de verdade lido (inclusive de perfil sem membro). Para achar pelo membro: `estadoDe`.
+   */
   readonly estados: ReadonlyMap<string, EstadoArquivo>;
   private readonly porId: ReadonlyMap<string, Membro>;
 
@@ -132,11 +131,16 @@ export class Vault {
       if (membro === undefined) continue;
       const pastasDoId = pastasPorId.get(membro.id) ?? [pasta];
       if (pastasDoId.length > 1) {
-        problemas.push(problemaDeIdDuplicado(pasta, lido.estados[`${pasta}/Ficha.md`], pastasDoId));
+        problemas.push(problemaDeIdDuplicado(pasta, lido.estados[caminhoNoCofre(pasta, 'Ficha.md')], pastasDoId));
       }
       if (pastasDoId[0] === pasta) membros.push(membro);
     }
     return new Vault(raiz, manifesto, membros, problemas, opacas, estados);
+  }
+
+  /** Estado do `arquivo` de verdade da pasta de perfil `pasta` (`Membro.pasta`), se ele foi lido. */
+  estadoDe(pasta: string, arquivo: ArquivoDeVerdade): EstadoArquivo | undefined {
+    return this.estados.get(caminhoNoCofre(pasta, arquivo));
   }
 
   /** O membro com esse `id` (o do frontmatter da `Ficha.md`, não o nome da pasta), ou `undefined`. */
@@ -188,7 +192,7 @@ export class Vault {
       pastas = readdirSync(dirPerfis, { withFileTypes: true })
         .filter((entrada) => entrada.isDirectory() && ehPastaDePerfil(entrada.name))
         .map((entrada) => entrada.name)
-        .sort(compararPastas);
+        .sort(compararTexto);
     } catch (erro) {
       const falha = classificarFalha(erro);
       const problema: Problema = falha.ausente

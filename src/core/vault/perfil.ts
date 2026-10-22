@@ -19,6 +19,22 @@ import type { Problema } from './problemas.js';
 export const PASTA_PERFIS = 'Perfis';
 
 /**
+ * Pasta de perfil (de membro) em `Perfis/`: qualquer uma que não comece com `.` (oculta) nem com `_`
+ * (de sistema: `_Backups`, `_Arquivados`…). O cofre, o `inspecionar` e o `anonimizar` usam esta regra.
+ */
+export function ehPastaDePerfil(nome: string): boolean {
+  return !nome.startsWith('.') && !nome.startsWith('_');
+}
+
+/**
+ * Caminho de um arquivo de perfil relativo ao cofre, com `/` (`Perfis/Ana/Ficha.md`): é o `arquivo`
+ * do estado, dos problemas e das opacas, e a chave de `estados`. Só este módulo monta o caminho.
+ */
+export function caminhoNoCofre(pasta: string, arquivo: ArquivoDeVerdade): string {
+  return `${PASTA_PERFIS}/${pasta}/${arquivo}`;
+}
+
+/**
  * Por que um arquivo ou pasta não foi lido: `ausente` (não existe: `arquivo_ausente`) ou ilegível, com
  * o código do erro do Node (`arquivo_ilegivel`). O código basta para o `doctor`; a mensagem do erro
  * do Node cita o caminho e fica de fora.
@@ -56,7 +72,10 @@ export function lerTextoDoDisco(caminho: string): TextoDoDisco {
   }
 }
 
-/** Resultado de ler um perfil. `estados` tem as chaves `"<pasta>/<arquivo>"`, só dos arquivos que existem. */
+/**
+ * Resultado de ler um perfil. `estados` é chaveado pelo caminho no cofre (`caminhoNoCofre`, igual ao
+ * `estado.arquivo`), só dos arquivos que existem.
+ */
 export type PerfilLido = {
   /** `undefined` quando a `Ficha.md` falta ou não tem `id`, `nome` e `tipo` válidos. */
   membro: Membro | undefined;
@@ -68,8 +87,9 @@ export type PerfilLido = {
 };
 
 /**
- * Lê os oito arquivos de `dirPerfil`. `nomePasta` é o nome da pasta em `Perfis/`: vira `Membro.pasta`,
- * prefixo das chaves de `estados` e parte do caminho de cada problema (`Perfis/<pasta>/<arquivo>`).
+ * Lê os oito arquivos de `dirPerfil`. `nomePasta` é o nome da pasta em `Perfis/`: vira `Membro.pasta`
+ * e parte do caminho no cofre (`Perfis/<pasta>/<arquivo>`), que é a chave de `estados` e o `arquivo`
+ * de cada problema.
  * Arquivo ausente (`ENOENT`/`ENOTDIR`): `arquivo_ausente`. Arquivo que não dá para ler (qualquer outro
  * erro, como `EISDIR` ou `EACCES`): `arquivo_ilegivel`, com o código do erro na mensagem. Nos dois casos
  * a seção vem vazia e o arquivo não tem estado. O `Membro` compartilha as listas com o resultado
@@ -81,13 +101,13 @@ export function lerPerfil(dirPerfil: string, nomePasta: string): PerfilLido {
   const estados: Record<string, EstadoArquivo> = {};
 
   const ler = <T>(arquivo: ArquivoDeVerdade, codec: Pick<Codec<T>, 'ler'>): T => {
-    const caminho = `${PASTA_PERFIS}/${nomePasta}/${arquivo}`;
+    const caminho = caminhoNoCofre(nomePasta, arquivo);
     const texto = lerTextoDoDisco(join(dirPerfil, arquivo));
     if ('fonte' in texto) {
       const lido = codec.ler(texto.fonte, { arquivo: caminho });
       problemas.push(...lido.problemas);
       opacas.push(...lido.opacas);
-      estados[`${nomePasta}/${arquivo}`] = lido.estado;
+      estados[caminho] = lido.estado;
       return lido.dados;
     }
     const semFicha = arquivo === 'Ficha.md' ? '; sem ele o perfil não entra no cofre' : '';

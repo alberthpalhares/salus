@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-const FORMATO_DATA = /^(\d{4})-(\d{2})-(\d{2})$/;
+/**
+ * A forma `AAAA-MM-DD` (só a forma: o calendário é de `ehDataValida`). Sem a flag `g`, então `test`
+ * e `exec` não guardam estado entre chamadas; é a única regex de data ISO do núcleo.
+ */
+export const FORMATO_DATA = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function anoBissexto(ano: number): boolean {
   return (ano % 4 === 0 && ano % 100 !== 0) || ano % 400 === 0;

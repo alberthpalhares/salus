@@ -10,6 +10,7 @@
  */
 import { type Document, isNode, isScalar, isSeq, type Node, Scalar, YAMLSeq } from 'yaml';
 import type { z } from 'zod';
+import { FORMATO_DATA } from '../../schema/comuns.js';
 import { Evento } from '../../schema/evento.js';
 import { escreverFrontmatter } from '../frontmatter.js';
 import { emitirListaEventos, type ItemEvento } from '../lista.js';
@@ -200,7 +201,6 @@ export function edicaoDoFrontmatter(estado: EstadoArquivo, novo: object, schema:
   return escreverFrontmatter(estado.fonte, frontmatter.faixa, documento, true);
 }
 
-const DATA_ISO = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Troca o valor de uma chave de primeiro nível preservando o que der do nó atual: escalar mantém o
@@ -214,7 +214,7 @@ export function definirChave(documento: Document, chave: string, valor: unknown)
   if ((typeof valor === 'string' || typeof valor === 'number') && isScalar(atual) && atual.value !== null) {
     atual.value = valor;
     const semAspas = atual.type === undefined || atual.type === Scalar.PLAIN;
-    if (typeof valor === 'string' && DATA_ISO.test(valor) && semAspas) atual.type = Scalar.QUOTE_DOUBLE;
+    if (typeof valor === 'string' && FORMATO_DATA.test(valor) && semAspas) atual.type = Scalar.QUOTE_DOUBLE;
     return;
   }
   if (Array.isArray(valor) && isSeq(atual)) {
@@ -234,7 +234,7 @@ export function definirChave(documento: Document, chave: string, valor: unknown)
     novo = lista;
   } else {
     const escalar = new Scalar(valor);
-    if (typeof valor === 'string' && DATA_ISO.test(valor)) escalar.type = Scalar.QUOTE_DOUBLE;
+    if (typeof valor === 'string' && FORMATO_DATA.test(valor)) escalar.type = Scalar.QUOTE_DOUBLE;
     novo = escalar;
   }
   if (isNode(atual)) {

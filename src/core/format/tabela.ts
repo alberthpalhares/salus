@@ -73,9 +73,9 @@ export function contarLinhas(trecho: string): number {
 /**
  * Células de uma linha de tabela: tira o `|` inicial e o final (se não escapado), corta em todo
  * `|` **não precedido de `\`** e lê cada célula aparada com `desescaparCelula` — o inverso exato
- * de como `emitirTabela` as escreve.
+ * de como `emitirTabela` as escreve. O `inspecionar` e o `anonimizar` leem as células por aqui.
  */
-function dividirCelulas(linha: string): string[] {
+export function dividirCelulas(linha: string): string[] {
   let s = linha.trim();
   if (s.startsWith('|')) s = s.slice(1);
   if (s.endsWith('|') && !s.endsWith('\\|')) s = s.slice(0, -1);

@@ -5,7 +5,7 @@
 import { type Document, parseDocument } from 'yaml';
 import type { Documento, Faixa } from './documento.js';
 import type { Edicao } from './splice.js';
-import { detectarEol } from './texto.js';
+import { detectarEol, linhaDoOffset } from './texto.js';
 
 /** YAML inválido no frontmatter; `linha` é a linha do arquivo (1 = o `---` de abertura). */
 export class ErroFrontmatter extends Error {
@@ -25,10 +25,9 @@ export class ErroFrontmatter extends Error {
  */
 const OPCOES_ESCRITA = { flowCollectionPadding: false, lineWidth: 0 } as const;
 
-function linhaDoOffset(fonte: string, offset: number): number {
-  let linha = 1;
-  for (let i = fonte.indexOf('\n'); i !== -1 && i < offset; i = fonte.indexOf('\n', i + 1)) linha++;
-  return linha;
+/** Offset, em `fonte`, onde começa o YAML do frontmatter que abre em `inicio` (a linha depois do `---`). */
+export function inicioDoYaml(fonte: string, inicio: number): number {
+  return fonte.indexOf('\n', inicio) + 1;
 }
 
 /**
@@ -46,8 +45,7 @@ export function lerFrontmatter(
   const erro = documento.errors.at(0);
   if (erro !== undefined) {
     // O YAML começa na linha seguinte ao `---` de abertura.
-    const inicioDoYaml = fonte.indexOf('\n', frontmatter.inicio) + 1;
-    const linha = linhaDoOffset(fonte, inicioDoYaml + erro.pos[0]);
+    const linha = linhaDoOffset(fonte, inicioDoYaml(fonte, frontmatter.inicio) + erro.pos[0]);
     throw new ErroFrontmatter(`frontmatter com YAML inválido na linha ${linha}: ${erro.message}`, linha);
   }
   return { documento, faixa: { inicio: frontmatter.inicio, fim: frontmatter.fim } };

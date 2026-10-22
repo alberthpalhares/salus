@@ -7,11 +7,11 @@ import { type Document, isMap, isScalar } from 'yaml';
 import type { z } from 'zod';
 import { Evento } from '../../schema/evento.js';
 import { type Documento, parseDocumento, type Secao } from '../documento.js';
-import { ErroFrontmatter, lerFrontmatter } from '../frontmatter.js';
+import { ErroFrontmatter, inicioDoYaml, lerFrontmatter } from '../frontmatter.js';
 import { parseListaEventos } from '../lista.js';
 import type { CodigoProblema, Problema } from '../problema.js';
 import { contarLinhas, type LinhaOpaca, parseTabela } from '../tabela.js';
-import { detectarEol, normalizarCabecalho, removerBom } from '../texto.js';
+import { detectarEol, linhaDoOffset, normalizarCabecalho, removerBom } from '../texto.js';
 import type { EstadoArquivo, FrontmatterLido, Opaca, Regiao, RegistroLido, ResultadoLeitura } from './estado.js';
 import {
   descreverIssue,
@@ -24,13 +24,6 @@ import {
 
 export const MENSAGEM_BOM =
   'o arquivo começa com BOM (U+FEFF): é ignorado na leitura e removido na próxima gravação';
-
-/** Linha (a partir de 1) do offset: quantos `\n` há antes dele, mais 1. */
-export function linhaDoOffset(fonte: string, offset: number): number {
-  let linha = 1;
-  for (let i = fonte.indexOf('\n'); i !== -1 && i < offset; i = fonte.indexOf('\n', i + 1)) linha++;
-  return linha;
-}
 
 /** Linha da chave de primeiro nível `chave` num YAML que começa no offset `inicioYaml` de `fonte`. */
 export function linhaDaChave(
@@ -53,7 +46,7 @@ export function linhaDaChave(
 export function linhaDaChaveNoFrontmatter(estado: EstadoArquivo, chave: string): number | undefined {
   const frontmatter = estado.frontmatter;
   if (frontmatter === undefined) return undefined;
-  const inicioYaml = estado.fonte.indexOf('\n', frontmatter.faixa.inicio) + 1;
+  const inicioYaml = inicioDoYaml(estado.fonte, frontmatter.faixa.inicio);
   return linhaDaChave(frontmatter.documento, estado.fonte, inicioYaml, chave);
 }
 
@@ -73,6 +66,8 @@ export class Leitura {
   private readonly problemas: Problema[] = [];
   private readonly opacas: Opaca[] = [];
   private readonly regioes: Regiao[] = [];
+  /** Títulos canônicos já procurados (normalizados): a duplicata de cada um é apontada uma vez só. */
+  private readonly procuradas = new Set<string>();
   private frontmatterLido: FrontmatterLido | undefined;
 
   constructor(fonteBruta: string, arquivo: string) {
@@ -114,18 +109,35 @@ export class Leitura {
     return linhaDoOffset(this.fonte, offset);
   }
 
-  /** Primeira seção `##` com o título dado (comparação de `normalizarCabecalho`). */
+  /**
+   * Primeira seção `##` com o título canônico dado (comparação de `normalizarCabecalho`). Cada
+   * repetição do mesmo título vira `secao_duplicada` na linha do cabeçalho dela: só a primeira é a
+   * região gerenciada, e as linhas das outras não entram no modelo (ficam intactas na fonte).
+   */
   secao(titulo: string): Secao | undefined {
     const procurado = normalizarCabecalho(titulo);
-    return this.documento.secoes.find((s) => s.nivel === 2 && s.tituloNormalizado === procurado);
+    const [primeira, ...repetidas] = this.documento.secoes.filter(
+      (s) => s.nivel === 2 && s.tituloNormalizado === procurado,
+    );
+    if (!this.procuradas.has(procurado)) {
+      this.procuradas.add(procurado);
+      repetidas.forEach((repetida, i) => {
+        const mensagem =
+          `a seção '## ${titulo}' aparece de novo (repetição ${i + 2}); só a primeira é lida: ` +
+          'junte as linhas nela e apague o título repetido';
+        this.problema('secao_duplicada', mensagem, this.linhaDe(repetida.inicio));
+      });
+    }
+    return primeira;
   }
 
   /**
-   * Região canônica `## <spec.secao>`: ausente → `secao_ausente` e lista vazia; seção sem tabela →
-   * `secao_ausente` na linha do cabeçalho. Seção `opcional` (`## Antiparasitários`, só de animais):
-   * ausente, ou presente sem nenhuma linha que comece com `|`, não é problema (lista vazia); presente
-   * com linhas `|` que o GFM não reconhece como tabela (sem a linha `|---|`, ou com ela de outro
-   * tamanho) é `secao_ausente` como numa seção obrigatória, para os registros não sumirem em silêncio.
+   * Região canônica `## <spec.secao>`: ausente → `secao_ausente` e lista vazia; presente sem nenhuma
+   * linha que comece com `|` → `secao_ausente` na linha do cabeçalho; presente com linhas `|` que o
+   * GFM não reconhece como tabela (sem a linha `|---|`, ou com ela de outro tamanho) →
+   * `tabela_nao_reconhecida` na linha do cabeçalho. Seção `opcional` (`## Antiparasitários`, só de
+   * animais): ausente, ou sem linha `|`, não é problema (lista vazia); com linhas `|` não reconhecidas
+   * é `tabela_nao_reconhecida` como numa seção obrigatória, para os registros não sumirem em silêncio.
    */
   regiao<E extends object>(spec: SpecTabela<E>, opcional = false): E[] {
     const titulo = spec.secao ?? '';
@@ -137,12 +149,14 @@ export class Leitura {
     }
     if (secao.tabela === undefined) {
       const tentouTabela = this.temLinhaDeTabela(secao);
-      if (!opcional || tentouTabela) {
-        const mensagem = tentouTabela
-          ? `a seção '## ${titulo}' tem linhas com '|', mas a tabela não foi reconhecida ` +
-            '(confira o cabeçalho e a linha |---| logo abaixo dele)'
-          : `a seção '## ${titulo}' não tem a tabela`;
-        this.problema('secao_ausente', mensagem, this.linhaDe(secao.inicio));
+      const linha = this.linhaDe(secao.inicio);
+      if (tentouTabela) {
+        const mensagem =
+          `a seção '## ${titulo}' tem linhas com '|', mas a tabela não foi reconhecida ` +
+          '(confira o cabeçalho e a linha |---| logo abaixo dele)';
+        this.problema('tabela_nao_reconhecida', mensagem, linha);
+      } else if (!opcional) {
+        this.problema('secao_ausente', `a seção '## ${titulo}' não tem a tabela`, linha);
       }
       return [];
     }
@@ -249,7 +263,7 @@ export class Leitura {
   }
 
   /**
-   * Frontmatter validado com `schema`. Sem frontmatter → `secao_ausente`; YAML inválido →
+   * Frontmatter validado com `schema`. Sem frontmatter → `frontmatter_ausente`; YAML inválido →
    * `yaml_invalido` com a linha. Campo inválido → `id_invalido` (no `id`) ou `linha_invalida`, na
    * linha da chave; se for um dos `obrigatorios`, não há modelo (`undefined`); senão o campo vale o
    * padrão do schema e o resto é lido. Chaves desconhecidas e comentários ficam no `YAML.Document`.
@@ -257,7 +271,7 @@ export class Leitura {
   frontmatter<E extends object>(schema: z.ZodType<E>, obrigatorios: readonly string[]): E | undefined {
     if (!this.legivel) return undefined;
     if (this.documento.frontmatter === undefined) {
-      this.problema('secao_ausente', 'falta o frontmatter (o bloco --- no início do arquivo)', 1);
+      this.problema('frontmatter_ausente', 'falta o frontmatter (o bloco --- no início do arquivo)', 1);
       return undefined;
     }
     let lido: { documento: Document; faixa: { inicio: number; fim: number } } | undefined;
@@ -305,7 +319,7 @@ export class Leitura {
       estado.lido = copia(r.data);
       return r.data;
     }
-    const inicioYaml = this.fonte.indexOf('\n', faixa.inicio) + 1;
+    const inicioYaml = inicioDoYaml(this.fonte, faixa.inicio);
     const invalidas = new Set<string>();
     for (const issue of r.error.issues) {
       const chave = String(issue.path[0] ?? '');

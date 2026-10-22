@@ -3,13 +3,16 @@ import { fileURLToPath } from 'node:url';
 import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 import {
+  compararTexto,
   desescaparCelula,
   detectarEol,
   dividirLinhas,
   escaparCelula,
+  linhaDoOffset,
   normalizarCabecalho,
   removerBom,
 } from '../../../src/core/format/texto.js';
+import { compararTexto as compararTextoDasConsultas } from '../../../src/core/queries/normalizar.js';
 
 const FIXTURES = fileURLToPath(new URL('../../fixtures/', import.meta.url));
 const lerFixture = (relativo: string): string => readFileSync(FIXTURES + relativo, 'utf8');
@@ -156,5 +159,21 @@ describe('dividirLinhas', () => {
       }),
       { numRuns: 300 },
     );
+  });
+});
+
+describe('linhaDoOffset e compararTexto (uma definição só, reusada no núcleo)', () => {
+  it('linhaDoOffset: 1 + quantos `\n` há antes do offset (CRLF conta uma vez)', () => {
+    const fonte = 'a\nbc\r\nd';
+    expect(linhaDoOffset(fonte, 0)).toBe(1);
+    expect(linhaDoOffset(fonte, 1)).toBe(1); // o próprio `\n` ainda é da linha 1
+    expect(linhaDoOffset(fonte, 2)).toBe(2);
+    expect(linhaDoOffset(fonte, 6)).toBe(3);
+    expect(linhaDoOffset(fonte, 99)).toBe(3);
+  });
+
+  it('compararTexto: ordem do Explorer (acento, caixa, números por valor) e é a mesma das consultas', () => {
+    expect(['Zélia', 'Ana 10', 'Ágata', 'Ana 2', 'ana'].sort(compararTexto)).toEqual(['Ágata', 'ana', 'Ana 2', 'Ana 10', 'Zélia']);
+    expect(compararTextoDasConsultas).toBe(compararTexto);
   });
 });

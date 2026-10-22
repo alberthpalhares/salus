@@ -3,10 +3,9 @@
  * a data vira a meia-noite UTC dela e a conta é de dias inteiros. `new Date('AAAA-MM-DD')` e
  * `toISOString` nunca entram aqui (o primeiro lê UTC, o segundo escreve UTC; a data do usuário é local).
  */
-import { type DataIso, ehDataValida } from '../schema/comuns.js';
+import { type DataIso, ehDataValida, FORMATO_DATA } from '../schema/comuns.js';
 
 const MS_POR_DIA = 86_400_000;
-const FORMATO_DATA = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
  * Lança `RangeError` se `data` não é uma `AAAA-MM-DD` que existe no calendário. A mensagem só repete

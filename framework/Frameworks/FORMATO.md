@@ -36,6 +36,8 @@ Os oito arquivos de cada perfil são a **verdade**. Qualquer arquivo gerado (age
 
 Uma **região gerenciada** é um cabeçalho `##` canônico mais a **primeira** tabela (ou lista, no `Historico.md`) que vem depois dele, até o próximo cabeçalho de nível 2 ou menor. Só essa tabela ou lista é do Salus. O resto da seção (texto antes ou depois da tabela, subseções `###`) é livre: o Salus não mexe e você pode escrever à vontade. Cabeçalhos `##` que não são canônicos também são texto livre, exceto nos exames (ver `Exames.md`).
 
+A tabela gerenciada é a primeira tabela depois do título `##`; não ponha subtítulo `###` com tabela antes dela. Cada cabeçalho canônico aparece uma vez por arquivo: se ele se repetir, só a primeira seção é lida e o `doctor` aponta a repetição.
+
 ## Linhas opacas
 
 Dentro de uma região gerenciada, o Salus preserva sem alterar tudo o que não entende e as lista no `doctor`:
@@ -406,3 +408,25 @@ Um item do histórico fora da gramática é opaco: o Salus o mantém no lugar e 
 - Para mudar o estado de um medicamento, mova a linha de uma tabela para outra; não crie `Em uso` por conta própria sem confirmar que o medicamento foi comprado ou iniciado.
 - Para renomear um perfil, renomeie a pasta; não mude o `id` da Ficha.
 - Nunca edite arquivos gerados: a edição manual é sobrescrita.
+
+## Problemas que o Salus aponta
+
+Ao ler o cofre, o Salus não para no primeiro erro: cada problema vira uma linha com o arquivo, a linha (quando há uma) e um destes códigos. A mensagem diz a posição e o que conferir, nunca o conteúdo do arquivo.
+
+| Código | Significado |
+|---|---|
+| `manifesto_invalido` | o `salus.yaml` falta, tem YAML inválido, não é da versão 2 ou tem um campo fora do formato |
+| `arquivo_ausente` | falta um dos oito arquivos do perfil (ou a pasta `Perfis/`); sem a `Ficha.md`, o perfil não entra no cofre |
+| `arquivo_ilegivel` | o arquivo existe, mas não deu para ler (permissão, pasta no lugar do arquivo, arquivo do OneDrive que não baixou); a mensagem traz o código do erro |
+| `yaml_invalido` | o frontmatter tem YAML inválido, não é um mapa de chaves ou usa alias sem âncora |
+| `frontmatter_ausente` | a `Ficha.md` ou o `Genetica.md` não começa com o bloco `---` do frontmatter |
+| `secao_ausente` | falta um cabeçalho `##` canônico obrigatório, ou ele existe sem nenhuma linha de tabela |
+| `secao_duplicada` | o mesmo cabeçalho `##` canônico aparece de novo no arquivo; só a primeira seção é lida |
+| `tabela_nao_reconhecida` | a seção tem linhas começando com `\|`, mas elas não formam tabela (falta a linha `\|---\|` logo abaixo do cabeçalho, ou ela tem outro número de colunas) |
+| `cabecalho_invalido` | o cabeçalho da tabela não tem as colunas esperadas, nesta ordem; a tabela é ignorada até ser corrigida |
+| `linha_invalida` | uma linha da tabela, um item do histórico ou um campo do frontmatter fora das regras (data que não existe, valor fora do vocabulário, campo obrigatório vazio) |
+| `faixa_obrigatoria` | marcador de exame com `Flag` e sem `Faixa do laudo` |
+| `id_invalido` | o `id` da Ficha não usa só minúsculas sem acento, números e hífen |
+| `id_duplicado` | duas pastas de perfil com o mesmo `id`; só a primeira em ordem de nome entra no cofre |
+| `bom` | o arquivo começa com BOM (U+FEFF); é ignorado na leitura e removido na próxima gravação |
+| `cr_solto` | há um CR (`\r`) sem LF; o arquivo não é lido até os fins de linha serem corrigidos |

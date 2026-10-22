@@ -207,7 +207,7 @@ describe('buscar', () => {
     substituir(dir, 'Perfis/Bruno/Ficha.md', 'id: bruno\n', 'id: Bruno Inválido\n');
     const aberto = Vault.abrir(dir);
     expect(aberto.membros.map((m) => m.id)).toEqual(['ana', 'mia']);
-    expect(aberto.estados.has('Bruno/Vacinas.md')).toBe(true); // o arquivo foi lido, mas Bruno não é membro
+    expect(aberto.estados.has('Perfis/Bruno/Vacinas.md')).toBe(true); // o arquivo foi lido, mas Bruno não é membro
     expect(buscar(aberto, 'febre amarela')).toEqual([]);
     expect(buscar(aberto, 'influenza').map((o) => o.membro)).toEqual(['ana']);
   });

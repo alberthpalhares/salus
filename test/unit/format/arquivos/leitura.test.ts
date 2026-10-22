@@ -163,9 +163,9 @@ describe('Ana — leitura do cofre de exemplo', () => {
     const comOpcional = (...corpo: string[]): string =>
       `${lerFixture(arquivo)}\n## Antiparasitários\n\n${corpo.join('\n')}\n`;
 
-    it('sem a linha delimitadora `|---|` → um `secao_ausente` na linha do cabeçalho; nada é lido', () => {
+    it('sem a linha delimitadora `|---|` → um `tabela_nao_reconhecida` na linha do cabeçalho; nada é lido', () => {
       const { dados, problemas, estado } = vacinas.ler(comOpcional(CABECALHO, LINHA), ctx(arquivo));
-      expect(problemas).toEqual([problema(arquivo, 'secao_ausente', 11)]);
+      expect(problemas).toEqual([problema(arquivo, 'tabela_nao_reconhecida', 11)]);
       expect(problemas[0]?.mensagem).toContain('Antiparasitários');
       expect(dados.antiparasitarios).toEqual([]);
       expect(dados.vacinas).toHaveLength(3);
@@ -174,18 +174,18 @@ describe('Ana — leitura do cofre de exemplo', () => {
 
     it('com delimitador de número de colunas errado (o GFM não reconhece a tabela) → o mesmo problema', () => {
       const { problemas } = vacinas.ler(comOpcional(CABECALHO, '|---|---|', LINHA), ctx(arquivo));
-      expect(problemas).toEqual([problema(arquivo, 'secao_ausente', 11)]);
+      expect(problemas).toEqual([problema(arquivo, 'tabela_nao_reconhecida', 11)]);
     });
 
     it('linha com `|` recuada e prosa antes das linhas também conta', () => {
       const { problemas } = vacinas.ler(comOpcional('Apliquei esta semana:', '', `   ${CABECALHO}`, LINHA), ctx(arquivo));
-      expect(problemas).toEqual([problema(arquivo, 'secao_ausente', 11)]);
+      expect(problemas).toEqual([problema(arquivo, 'tabela_nao_reconhecida', 11)]);
     });
 
     it('seção obrigatória com o mesmo texto dá o mesmo código e a mesma linha', () => {
       const fonte = ['# Vacinas — X', '', '## Vacinas', '', '| Vacina | Aplicada em | Próxima em | Obs |', '| V4 | 2025-09-01 | | |', ''].join('\n');
       const { problemas } = vacinas.ler(fonte, ctx('V.md'));
-      expect(problemas).toEqual([problema('V.md', 'secao_ausente', 3)]);
+      expect(problemas).toEqual([problema('V.md', 'tabela_nao_reconhecida', 3)]);
     });
 
     it('com a tabela bem formada continua sendo lida, sem problema', () => {
@@ -578,13 +578,50 @@ describe('problemas de leitura', () => {
       expect(dados.frontmatter?.microchip).toBe('');
     });
 
-    it('sem frontmatter → `secao_ausente`; frontmatter undefined', () => {
+    it('sem frontmatter → `frontmatter_ausente` na linha 1; frontmatter undefined', () => {
       const fonte = ANA.slice(ANA.indexOf('# Ficha'));
       const { dados, problemas } = ficha.ler(fonte, ctx('F.md'));
-      expect(problemas).toEqual([problema('F.md', 'secao_ausente', 1)]);
+      expect(problemas).toEqual([problema('F.md', 'frontmatter_ausente', 1)]);
       expect(dados.frontmatter).toBeUndefined();
       expect(dados.profissionais).toHaveLength(2);
     });
+  });
+
+  it('Genetica sem o bloco `---` → `frontmatter_ausente` na linha 1 e lista vazia', () => {
+    const { dados, problemas } = genetica.ler('# Genética\n\nNenhuma.\n', ctx('G.md'));
+    expect(problemas).toEqual([problema('G.md', 'frontmatter_ausente', 1)]);
+    expect(dados).toEqual({ condicoes_hereditarias: [] });
+  });
+
+  it('seção canônica repetida → `secao_duplicada` na linha de cada repetição; só a primeira é lida', () => {
+    const repetida = linhas(
+      '## Em uso',
+      '',
+      '| Medicamento | Dose | Frequência | Via | Desde | Prescrito por | Renova em | Término em | Obs |',
+      '|---|---|---|---|---|---|---|---|---|',
+      '| Fluoxetina | 20 mg | 1x ao dia | oral | 2026-01-01 | | | | |',
+      '',
+    );
+    const fonte = `${MEDS}\n${repetida}\n${repetida}`;
+    const { dados, problemas, estado } = medicamentos.ler(fonte, ctx('M.md'));
+    const linhasDasRepeticoes = fonte
+      .split('\n')
+      .flatMap((l, i) => (l === '## Em uso' ? [i + 1] : []))
+      .slice(1);
+    expect(linhasDasRepeticoes).toHaveLength(2);
+    expect(problemas).toEqual(linhasDasRepeticoes.map((l) => problema('M.md', 'secao_duplicada', l)));
+    expect(problemas[0]?.mensagem).toContain("'## Em uso'");
+    expect(problemas[0]?.mensagem).not.toContain('Fluoxetina');
+    expect(dados.emUso.map((m) => m.nome)).toEqual(['Losartana', 'Amoxicilina']);
+    expect(estado.regioes.filter((r) => r.chave === 'emUso')).toHaveLength(1);
+    // regravar sem mudar devolve o arquivo byte a byte, com as repetições intactas
+    expect(medicamentos.escrever(estado, dados)).toBe(fonte);
+  });
+
+  it('dois `## Hemograma` em Exames não são duplicata: os dois são exames, sem problema', () => {
+    const { dados, problemas } = exames.ler(EXAMES + PERFIL_LIPIDICO + PERFIL_LIPIDICO, ctx('E.md'));
+    expect(problemas).toEqual([]);
+    expect(dados.marcadores).toHaveLength(10);
   });
 
   it('Genetica com YAML inválido → `yaml_invalido` e lista vazia', () => {
@@ -602,6 +639,9 @@ describe('problemas de leitura', () => {
       'yaml_invalido',
       'cabecalho_invalido',
       'secao_ausente',
+      'secao_duplicada',
+      'tabela_nao_reconhecida',
+      'frontmatter_ausente',
       'linha_invalida',
       'faixa_obrigatoria',
       'id_invalido',

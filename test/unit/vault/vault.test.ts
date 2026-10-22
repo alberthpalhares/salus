@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
 import { type ArquivoDeVerdade, ARQUIVOS_DE_VERDADE, codecs } from '../../../src/core/format/arquivos/index.js';
 import { CODIGOS_PROBLEMA as CODIGOS_DO_FORMATO } from '../../../src/core/format/problema.js';
-import { classificarFalha, lerPerfil } from '../../../src/core/vault/perfil.js';
+import { classificarFalha, ehPastaDePerfil, lerPerfil } from '../../../src/core/vault/perfil.js';
 import { CODIGOS_PROBLEMA, type Problema } from '../../../src/core/vault/problemas.js';
 import { Vault } from '../../../src/core/vault/Vault.js';
 
@@ -64,13 +64,20 @@ describe('Vault.abrir — v2-exemplo', () => {
     expect(vault.membro('Mia (gata)')).toBeUndefined(); // pelo id, não pela pasta
   });
 
-  it('`estados` tem os 24 arquivos de verdade, por "<pasta>/<arquivo>", cada um com o caminho no cofre', () => {
+  it('`estados` tem os 24 arquivos de verdade, chaveados pelo caminho no cofre ("Perfis/<pasta>/<arquivo>" = `estado.arquivo`)', () => {
     expect(vault.estados.size).toBe(24);
     const esperadas = ['Ana', 'Bruno', 'Mia (gata)'].flatMap((pasta) =>
-      ARQUIVOS_DE_VERDADE.map((arquivo) => `${pasta}/${arquivo}`),
+      ARQUIVOS_DE_VERDADE.map((arquivo) => `Perfis/${pasta}/${arquivo}`),
     );
     expect([...vault.estados.keys()].sort()).toEqual([...esperadas].sort());
-    for (const [chave, estado] of vault.estados) expect(estado.arquivo).toBe(`Perfis/${chave}`);
+    for (const [chave, estado] of vault.estados) expect(estado.arquivo).toBe(chave);
+  });
+
+  it('`estadoDe(pasta, arquivo)` acha o estado sem remontar a chave; pasta ou arquivo sem estado dá `undefined`', () => {
+    const estado = vault.estadoDe('Mia (gata)', 'Vacinas.md');
+    expect(estado?.arquivo).toBe('Perfis/Mia (gata)/Vacinas.md');
+    expect(estado).toBe(vault.estados.get('Perfis/Mia (gata)/Vacinas.md'));
+    expect(vault.estadoDe('Ninguém', 'Ficha.md')).toBeUndefined();
   });
 
   it('agrega os oito arquivos da Ana no `Membro`', () => {
@@ -112,8 +119,8 @@ describe('Vault.abrir — v2-exemplo', () => {
 
   it('o `Membro` e o `estado` de cada arquivo fecham o ciclo: gravar sem mudar devolve o arquivo byte a byte', () => {
     for (const membro of vault.membros) {
-      const estado = (arquivo: string) => {
-        const e = vault.estados.get(`${membro.pasta}/${arquivo}`);
+      const estado = (arquivo: ArquivoDeVerdade) => {
+        const e = vault.estadoDe(membro.pasta, arquivo);
         if (e === undefined) throw new Error(`sem estado de ${membro.pasta}/${arquivo}`);
         return e;
       };
@@ -170,7 +177,7 @@ describe('Vault.abrir — v2-quebrado (um arquivo ruim não derruba o cofre)', (
       // a linha 3 é a do `nome: "Bruno`, com a aspa que não fecha
       { arquivo: 'Perfis/Bruno/Ficha.md', linha: 3, codigo: 'yaml_invalido', mensagem: expect.any(String) },
     ]);
-    expect(vault.estados.has('Bruno/Historico.md')).toBe(true);
+    expect(vault.estados.has('Perfis/Bruno/Historico.md')).toBe(true);
     expect(problemasDe(vault, 'Perfis/Bruno/Historico.md')).toEqual([]);
   });
 
@@ -183,7 +190,9 @@ describe('Vault.abrir — v2-quebrado (um arquivo ruim não derruba o cofre)', (
     );
     expect(ausentes.every((p) => p.linha === undefined)).toBe(true);
     expect(vault.membros.some((m) => m.pasta === 'Sem Ficha')).toBe(false);
-    expect([...vault.estados.keys()].filter((k) => k.startsWith('Sem Ficha/'))).toEqual(['Sem Ficha/Historico.md']);
+    expect([...vault.estados.keys()].filter((k) => k.startsWith('Perfis/Sem Ficha/'))).toEqual([
+      'Perfis/Sem Ficha/Historico.md',
+    ]);
   });
 
   it('dois perfis com o mesmo `id`: `id_duplicado` nos dois (na linha do `id`), só o primeiro entra', () => {
@@ -264,9 +273,9 @@ describe('Vault.abrir — cofre fora do normal', () => {
     ]);
   });
 
-  it('pastas ocultas e `_Backups` em `Perfis/` não são perfis; arquivo solto em `Perfis/` também não', () => {
+  it('pastas ocultas e de sistema (`_Backups`, `_Arquivados`) em `Perfis/` não são perfis; arquivo solto também não', () => {
     const dir = copiaDoExemplo();
-    for (const pasta of ['.oculta', '_Backups', '_Backups 2026']) {
+    for (const pasta of ['.oculta', '_Backups', '_Backups 2026', '_Arquivados']) {
       mkdirSync(join(dir, 'Perfis', pasta), { recursive: true });
       writeFileSync(join(dir, 'Perfis', pasta, 'Ficha.md'), '---\nid: intruso\nnome: Intruso\ntipo: pessoa\n---\n');
     }
@@ -406,8 +415,8 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
       expect(membro.pasta).toBe('P');
       expect(vault.membro(membro.id)).toBe(membro);
     }
-    expect([...vault.estados.keys()].sort()).toEqual(ARQUIVOS_DE_VERDADE.map((a) => `P/${a}`).sort());
-    for (const [chave, estado] of vault.estados) expect(estado.arquivo).toBe(`Perfis/${chave}`);
+    expect([...vault.estados.keys()].sort()).toEqual(ARQUIVOS_DE_VERDADE.map((a) => `Perfis/P/${a}`).sort());
+    for (const [chave, estado] of vault.estados) expect(estado.arquivo).toBe(chave);
     const arquivos = new Set(['salus.yaml', ...ARQUIVOS_DE_VERDADE.map((a) => `Perfis/P/${a}`)]);
     for (const p of vault.problemas) {
       expect(CODIGOS_PROBLEMA).toContain(p.codigo);
@@ -531,7 +540,7 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
     );
   });
 
-  it('um perfil com cada defeito uma vez: os cinco códigos de validação saem, cada um no arquivo certo, e `abrir` não lança', () => {
+  it('um perfil com cada defeito uma vez: os seis códigos de validação saem, cada um no arquivo certo, e `abrir` não lança', () => {
     const dir = pastaTemporaria();
     const perfil = join(dir, 'Perfis', 'P');
     mkdirSync(perfil, { recursive: true });
@@ -551,7 +560,7 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
       'Doses.md',
       tabela('Doses', ['Dia', 'Hora', 'Medicamento', 'Dose', 'Obs'], '| 2026-10-20 | 08:00 | Losartana | 50 mg | |'),
     );
-    // secao_ausente: `## Antiparasitários` com linhas `|` e sem a linha `|---|`: a tabela não é reconhecida
+    // tabela_nao_reconhecida: `## Antiparasitários` com linhas `|` e sem a linha `|---|`
     const vacinas = [
       tabela('Vacinas', ['Vacina', 'Aplicada em', 'Próxima em', 'Obs'], '| Influenza | 2026-04-15 | 2027-04-15 | |'),
       '## Antiparasitários',
@@ -561,6 +570,8 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
       '',
     ].join('\n');
     escrever('Vacinas.md', vacinas);
+    // frontmatter_ausente: `Genetica.md` sem o bloco `---` (o arquivo exige frontmatter)
+    escrever('Genetica.md', '# Genética\n\nNenhuma condição registrada.\n');
     const linhaDoCabecalho = vacinas.split('\n').indexOf('## Antiparasitários') + 1;
 
     let vault: Vault | undefined;
@@ -574,7 +585,8 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
       ['Perfis/P/Medicamentos.md', 'linha_invalida', 5],
       ['Perfis/P/Exames.md', 'faixa_obrigatoria', 5],
       ['Perfis/P/Doses.md', 'cabecalho_invalido', 3],
-      ['Perfis/P/Vacinas.md', 'secao_ausente', linhaDoCabecalho],
+      ['Perfis/P/Vacinas.md', 'tabela_nao_reconhecida', linhaDoCabecalho],
+      ['Perfis/P/Genetica.md', 'frontmatter_ausente', 1],
     ];
     for (const [arquivo, codigo, linha] of esperados) {
       const doArquivo = problemasDe(vault, arquivo);
@@ -585,18 +597,18 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
     }
     // `Ficha.md` sem `id` válido: o perfil não vira membro, mas os outros arquivos foram lidos e validados
     expect(vault.membros).toEqual([]);
-    expect(vault.estados.size).toBe(5);
+    expect(vault.estados.size).toBe(6);
   });
 });
 
 describe('lerPerfil', () => {
-  it('lê os oito arquivos da Ana: membro, nenhum problema e um estado por arquivo ("<pasta>/<arquivo>")', () => {
+  it('lê os oito arquivos da Ana: membro, nenhum problema e um estado por arquivo ("Perfis/<pasta>/<arquivo>")', () => {
     const { membro, problemas, opacas, estados } = lerPerfil(join(EXEMPLO, 'Perfis', 'Ana'), 'Ana');
     expect(membro?.id).toBe('ana');
     expect(membro?.pasta).toBe('Ana');
     expect(problemas).toEqual([]);
     expect(opacas).toEqual([]);
-    expect(Object.keys(estados)).toEqual(ARQUIVOS_DE_VERDADE.map((a) => `Ana/${a}`));
+    expect(Object.keys(estados)).toEqual(ARQUIVOS_DE_VERDADE.map((a) => `Perfis/Ana/${a}`));
   });
 
   it('pasta sem nenhum arquivo: `arquivo_ausente` ×8, em ordem, sem membro e sem estado — e não lança', () => {
@@ -617,7 +629,7 @@ describe('lerPerfil', () => {
     expect(problemas.map((p) => [p.arquivo, p.codigo])).toEqual([['Perfis/Ana/Genetica.md', 'arquivo_ilegivel']]);
     expect(membro?.genetica).toEqual({ condicoes_hereditarias: [] });
     expect(membro?.historico).toHaveLength(5);
-    expect(estados['Ana/Genetica.md']).toBeUndefined();
+    expect(estados['Perfis/Ana/Genetica.md']).toBeUndefined();
     expect(Object.keys(estados)).toHaveLength(7);
   });
 
@@ -638,6 +650,15 @@ describe('lerPerfil', () => {
   });
 });
 
+describe('ehPastaDePerfil', () => {
+  it('nem oculta (`.`) nem de sistema (`_`): `_Backups`, `_Arquivados` e `.git` não são membros', () => {
+    for (const nome of ['Ana', 'Mia (gata)', 'Ana 2', 'Ágata', 'a_b']) expect(ehPastaDePerfil(nome), nome).toBe(true);
+    for (const nome of ['.oculta', '.git', '_Backups', '_backups 2026', '_Arquivados', '_']) {
+      expect(ehPastaDePerfil(nome), nome).toBe(false);
+    }
+  });
+});
+
 describe('problemas.ts', () => {
   it('reexporta a lista fechada de códigos do `format/`, com os códigos que o cofre usa', () => {
     expect(CODIGOS_PROBLEMA).toBe(CODIGOS_DO_FORMATO);
@@ -648,6 +669,9 @@ describe('problemas.ts', () => {
       'yaml_invalido',
       'cabecalho_invalido',
       'secao_ausente',
+      'secao_duplicada',
+      'tabela_nao_reconhecida',
+      'frontmatter_ausente',
       'linha_invalida',
       'faixa_obrigatoria',
       'id_invalido',
@@ -656,5 +680,12 @@ describe('problemas.ts', () => {
     ]) {
       expect(CODIGOS_PROBLEMA).toContain(codigo);
     }
+  });
+
+  it('cada código tem uma linha em "Problemas que o Salus aponta" do FORMATO.md, e só eles', () => {
+    const formato = readFileSync(fileURLToPath(new URL('../../../framework/Frameworks/FORMATO.md', import.meta.url)), 'utf8');
+    const secao = formato.slice(formato.indexOf('## Problemas que o Salus aponta'));
+    const documentados = [...secao.matchAll(/^\| `([a-z_]+)` \|/gm)].map((m) => m[1]);
+    expect([...documentados].sort()).toEqual([...CODIGOS_PROBLEMA].sort());
   });
 });

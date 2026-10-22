@@ -34,6 +34,24 @@ export function normalizarCabecalho(s: string): string {
   return s.trim().normalize('NFC').toLocaleLowerCase('pt-BR').replace(/\s+/g, ' ');
 }
 
+/** Linha (a partir de 1) do offset: quantos `\n` há antes dele, mais 1. */
+export function linhaDoOffset(fonte: string, offset: number): number {
+  let linha = 1;
+  for (let i = fonte.indexOf('\n'); i !== -1 && i < offset; i = fonte.indexOf('\n', i + 1)) linha++;
+  return linha;
+}
+
+/** Ordem de nomes à moda do Explorer: sem distinguir acento nem caixa à primeira vista, e números por valor. */
+const COLADOR = new Intl.Collator('pt-BR', { numeric: true });
+
+/**
+ * Ordem de dois textos para listas e pastas (`Ana 2` antes de `Ana 10`): pelo colador `pt-BR` com
+ * números por valor; empate pelo texto, para a ordem ser a mesma em qualquer SO.
+ */
+export function compararTexto(a: string, b: string): number {
+  return COLADOR.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
+}
+
 /** Escreve o conteúdo de uma célula de tabela: todo `|` vira `\|` (nunca divide a célula). */
 export function escaparCelula(s: string): string {
   return s.replaceAll('|', '\\|');

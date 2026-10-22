@@ -29,13 +29,13 @@
 import { existsSync, lstatSync, mkdirSync, readdirSync, realpathSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { type Document, isMap, isScalar, isSeq, parseDocument, type Scalar, visit } from 'yaml';
+import { dividirCelulas } from '../format/tabela.js';
 import { escaparCelula, detectarEol, dividirLinhas } from '../format/texto.js';
 import { ehDataValida } from '../schema/comuns.js';
 import { somarDias } from '../queries/datas.js';
 import { normalizarParaBusca } from '../queries/normalizar.js';
 import {
   blocosMarkdown,
-  celulasDaLinha,
   CHAVES_LIVRES,
   CHAVES_PESSOAS,
   CHAVES_PROFISSIONAIS,
@@ -534,7 +534,7 @@ class Anonimizador {
   private tabela(trecho: string): string {
     const tipos: TipoColuna[] = [];
     return this.porLinha(trecho, (linha, i) => {
-      const celulas = celulasDaLinha(linha);
+      const celulas = dividirCelulas(linha);
       if (i === 1) return linha;
       if (i === 0) {
         tipos.push(...celulas.map(tipoDeColuna));

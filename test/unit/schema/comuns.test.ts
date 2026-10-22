@@ -5,6 +5,7 @@ import {
   DataOuVazia,
   ehDataValida,
   FlagExame,
+  FORMATO_DATA,
   HoraHHmm,
   HoraOuVazia,
   Id,
@@ -182,5 +183,12 @@ describe('vocabulários fechados', () => {
       expect(TipoEvento.safeParse(t).success).toBe(true);
     }
     expect(TipoEvento.safeParse('observação').success).toBe(false);
+  });
+});
+
+describe('FORMATO_DATA (exportado: a única regex de forma AAAA-MM-DD do núcleo)', () => {
+  it('aceita a forma (sem olhar o calendário) e recusa o resto', () => {
+    expect(FORMATO_DATA.test('2026-02-30')).toBe(true);
+    for (const s of ['2026-2-3', '26-02-03', '2026-02-03 ', '03/02/2026', '']) expect(FORMATO_DATA.test(s), s).toBe(false);
   });
 });

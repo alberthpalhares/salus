@@ -38,7 +38,7 @@ export function buscar(vault: Vault, texto: string): Ocorrencia[] {
   const achadas: Ocorrencia[] = [];
   for (const membro of vault.membros) {
     for (const arquivo of ARQUIVOS_DE_VERDADE) {
-      const estado = vault.estados.get(`${membro.pasta}/${arquivo}`);
+      const estado = vault.estadoDe(membro.pasta, arquivo);
       if (estado === undefined) continue;
       const { linhas } = dividirLinhas(estado.fonte);
       for (const [indice, linha] of linhas.entries()) {

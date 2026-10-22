@@ -6,10 +6,10 @@
 import { type Document, parseDocument } from 'yaml';
 import { SalusYaml } from '../../schema/manifesto.js';
 import type { Problema } from '../problema.js';
-import { detectarEol, removerBom } from '../texto.js';
+import { detectarEol, linhaDoOffset, removerBom } from '../texto.js';
 import { definirChave, validar } from './escrita.js';
 import type { ContextoLeitura, RegistroLido, ResultadoLeitura } from './estado.js';
-import { linhaDaChave, linhaDoOffset, MENSAGEM_BOM } from './leitura.js';
+import { linhaDaChave, MENSAGEM_BOM } from './leitura.js';
 import { descreverIssue, ehObjeto, iguais, valorEm } from './validacao.js';
 
 /** Estado do manifesto: o `YAML.Document` inteiro (não há regiões nem *splice*). */

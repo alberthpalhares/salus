@@ -4,7 +4,10 @@
  * O `vault/` reexporta este tipo; o `doctor` lista os problemas.
  */
 
-/** Lista fechada dos códigos de problema. */
+/**
+ * Lista fechada dos códigos de problema. O significado de cada um está em `FORMATO.md`, seção
+ * "Problemas que o Salus aponta"; um código novo entra nos dois lugares.
+ */
 export const CODIGOS_PROBLEMA = [
   'manifesto_invalido',
   'arquivo_ausente',
@@ -12,6 +15,9 @@ export const CODIGOS_PROBLEMA = [
   'yaml_invalido',
   'cabecalho_invalido',
   'secao_ausente',
+  'secao_duplicada',
+  'tabela_nao_reconhecida',
+  'frontmatter_ausente',
   'linha_invalida',
   'faixa_obrigatoria',
   'id_invalido',
