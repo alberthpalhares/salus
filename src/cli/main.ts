@@ -3,7 +3,9 @@ import { init } from '../core/framework/init.js';
 import { packageVersion } from '../core/framework/manifest.js';
 import { update } from '../core/framework/update.js';
 import { type EspecComando, parseArgumentos, validarRegistro } from './args.js';
+import { especAnonimizar, executarAnonimizar } from './comandos/anonimizar.js';
 import { ehConsulta, especsConsultas, executarConsulta } from './comandos/consultas.js';
+import { especInspecionar, executarInspecionar } from './comandos/inspecionar.js';
 import { helpText } from './help.js';
 import { ansi, type Io } from './io.js';
 
@@ -27,6 +29,8 @@ export const comandos: EspecComando[] = [
     opcoes: {},
   },
   ...especsConsultas,
+  especInspecionar,
+  especAnonimizar,
 ];
 
 // Opção repetida com tipo ou forma curta diferentes é erro de programação: falha já ao carregar o módulo.
@@ -89,6 +93,10 @@ export async function main(
       return update({ cwd, targetDirName, io });
     case 'doctor':
       return doctor({ cwd, targetDirName, io });
+    case 'inspecionar':
+      return executarInspecionar(posicionais, opcoes, io, cwd);
+    case 'anonimizar':
+      return executarAnonimizar(posicionais, opcoes, io, cwd);
     default:
       if (ehConsulta(comando)) return executarConsulta(comando, posicionais, opcoes, io, cwd);
       // Está no registro mas não no despacho: erro de programação, não de uso.

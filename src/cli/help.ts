@@ -22,6 +22,12 @@ ${bold}COMANDOS:${reset}
   ${green}marcador <id> <nome>${reset}
                    Série de um marcador de exame (ex.: "Colesterol total") por data.
                    Os comandos de leitura exigem ${green}--json${reset} por enquanto.
+  ${green}inspecionar [pasta]${reset}
+                   Mostra a estrutura da pasta (pastas, arquivos, seções, colunas, chaves) sem
+                   nenhum valor; ${green}--json${reset} para a saída em JSON.
+  ${green}anonimizar <origem> <destino>${reset}
+                   Grava em <destino> (pasta nova ou vazia) uma cópia anonimizada de <origem>:
+                   nomes, datas, telefones, e-mails e textos livres trocados. Rode numa cópia.
 
 ${bold}OPÇÕES:${reset}
   ${green}--force, -f${reset}      Sobrescreve sem perguntar os arquivos de inicialização que já existirem (init).
@@ -30,6 +36,7 @@ ${bold}OPÇÕES:${reset}
   ${green}--secao <a,b>${reset}    Seções do perfil: ficha, medicamentos, vacinas, exames, historico,
                    pendencias, doses, genetica (padrão: todas).
   ${green}--hoje <data>${reset}    Data de referência da agenda, AAAA-MM-DD (padrão: hoje).
+  ${green}--semente <n>${reset}    Semente do anonimizar (inteiro ≥ 0): a mesma semente repete a mesma cópia.
   ${green}--help, -h${reset}       Exibe esta mensagem de ajuda.
   ${green}--version, -v${reset}    Exibe a versão atual do CLI.
 
@@ -41,5 +48,7 @@ ${bold}EXEMPLOS:${reset}
   $ npx salus-ai membros --cofre MinhaSaude --json
   $ npx salus-ai perfil ana --secao medicamentos,exames --json
   $ npx salus-ai agenda --hoje 2026-10-21 --json
+  $ npx salus-ai inspecionar MinhaSaude
+  $ npx salus-ai anonimizar "Cópia da MinhaSaude" Anonimizada --semente 7
 `;
 }
