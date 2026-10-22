@@ -395,14 +395,30 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
     });
   }
 
+  /**
+   * O que vale para qualquer conteúdo (o `cofreCom` grava os oito arquivos e o manifesto, então todo
+   * arquivo de verdade existe e tem estado): `membros`, `problemas`, `opacas` e `estados` bem formados.
+   */
   function confereInvariantes(vault: Vault): void {
     const ids = vault.membros.map((m) => m.id);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(vault.estados.size).toBeLessThanOrEqual(8);
+    for (const membro of vault.membros) {
+      expect(membro.pasta).toBe('P');
+      expect(vault.membro(membro.id)).toBe(membro);
+    }
+    expect([...vault.estados.keys()].sort()).toEqual(ARQUIVOS_DE_VERDADE.map((a) => `P/${a}`).sort());
+    for (const [chave, estado] of vault.estados) expect(estado.arquivo).toBe(`Perfis/${chave}`);
+    const arquivos = new Set(['salus.yaml', ...ARQUIVOS_DE_VERDADE.map((a) => `Perfis/P/${a}`)]);
     for (const p of vault.problemas) {
       expect(CODIGOS_PROBLEMA).toContain(p.codigo);
-      expect(p.arquivo).not.toBe('');
+      expect(arquivos, p.arquivo).toContain(p.arquivo);
+      expect(p.mensagem).not.toBe('');
       if (p.linha !== undefined) expect(Number.isInteger(p.linha) && p.linha >= 1).toBe(true);
+    }
+    for (const o of vault.opacas) {
+      expect(arquivos, o.arquivo).toContain(o.arquivo);
+      expect(Number.isInteger(o.linha) && o.linha >= 1).toBe(true);
+      expect(o.motivo).not.toBe('');
     }
   }
 
@@ -501,25 +517,75 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
     { weight: 1, arbitrary: fc.string({ unit: 'grapheme', maxLength: 60 }) },
   );
 
+  // Só o que vale para toda entrada: `abrir` volta sem lançar e o resultado é bem formado. Que cada código
+  // de problema apareça é do teste determinístico abaixo: o gerador aleatório não garante nenhum deles
+  // (o frontmatter, por exemplo, só é reconhecido se o bloco `---` abre o arquivo).
   it('propriedade: texto, blocos de Markdown válidos e inválidos e bytes soltos nos nove arquivos não derrubam `abrir`', () => {
     const dir = pastaTemporaria();
-    const codigosVistos = new Set<string>();
-    let comMembro = 0;
     fc.assert(
       fc.property(fc.tuple(...ARQUIVOS_DE_VERDADE.map(conteudoDe), conteudoDoManifesto), (conteudos) => {
         cofreCom(conteudos, dir);
-        const vault = Vault.abrir(dir);
-        confereInvariantes(vault);
-        for (const p of vault.problemas) codigosVistos.add(p.codigo);
-        if (vault.membros.length > 0) comMembro++;
+        confereInvariantes(Vault.abrir(dir));
       }),
       { numRuns: 120 },
     );
-    // A propriedade só vale se de fato chegou à validação das linhas e montou membros.
-    expect(comMembro).toBeGreaterThan(0);
-    for (const codigo of ['linha_invalida', 'faixa_obrigatoria', 'cabecalho_invalido', 'secao_ausente', 'id_invalido']) {
-      expect(codigosVistos, codigo).toContain(codigo);
+  });
+
+  it('um perfil com cada defeito uma vez: os cinco códigos de validação saem, cada um no arquivo certo, e `abrir` não lança', () => {
+    const dir = pastaTemporaria();
+    const perfil = join(dir, 'Perfis', 'P');
+    mkdirSync(perfil, { recursive: true });
+    const escrever = (arquivo: string, conteudo: string) => writeFileSync(join(perfil, arquivo), conteudo);
+    writeFileSync(join(dir, 'salus.yaml'), lerTexto(EXEMPLO, 'salus.yaml'));
+    // id_invalido: o `id` do frontmatter (linha 2) não é um slug
+    escrever('Ficha.md', FRONTMATTER('id: "Ana Maria"', 'nome: Ana', 'tipo: pessoa'));
+    // linha_invalida: linha de `## Em uso` com data que não existe (linha 5)
+    escrever(
+      'Medicamentos.md',
+      tabela('Em uso', EM_USO, '| Dipirona | 1 g | se dor | oral | 2026-13-45 | | | | |'),
+    );
+    // faixa_obrigatoria: marcador com flag e sem a faixa do laudo (linha 5)
+    escrever('Exames.md', tabela('Hemograma', MARCADORES, '| 2026-03-10 | Hemoglobina | 13,2 | g/dL | | alto | |'));
+    // cabecalho_invalido: a primeira coluna de `## Doses` não é `Data` (linha 3, a do cabeçalho)
+    escrever(
+      'Doses.md',
+      tabela('Doses', ['Dia', 'Hora', 'Medicamento', 'Dose', 'Obs'], '| 2026-10-20 | 08:00 | Losartana | 50 mg | |'),
+    );
+    // secao_ausente: `## Antiparasitários` com linhas `|` e sem a linha `|---|`: a tabela não é reconhecida
+    const vacinas = [
+      tabela('Vacinas', ['Vacina', 'Aplicada em', 'Próxima em', 'Obs'], '| Influenza | 2026-04-15 | 2027-04-15 | |'),
+      '## Antiparasitários',
+      '',
+      '| Produto | Tipo | Aplicado em | Próximo em | Obs |',
+      '| Revolution | antipulgas | 2026-09-30 | | |',
+      '',
+    ].join('\n');
+    escrever('Vacinas.md', vacinas);
+    const linhaDoCabecalho = vacinas.split('\n').indexOf('## Antiparasitários') + 1;
+
+    let vault: Vault | undefined;
+    expect(() => {
+      vault = Vault.abrir(dir);
+    }).not.toThrow();
+    if (vault === undefined) throw new Error('abrir não devolveu o cofre');
+
+    const esperados: ReadonlyArray<readonly [string, string, number]> = [
+      ['Perfis/P/Ficha.md', 'id_invalido', 2],
+      ['Perfis/P/Medicamentos.md', 'linha_invalida', 5],
+      ['Perfis/P/Exames.md', 'faixa_obrigatoria', 5],
+      ['Perfis/P/Doses.md', 'cabecalho_invalido', 3],
+      ['Perfis/P/Vacinas.md', 'secao_ausente', linhaDoCabecalho],
+    ];
+    for (const [arquivo, codigo, linha] of esperados) {
+      const doArquivo = problemasDe(vault, arquivo);
+      expect(
+        doArquivo.map((p) => [p.codigo, p.linha]),
+        arquivo,
+      ).toContainEqual([codigo, linha]);
     }
+    // `Ficha.md` sem `id` válido: o perfil não vira membro, mas os outros arquivos foram lidos e validados
+    expect(vault.membros).toEqual([]);
+    expect(vault.estados.size).toBe(5);
   });
 });
 
