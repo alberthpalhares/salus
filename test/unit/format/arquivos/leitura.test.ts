@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { Document } from 'yaml';
 import * as doses from '../../../../src/core/format/arquivos/doses.js';
 import * as exames from '../../../../src/core/format/arquivos/exames.js';
 import * as ficha from '../../../../src/core/format/arquivos/ficha.js';
@@ -142,6 +143,56 @@ describe('Ana — leitura do cofre de exemplo', () => {
     expect(dados.antiparasitarios).toEqual([]);
     expect(dados.vacinas).toHaveLength(3);
     expect(estado.regioes.map((r) => r.chave)).toEqual(['vacinas']);
+  });
+
+  it('Vacinas: `## Antiparasitários` só com linhas em branco ou prosa (sem linha começando com `|`) não é problema', () => {
+    const arquivo = perfil('Ana', 'Vacinas.md');
+    const base = lerFixture(arquivo);
+    for (const resto of ['\n## Antiparasitários\n\n\n', '\n## Antiparasitários', '\n## Antiparasitários\n\nUsa a pipeta | na nuca.\n']) {
+      const { dados, problemas } = vacinas.ler(base + resto, ctx(arquivo));
+      expect(problemas, JSON.stringify(resto)).toEqual([]);
+      expect(dados.antiparasitarios).toEqual([]);
+    }
+  });
+
+  describe('seção opcional com linhas `|` que não formam tabela (os registros sumiriam em silêncio)', () => {
+    const arquivo = perfil('Ana', 'Vacinas.md');
+    const CABECALHO = '| Produto | Tipo | Aplicado em | Próximo em | Obs |';
+    const LINHA = '| Revolution 45 mg | antipulgas | 2026-09-30 | 2026-10-30 | |';
+    // O fixture da Ana tem 9 linhas e termina em `\n`: o `\n` de baixo abre a linha 10 em branco, e o cabeçalho cai na 11.
+    const comOpcional = (...corpo: string[]): string =>
+      `${lerFixture(arquivo)}\n## Antiparasitários\n\n${corpo.join('\n')}\n`;
+
+    it('sem a linha delimitadora `|---|` → um `secao_ausente` na linha do cabeçalho; nada é lido', () => {
+      const { dados, problemas, estado } = vacinas.ler(comOpcional(CABECALHO, LINHA), ctx(arquivo));
+      expect(problemas).toEqual([problema(arquivo, 'secao_ausente', 11)]);
+      expect(problemas[0]?.mensagem).toContain('Antiparasitários');
+      expect(dados.antiparasitarios).toEqual([]);
+      expect(dados.vacinas).toHaveLength(3);
+      expect(estado.regioes.map((r) => r.chave)).toEqual(['vacinas']);
+    });
+
+    it('com delimitador de número de colunas errado (o GFM não reconhece a tabela) → o mesmo problema', () => {
+      const { problemas } = vacinas.ler(comOpcional(CABECALHO, '|---|---|', LINHA), ctx(arquivo));
+      expect(problemas).toEqual([problema(arquivo, 'secao_ausente', 11)]);
+    });
+
+    it('linha com `|` recuada e prosa antes das linhas também conta', () => {
+      const { problemas } = vacinas.ler(comOpcional('Apliquei esta semana:', '', `   ${CABECALHO}`, LINHA), ctx(arquivo));
+      expect(problemas).toEqual([problema(arquivo, 'secao_ausente', 11)]);
+    });
+
+    it('seção obrigatória com o mesmo texto dá o mesmo código e a mesma linha', () => {
+      const fonte = ['# Vacinas — X', '', '## Vacinas', '', '| Vacina | Aplicada em | Próxima em | Obs |', '| V4 | 2025-09-01 | | |', ''].join('\n');
+      const { problemas } = vacinas.ler(fonte, ctx('V.md'));
+      expect(problemas).toEqual([problema('V.md', 'secao_ausente', 3)]);
+    });
+
+    it('com a tabela bem formada continua sendo lida, sem problema', () => {
+      const { dados, problemas } = vacinas.ler(comOpcional(CABECALHO, '|---|---|---|---|---|', LINHA), ctx(arquivo));
+      expect(problemas).toEqual([]);
+      expect(dados.antiparasitarios.map((a) => a.produto)).toEqual(['Revolution 45 mg']);
+    });
   });
 
   it('Vacinas: `## Vacinas` (obrigatória) sem tabela continua sendo `secao_ausente`', () => {
@@ -460,6 +511,7 @@ describe('problemas de leitura', () => {
       const semAncora = ficha.ler(BRUNO.replace('nome: Bruno', 'nome: *segredo'), ctx('F.md'));
       expect(semAncora.problemas).toEqual([problema('F.md', 'yaml_invalido', 1)]);
       expect(semAncora.problemas[0]?.mensagem).not.toContain('segredo');
+      expect(semAncora.problemas[0]?.mensagem).toContain('alias'); // ReferenceError do `yaml`: o motivo é dito
       expect(semAncora.dados.frontmatter).toBeUndefined();
       expect(semAncora.dados.contatos).toHaveLength(1);
       expect(semAncora.estado.frontmatter?.lido).toBeUndefined(); // não se grava por cima
@@ -472,6 +524,34 @@ describe('problemas de leitura', () => {
       const excesso = ficha.ler(['---', ...bomba, '---', ''].join('\n'), ctx('F.md'));
       expect(excesso.problemas.filter((p) => p.codigo === 'yaml_invalido')).toHaveLength(1);
       expect(excesso.dados.frontmatter).toBeUndefined();
+    });
+
+    it('`toJS` lançando algo que não é ReferenceError → mensagem genérica (sem "alias") e o mesmo código', () => {
+      const espiao = vi.spyOn(Document.prototype, 'toJS').mockImplementation(() => {
+        throw new TypeError('texto lido do arquivo: segredo');
+      });
+      try {
+        const { dados, problemas } = ficha.ler(BRUNO, ctx('F.md'));
+        expect(problemas).toEqual([problema('F.md', 'yaml_invalido', 1)]);
+        expect(problemas[0]?.mensagem).toContain('não pôde ser convertido');
+        expect(problemas[0]?.mensagem).not.toContain('alias');
+        expect(problemas[0]?.mensagem).not.toContain('segredo');
+        expect(dados.frontmatter).toBeUndefined();
+        expect(dados.contatos).toHaveLength(1);
+      } finally {
+        espiao.mockRestore();
+      }
+    });
+
+    it('`toJS` lançando um valor que não é `Error` não é engolido', () => {
+      const espiao = vi.spyOn(Document.prototype, 'toJS').mockImplementation(() => {
+        throw 'não é um Error';
+      });
+      try {
+        expect(() => ficha.ler(BRUNO, ctx('F.md'))).toThrow();
+      } finally {
+        espiao.mockRestore();
+      }
     });
 
     it('`id` inválido → `id_invalido` na linha do id; frontmatter undefined', () => {
@@ -518,6 +598,7 @@ describe('problemas de leitura', () => {
     expect(CODIGOS_PROBLEMA).toEqual([
       'manifesto_invalido',
       'arquivo_ausente',
+      'arquivo_ilegivel',
       'yaml_invalido',
       'cabecalho_invalido',
       'secao_ausente',

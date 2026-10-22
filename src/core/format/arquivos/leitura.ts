@@ -122,8 +122,10 @@ export class Leitura {
 
   /**
    * Região canônica `## <spec.secao>`: ausente → `secao_ausente` e lista vazia; seção sem tabela →
-   * `secao_ausente` na linha do cabeçalho. Seção `opcional` (`## Antiparasitários`, só de animais)
-   * ausente ou presente sem tabela não é problema: a lista vem vazia.
+   * `secao_ausente` na linha do cabeçalho. Seção `opcional` (`## Antiparasitários`, só de animais):
+   * ausente, ou presente sem nenhuma linha que comece com `|`, não é problema (lista vazia); presente
+   * com linhas `|` que o GFM não reconhece como tabela (sem a linha `|---|`, ou com ela de outro
+   * tamanho) é `secao_ausente` como numa seção obrigatória, para os registros não sumirem em silêncio.
    */
   regiao<E extends object>(spec: SpecTabela<E>, opcional = false): E[] {
     const titulo = spec.secao ?? '';
@@ -134,12 +136,25 @@ export class Leitura {
       return [];
     }
     if (secao.tabela === undefined) {
-      if (!opcional) {
-        this.problema('secao_ausente', `a seção '## ${titulo}' não tem a tabela`, this.linhaDe(secao.inicio));
+      const tentouTabela = this.temLinhaDeTabela(secao);
+      if (!opcional || tentouTabela) {
+        const mensagem = tentouTabela
+          ? `a seção '## ${titulo}' tem linhas com '|', mas a tabela não foi reconhecida ` +
+            '(confira o cabeçalho e a linha |---| logo abaixo dele)'
+          : `a seção '## ${titulo}' não tem a tabela`;
+        this.problema('secao_ausente', mensagem, this.linhaDe(secao.inicio));
       }
       return [];
     }
     return this.tabela(secao, spec, `de '## ${titulo}'`);
+  }
+
+  /** `true` se alguma linha da seção, depois de aparada, começa com `|` (uma tentativa de tabela). */
+  private temLinhaDeTabela(secao: Secao): boolean {
+    return this.fonte
+      .slice(secao.inicio, secao.fim)
+      .split('\n')
+      .some((linha) => linha.trim().startsWith('|'));
   }
 
   /**
@@ -270,12 +285,16 @@ export class Leitura {
     try {
       valor = documento.toJS();
     } catch (erro) {
-      // `toJS` lança (ReferenceError) para alias sem âncora ou em excesso, que o `parseDocument` não
-      // aponta como erro. É conteúdo do arquivo: vira problema, e o texto do erro (que cita o alias) fica de fora.
+      // `toJS` lança `ReferenceError` para alias sem âncora ou em excesso, que o `parseDocument` não
+      // aponta como erro. É conteúdo do arquivo: vira problema, e o texto do erro (que cita o alias) fica
+      // de fora. Qualquer outro `Error` da conversão também é do conteúdo, mas sem motivo conhecido:
+      // a mensagem não o inventa. O que não é `Error` não é nosso para engolir.
       if (!(erro instanceof Error)) throw erro;
       this.problema(
         'yaml_invalido',
-        'o frontmatter usa um alias (*nome) sem âncora, ou alias demais; corrija à mão',
+        erro instanceof ReferenceError
+          ? 'o frontmatter usa um alias (*nome) sem âncora, ou alias demais; corrija à mão'
+          : 'o YAML do frontmatter não pôde ser convertido; corrija à mão',
         this.linhaDe(faixa.inicio),
       );
       return undefined;

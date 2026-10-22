@@ -59,10 +59,16 @@ export function ler(
   try {
     valor = documento.toJS();
   } catch (erro) {
-    // `toJS` lança (ReferenceError) para alias sem âncora ou em excesso, que o `parseDocument` não
-    // aponta como erro: é conteúdo do arquivo, não falha do programa.
+    // `toJS` lança `ReferenceError` para alias sem âncora ou em excesso, que o `parseDocument` não
+    // aponta como erro: é conteúdo do arquivo, não falha do programa. Qualquer outro `Error` vindo
+    // da conversão também é do conteúdo, mas não se sabe o motivo: a mensagem não o inventa.
     if (!(erro instanceof Error)) throw erro;
-    problema('o salus.yaml usa um alias (*nome) sem âncora, ou alias demais; corrija à mão', 1);
+    problema(
+      erro instanceof ReferenceError
+        ? 'o salus.yaml usa um alias (*nome) sem âncora, ou alias demais; corrija à mão'
+        : 'o YAML do salus.yaml não pôde ser convertido; corrija à mão',
+      1,
+    );
     return resultado(undefined);
   }
   if (!ehObjeto(valor)) {

@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { Document } from 'yaml';
 import * as manifesto from '../../../../src/core/format/arquivos/manifesto.js';
 import { BOM, lerFixture, linhas, linhasDiferentes, problema, soCrlf } from './apoio.js';
 
@@ -92,6 +93,7 @@ describe('manifesto (salus.yaml)', () => {
     expect(semAncora.dados).toBeUndefined();
     expect(semAncora.problemas).toEqual([problema(ARQUIVO, 'manifesto_invalido', 1)]);
     expect(semAncora.problemas[0]?.mensagem).not.toContain('segredo');
+    expect(semAncora.problemas[0]?.mensagem).toContain('alias'); // ReferenceError do `yaml`: o motivo é dito
     const excesso = [
       'a: &a [x, x, x, x, x, x, x, x, x, x]',
       'b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a, *a]',
@@ -102,6 +104,33 @@ describe('manifesto (salus.yaml)', () => {
     const lido = manifesto.ler(excesso, ctx);
     expect(lido.dados).toBeUndefined();
     expect(lido.problemas.map((p) => p.codigo)).toEqual(['manifesto_invalido']);
+  });
+
+  it('`toJS` lançando algo que não é ReferenceError → mensagem genérica (sem "alias") e o mesmo código', () => {
+    const espiao = vi.spyOn(Document.prototype, 'toJS').mockImplementation(() => {
+      throw new TypeError('texto lido do arquivo: segredo');
+    });
+    try {
+      const { dados, problemas } = manifesto.ler(FONTE, ctx);
+      expect(dados).toBeUndefined();
+      expect(problemas).toEqual([problema(ARQUIVO, 'manifesto_invalido', 1)]);
+      expect(problemas[0]?.mensagem).toContain('não pôde ser convertido');
+      expect(problemas[0]?.mensagem).not.toContain('alias');
+      expect(problemas[0]?.mensagem).not.toContain('segredo');
+    } finally {
+      espiao.mockRestore();
+    }
+  });
+
+  it('`toJS` lançando um valor que não é `Error` não é engolido', () => {
+    const espiao = vi.spyOn(Document.prototype, 'toJS').mockImplementation(() => {
+      throw 'não é um Error';
+    });
+    try {
+      expect(() => manifesto.ler(FONTE, ctx)).toThrow();
+    } finally {
+      espiao.mockRestore();
+    }
   });
 
   it('BOM → problema `bom`; o no-op devolve a fonte sem o BOM', () => {

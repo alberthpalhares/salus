@@ -8,6 +8,7 @@
 export const CODIGOS_PROBLEMA = [
   'manifesto_invalido',
   'arquivo_ausente',
+  'arquivo_ilegivel',
   'yaml_invalido',
   'cabecalho_invalido',
   'secao_ausente',

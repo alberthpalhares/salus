@@ -15,13 +15,16 @@ import {
 } from '../format/arquivos/index.js';
 import type { Membro } from '../schema/membro.js';
 import type { SalusYaml } from '../schema/manifesto.js';
-import { codigoDoErro, lerPerfil, lerTextoDoDisco, PASTA_PERFIS, type PerfilLido } from './perfil.js';
+import { classificarFalha, lerPerfil, lerTextoDoDisco, PASTA_PERFIS, type PerfilLido } from './perfil.js';
 import type { Problema } from './problemas.js';
 
 const ARQUIVO_MANIFESTO = 'salus.yaml';
 
-/** A ordem de nome de pasta do Explorer: sem distinguir acento nem caixa à primeira vista; empate pelo texto. */
-const colador = new Intl.Collator('pt-BR');
+/**
+ * A ordem de nome de pasta do Explorer: sem distinguir acento nem caixa à primeira vista, e números
+ * por valor (`Ana 2` antes de `Ana 10`); empate pelo texto, para a ordem ser a mesma em qualquer SO.
+ */
+const colador = new Intl.Collator('pt-BR', { numeric: true });
 function compararPastas(a: string, b: string): number {
   return colador.compare(a, b) || (a < b ? -1 : a > b ? 1 : 0);
 }
@@ -141,7 +144,10 @@ export class Vault {
     return this.porId.get(id);
   }
 
-  /** `salus.yaml`: arquivo que falta ou que não dá para ler → `manifesto_invalido`; o resto é do codec. */
+  /**
+   * `salus.yaml`: arquivo que falta → `manifesto_invalido`; que existe mas não dá para ler →
+   * `arquivo_ilegivel`; o resto é do codec. Nos dois casos, sem manifesto nem estado.
+   */
   private static lerManifesto(
     raiz: string,
     problemas: Problema[],
@@ -152,14 +158,26 @@ export class Vault {
       problemas.push(...lido.problemas);
       return { dados: lido.dados, estado: lido.estado };
     }
-    const mensagem = texto.ausente
-      ? `falta o ${ARQUIVO_MANIFESTO} na raiz do cofre: sem ele o cofre não é reconhecido como v2`
-      : `não foi possível ler o ${ARQUIVO_MANIFESTO} (${texto.codigo})`;
-    problemas.push({ arquivo: ARQUIVO_MANIFESTO, codigo: 'manifesto_invalido', mensagem });
+    problemas.push(
+      texto.ausente
+        ? {
+            arquivo: ARQUIVO_MANIFESTO,
+            codigo: 'manifesto_invalido',
+            mensagem: `falta o ${ARQUIVO_MANIFESTO} na raiz do cofre: sem ele o cofre não é reconhecido como v2`,
+          }
+        : {
+            arquivo: ARQUIVO_MANIFESTO,
+            codigo: 'arquivo_ilegivel',
+            mensagem: `não foi possível ler o ${ARQUIVO_MANIFESTO} (${texto.codigo})`,
+          },
+    );
     return { dados: undefined, estado: undefined };
   }
 
-  /** Lê todos os perfis de `Perfis/`, em ordem de nome de pasta. Sem a pasta `Perfis/`: nenhum perfil e um problema. */
+  /**
+   * Lê todos os perfis de `Perfis/`, em ordem de nome de pasta. Sem a pasta `Perfis/`: nenhum perfil e
+   * um `arquivo_ausente`; pasta que existe mas não dá para listar: nenhum perfil e um `arquivo_ilegivel`.
+   */
   private static lerPerfis(raiz: string): {
     perfis: { pasta: string; lido: PerfilLido }[];
     ausentes: Problema[];
@@ -172,12 +190,19 @@ export class Vault {
         .map((entrada) => entrada.name)
         .sort(compararPastas);
     } catch (erro) {
-      const codigo = codigoDoErro(erro);
-      const mensagem =
-        codigo === 'ENOENT' || codigo === 'ENOTDIR'
-          ? `falta a pasta '${PASTA_PERFIS}' na raiz do cofre`
-          : `não foi possível listar a pasta '${PASTA_PERFIS}' (${codigo ?? 'erro desconhecido'})`;
-      return { perfis: [], ausentes: [{ arquivo: PASTA_PERFIS, codigo: 'arquivo_ausente', mensagem }] };
+      const falha = classificarFalha(erro);
+      const problema: Problema = falha.ausente
+        ? {
+            arquivo: PASTA_PERFIS,
+            codigo: 'arquivo_ausente',
+            mensagem: `falta a pasta '${PASTA_PERFIS}' na raiz do cofre`,
+          }
+        : {
+            arquivo: PASTA_PERFIS,
+            codigo: 'arquivo_ilegivel',
+            mensagem: `não foi possível listar a pasta '${PASTA_PERFIS}' (${falha.codigo})`,
+          };
+      return { perfis: [], ausentes: [problema] };
     }
     return { perfis: pastas.map((pasta) => ({ pasta, lido: lerPerfil(join(dirPerfis, pasta), pasta) })), ausentes: [] };
   }

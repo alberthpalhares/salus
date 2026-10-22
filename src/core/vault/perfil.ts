@@ -18,27 +18,41 @@ import type { Problema } from './problemas.js';
 /** Pasta dos perfis, na raiz do cofre. */
 export const PASTA_PERFIS = 'Perfis';
 
-/** Texto do arquivo, ou o motivo de não o ter: `ausente` (não existe) ou o código do erro de leitura. */
-export type TextoDoDisco = { fonte: string } | { ausente: true } | { ausente: false; codigo: string };
+/**
+ * Por que um arquivo ou pasta não foi lido: `ausente` (não existe: `arquivo_ausente`) ou ilegível, com
+ * o código do erro do Node (`arquivo_ilegivel`). O código basta para o `doctor`; a mensagem do erro
+ * do Node cita o caminho e fica de fora.
+ */
+export type FalhaDeLeitura = { ausente: true } | { ausente: false; codigo: string };
+
+/** Texto do arquivo, ou a falha de leitura. */
+export type TextoDoDisco = { fonte: string } | FalhaDeLeitura;
 
 /** Código do erro do Node (`ENOENT`, `EISDIR`, `EACCES`…), se o erro tem um. */
-export function codigoDoErro(erro: unknown): string | undefined {
+function codigoDoErro(erro: unknown): string | undefined {
   if (typeof erro === 'object' && erro !== null && 'code' in erro && typeof erro.code === 'string') return erro.code;
   return undefined;
 }
 
 /**
+ * Só `ENOENT` (não existe) e `ENOTDIR` (um trecho do caminho não é pasta) querem dizer "ausente";
+ * qualquer outro erro (`EISDIR`, `EACCES`, `EBUSY`, arquivo do OneDrive que não baixou…) é ilegível.
+ */
+export function classificarFalha(erro: unknown): FalhaDeLeitura {
+  const codigo = codigoDoErro(erro);
+  if (codigo === 'ENOENT' || codigo === 'ENOTDIR') return { ausente: true };
+  return { ausente: false, codigo: codigo ?? 'erro desconhecido' };
+}
+
+/**
  * Lê o arquivo como UTF-8 (o BOM, se houver, fica: os codecs o tratam). Síncrono nesta fase. Não
- * lança: arquivo que não existe é `ausente`; qualquer outra falha (pasta no lugar, permissão,
- * arquivo do OneDrive que não baixou) volta com o código do erro, para o cofre seguir sem ele.
+ * lança: a falha volta classificada (`classificarFalha`), para o cofre seguir sem o arquivo.
  */
 export function lerTextoDoDisco(caminho: string): TextoDoDisco {
   try {
     return { fonte: readFileSync(caminho, 'utf8') };
   } catch (erro) {
-    const codigo = codigoDoErro(erro);
-    if (codigo === 'ENOENT' || codigo === 'ENOTDIR') return { ausente: true };
-    return { ausente: false, codigo: codigo ?? 'erro desconhecido' };
+    return classificarFalha(erro);
   }
 }
 
@@ -56,8 +70,9 @@ export type PerfilLido = {
 /**
  * Lê os oito arquivos de `dirPerfil`. `nomePasta` é o nome da pasta em `Perfis/`: vira `Membro.pasta`,
  * prefixo das chaves de `estados` e parte do caminho de cada problema (`Perfis/<pasta>/<arquivo>`).
- * Arquivo ausente: `arquivo_ausente` e a seção vazia, sem estado. Arquivo que não dá para ler: o
- * mesmo problema, com o código do erro na mensagem. O `Membro` compartilha as listas com o resultado
+ * Arquivo ausente (`ENOENT`/`ENOTDIR`): `arquivo_ausente`. Arquivo que não dá para ler (qualquer outro
+ * erro, como `EISDIR` ou `EACCES`): `arquivo_ilegivel`, com o código do erro na mensagem. Nos dois casos
+ * a seção vem vazia e o arquivo não tem estado. O `Membro` compartilha as listas com o resultado
  * dos codecs (nada é copiado): quem alterar uma lista grava com o `estado` do arquivo correspondente.
  */
 export function lerPerfil(dirPerfil: string, nomePasta: string): PerfilLido {
@@ -75,10 +90,16 @@ export function lerPerfil(dirPerfil: string, nomePasta: string): PerfilLido {
       estados[`${nomePasta}/${arquivo}`] = lido.estado;
       return lido.dados;
     }
-    const mensagem = texto.ausente
-      ? `falta o arquivo '${arquivo}'${arquivo === 'Ficha.md' ? '; sem ele o perfil não entra no cofre' : ''}`
-      : `não foi possível ler o arquivo '${arquivo}' (${texto.codigo})`;
-    problemas.push({ arquivo: caminho, codigo: 'arquivo_ausente', mensagem });
+    const semFicha = arquivo === 'Ficha.md' ? '; sem ele o perfil não entra no cofre' : '';
+    problemas.push(
+      texto.ausente
+        ? { arquivo: caminho, codigo: 'arquivo_ausente', mensagem: `falta o arquivo '${arquivo}'${semFicha}` }
+        : {
+            arquivo: caminho,
+            codigo: 'arquivo_ilegivel',
+            mensagem: `não foi possível ler o arquivo '${arquivo}' (${texto.codigo})${semFicha}`,
+          },
+    );
     // O modelo vazio do próprio codec (listas vazias, sem frontmatter); os problemas da leitura de "" ficam de fora.
     return codec.ler('', { arquivo: caminho }).dados;
   };

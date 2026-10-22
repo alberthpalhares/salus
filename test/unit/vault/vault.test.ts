@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, describe, expect, it } from 'vitest';
-import { ARQUIVOS_DE_VERDADE, codecs } from '../../../src/core/format/arquivos/index.js';
+import { type ArquivoDeVerdade, ARQUIVOS_DE_VERDADE, codecs } from '../../../src/core/format/arquivos/index.js';
 import { CODIGOS_PROBLEMA as CODIGOS_DO_FORMATO } from '../../../src/core/format/problema.js';
-import { lerPerfil } from '../../../src/core/vault/perfil.js';
+import { classificarFalha, lerPerfil } from '../../../src/core/vault/perfil.js';
 import { CODIGOS_PROBLEMA, type Problema } from '../../../src/core/vault/problemas.js';
 import { Vault } from '../../../src/core/vault/Vault.js';
 
@@ -277,15 +277,43 @@ describe('Vault.abrir — cofre fora do normal', () => {
     expect(vault.estados.size).toBe(24);
   });
 
-  it('arquivo que não dá para ler (aqui, uma pasta no lugar do `Ficha.md`) vira `arquivo_ausente`, sem lançar', () => {
+  it('arquivo que não dá para ler (aqui, uma pasta no lugar do `Ficha.md`) vira `arquivo_ilegivel` com o código do erro, sem lançar', () => {
     const dir = copiaDoExemplo();
     rmSync(join(dir, 'Perfis', 'Ana', 'Ficha.md'));
     mkdirSync(join(dir, 'Perfis', 'Ana', 'Ficha.md'));
     const vault = Vault.abrir(dir);
     const problemas = problemasDe(vault, 'Perfis/Ana/Ficha.md');
-    expect(problemas.map((p) => p.codigo)).toEqual(['arquivo_ausente']);
+    expect(problemas).toEqual([
+      { arquivo: 'Perfis/Ana/Ficha.md', codigo: 'arquivo_ilegivel', mensagem: expect.any(String) },
+    ]);
     expect(problemas[0]?.mensagem).toContain('não foi possível ler');
+    expect(problemas[0]?.mensagem).toMatch(/\(E[A-Z]+\)/); // o código do erro do Node (EISDIR), não o conteúdo
     expect(vault.membros.map((m) => m.id)).toEqual(['bruno', 'mia']);
+  });
+
+  it('`salus.yaml` que não dá para ler (uma pasta no lugar) vira `arquivo_ilegivel`; o manifesto fica indefinido e os perfis carregam', () => {
+    const dir = copiaDoExemplo();
+    rmSync(join(dir, 'salus.yaml'));
+    mkdirSync(join(dir, 'salus.yaml'));
+    const vault = Vault.abrir(dir);
+    expect(vault.manifesto).toBeUndefined();
+    expect(vault.estadoManifesto).toBeUndefined();
+    expect(vault.problemas).toEqual([
+      { arquivo: 'salus.yaml', codigo: 'arquivo_ilegivel', mensagem: expect.any(String) },
+    ]);
+    expect(vault.problemas[0]?.mensagem).toMatch(/\(E[A-Z]+\)/);
+    expect(vault.membros).toHaveLength(3);
+  });
+
+  it('só `ENOENT` e `ENOTDIR` são "ausente"; qualquer outro código de erro é "ilegível", com o código', () => {
+    const erro = (code?: string) => Object.assign(new Error('mensagem com o caminho e o conteúdo'), code ? { code } : {});
+    expect(classificarFalha(erro('ENOENT'))).toEqual({ ausente: true });
+    expect(classificarFalha(erro('ENOTDIR'))).toEqual({ ausente: true });
+    expect(classificarFalha(erro('EACCES'))).toEqual({ ausente: false, codigo: 'EACCES' });
+    expect(classificarFalha(erro('EISDIR'))).toEqual({ ausente: false, codigo: 'EISDIR' });
+    expect(classificarFalha(erro('EBUSY'))).toEqual({ ausente: false, codigo: 'EBUSY' });
+    expect(classificarFalha(erro())).toEqual({ ausente: false, codigo: 'erro desconhecido' });
+    expect(classificarFalha('texto solto')).toEqual({ ausente: false, codigo: 'erro desconhecido' });
   });
 
   it('BOM numa Ficha: problema `bom`, mas o membro continua; CR solto: `cr_solto` e o perfil fica sem membro', () => {
@@ -319,8 +347,18 @@ describe('Vault.abrir — cofre fora do normal', () => {
     nova('Zélia', 'zelia');
     nova('Ágata', 'agata');
     nova('Bruno Dois', 'bruno'); // repete o id do Bruno, que vem antes
+    nova('Ana 10', 'ana10'); // números por valor, como no Explorer: "Ana 2" vem antes de "Ana 10"
+    nova('Ana 2', 'ana2');
     const vault = Vault.abrir(dir);
-    expect(vault.membros.map((m) => m.pasta)).toEqual(['Ágata', 'Ana', 'Bruno', 'Mia (gata)', 'Zélia']);
+    expect(vault.membros.map((m) => m.pasta)).toEqual([
+      'Ágata',
+      'Ana',
+      'Ana 2',
+      'Ana 10',
+      'Bruno',
+      'Mia (gata)',
+      'Zélia',
+    ]);
     expect(vault.membro('bruno')?.pasta).toBe('Bruno');
     expect(vault.problemas.filter((p) => p.codigo === 'id_duplicado').map((p) => p.arquivo)).toEqual([
       'Perfis/Bruno/Ficha.md',
@@ -378,25 +416,110 @@ describe('Vault.abrir — nunca lança por conteúdo de arquivo', () => {
     if (vault !== undefined) confereInvariantes(vault);
   });
 
-  it('propriedade: qualquer mistura de texto, pedaços de Markdown e bytes soltos não derruba `abrir`', () => {
-    const pedacos = [
-      '---', '## Eventos', '## Em uso', '## Peso', '## Hemograma', '| a | b |', '|---|---|', '|', '\\|',
-      '- **2026-01-01** [consulta] x', '\r', BOM, 'id: ana', 'nome: X', 'tipo: gato', 'id: "', '\0', '# t', '  ', '> |', '```',
-    ];
-    const conteudo: fc.Arbitrary<string | Uint8Array> = fc.oneof(
-      fc.string({ maxLength: 200 }),
-      fc.array(fc.constantFrom(...pedacos), { maxLength: 25 }).map((l) => l.join('\n')),
-      fc.array(fc.constantFrom(...pedacos), { maxLength: 25 }).map((l) => l.join('\r\n')),
-      fc.uint8Array({ maxLength: 120 }),
+  /** Tabela completa (`## seção`, cabeçalho, delimitador, linhas) no formato do FORMATO.md. */
+  const tabela = (secao: string, colunas: readonly string[], ...linhas: string[]): string =>
+    [`## ${secao}`, '', `| ${colunas.join(' | ')} |`, `|${'---|'.repeat(colunas.length)}`, ...linhas, ''].join('\n');
+  const EM_USO = ['Medicamento', 'Dose', 'Frequência', 'Via', 'Desde', 'Prescrito por', 'Renova em', 'Término em', 'Obs'];
+  const MARCADORES = ['Data', 'Marcador', 'Valor', 'Unidade', 'Faixa do laudo', 'Flag', 'Obs'];
+  const FRONTMATTER = (...linhas: string[]): string => ['---', ...linhas, '---', ''].join('\n');
+
+  /**
+   * Blocos de Markdown por arquivo, com os cabeçalhos canônicos de verdade e linhas válidas e inválidas
+   * (data que não existe, hora fora de HH:MM, tipo fora do vocabulário, flag sem faixa do laudo...):
+   * é o que faz a propriedade chegar à validação linha a linha, e não só ao reconhecimento do arquivo.
+   */
+  const BLOCOS: Record<ArquivoDeVerdade, readonly string[]> = {
+    'Ficha.md': [
+      FRONTMATTER('id: ana', 'nome: Ana', 'tipo: pessoa', 'nascimento: "1985-03-10"', 'alergias: ["Dipirona"]'),
+      FRONTMATTER('id: ana', 'nome: Ana', 'tipo: pessoa', 'nascimento: "1985-02-30"'), // linha_invalida (opcional)
+      FRONTMATTER('id: "Ana Maria"', 'nome: Ana', 'tipo: pessoa'), // id_invalido
+      FRONTMATTER('id: ana', 'nome: Ana', 'tipo: avestruz'), // tipo fora do vocabulário
+      tabela('Contatos de emergência', ['Nome', 'Relação', 'Telefone'], '| Bruno | Cônjuge | (11) 90000-0001 |', '|  | Mãe | (11) 3000-0000 |'),
+      tabela('Profissionais de referência', ['Nome', 'Especialidade', 'Contato', 'Acompanha'], '| Dra. Helena | Cardiologia | | |'),
+    ],
+    'Medicamentos.md': [
+      tabela('Em uso', EM_USO, '| Losartana | 50 mg | 1x ao dia | oral | 2024-08-20 | Dra. Helena | 2026-11-05 | | |', '| Dipirona | 1 g | se dor | oral | 2026-13-45 | | | | |'),
+      tabela('Prescritos', ['Medicamento', 'Dose', 'Frequência', 'Data da receita', 'Prescrito por', 'Validade da receita', 'Obs'], '| Atorvastatina | 20 mg | à noite | 2026-10-10 | Dra. Helena | 2026-12-01 | |'),
+      tabela('Descontinuados', ['Medicamento', 'Dose', 'Frequência', 'Início', 'Fim', 'Prescrito por', 'Motivo'], '| | | | | | | |', '| Aspirina | 100 mg | 1x | 2025-01-01 | 2025-02-30 | | |'),
+    ],
+    'Vacinas.md': [
+      tabela('Vacinas', ['Vacina', 'Aplicada em', 'Próxima em', 'Obs'], '| Influenza | 2026-04-15 | 2027-04-15 | |', '| dT | 2022-02-30 | | |'),
+      tabela('Antiparasitários', ['Produto', 'Tipo', 'Aplicado em', 'Próximo em', 'Obs'], '| Revolution | antipulgas | 2026-09-30 | 2026-10-30 | |', '| Drontal | xpto | 2026-08-10 | | |'),
+      '## Antiparasitários\n\nainda nada\n',
+      '## Antiparasitários\n\n| Produto | Tipo | Aplicado em | Próximo em | Obs |\n| Revolution | antipulgas | 2026-09-30 | | |\n',
+    ],
+    'Exames.md': [
+      tabela('Peso', ['Data', 'Peso (kg)', 'Obs'], '| 2026-03-10 | 68,4 | |', '| 2026-03-10 | abc | |'),
+      tabela('Pressão arterial', ['Data', 'Sistólica', 'Diastólica', 'FC', 'Obs'], '| 2026-09-15 | 128 | 82 | 72 | |', '| 2026-09-15 | alta | 82 | 72 | |'),
+      tabela('Glicemia', ['Data', 'Hora', 'Valor (mg/dL)', 'Condição', 'Obs'], '| 2026-09-15 | 07:30 | 92 | jejum | |', '| 2026-09-15 | 25:99 | 92 | jejum | |'),
+      tabela('Hemograma', MARCADORES, '| 2026-03-10 | Hemoglobina | 13,2 | g/dL | 12,0 a 15,5 | normal | |'),
+      tabela('Hemograma', MARCADORES, '| 2026-03-10 | Hemoglobina | 13,2 | g/dL | | alto | |'), // faixa_obrigatoria
+      tabela('Anotações', ['Data', 'Nota'], '| 2026-10-01 | algo |'),
+    ],
+    'Historico.md': [
+      '## Eventos\n\n- **2026-01-01** [consulta] Consulta de rotina.\n- **2026-02-30** [consulta] Data que não existe.\n',
+      '## Eventos\n\n- **2026-01-01** [xpto] Tipo fora do vocabulário.\n- Linha fora da gramática\n\n- **2026-03-01** Sem tipo.\n',
+      '## Eventos\n\nainda nenhum\n',
+    ],
+    'Pendencias.md': [
+      tabela('Exames solicitados', ['Exame', 'Solicitado em', 'Solicitado por', 'Realizar até', 'Obs'], '| Perfil lipídico | 2026-10-10 | Dra. Helena | 2027-02-15 | |', '| Glicemia | 2026-10-10 | | 2027-02-31 | |'),
+      tabela('Consultas e check-ups', ['Tipo', 'Data', 'Profissional', 'Obs'], '| Retorno | 2027-03-18 | Dra. Helena | |', '| Retorno | 18/03/2027 | | |'),
+    ],
+    'Doses.md': [
+      tabela('Doses', ['Data', 'Hora', 'Medicamento', 'Dose', 'Obs'], '| 2026-10-20 | 08:00 | Losartana | 50 mg | |', '| 2026-10-20 | 8h | Losartana | 50 mg | |'),
+    ],
+    'Genetica.md': [
+      FRONTMATTER('condicoes_hereditarias: ["Hipertensão"]'),
+      FRONTMATTER('condicoes_hereditarias: sim'),
+      FRONTMATTER('condicoes_hereditarias:'),
+    ],
+  };
+
+  // Ruído que vale para qualquer arquivo: delimitadores soltos, CR, BOM, NUL, acentos, markdown torto.
+  const RUIDO = [
+    '---', '|', '\\|', '|---|---|', '| ação | é | ü |', '\r', BOM, '\0', '# título', '  ', '> | citado |', '```', '- item',
+    'Ünïcödé — “aspas” ç ã õ é', 'id: "', '*alias',
+  ];
+  const ACENTUADOS = ['ç', 'ã', 'õ', 'é', 'Â', 'ü', 'ñ', '—', '“', String.fromCodePoint(0x1f431), String.fromCodePoint(0x301)];
+
+  const conteudoDe = (arquivo: ArquivoDeVerdade): fc.Arbitrary<string | Uint8Array> => {
+    const blocos = fc.array(fc.constantFrom(...BLOCOS[arquivo], ...RUIDO), { maxLength: 12 });
+    return fc.oneof(
+      { weight: 5, arbitrary: blocos.map((l) => l.join('\n')) },
+      { weight: 2, arbitrary: blocos.map((l) => l.join('\r\n')) },
+      { weight: 1, arbitrary: fc.string({ unit: 'grapheme', maxLength: 120 }) },
+      { weight: 1, arbitrary: fc.string({ unit: fc.constantFrom(...ACENTUADOS, '|', ' ', '\n', '-', '#', '*'), maxLength: 120 }) },
+      { weight: 1, arbitrary: fc.uint8Array({ maxLength: 120 }) },
     );
+  };
+  const MANIFESTO = [
+    'schema_versao: 2', 'versao_salus: "0.5.0"', 'familia: Exemplo', 'criado_em: "2026-01-15"', 'ultima_revisao: null',
+    'schema_versao: 1', 'criado_em: "2026-02-30"', '*x', '&a [*a]', '- lista', 'familia: "',
+  ];
+  const conteudoDoManifesto: fc.Arbitrary<string | Uint8Array> = fc.oneof(
+    { weight: 3, arbitrary: fc.array(fc.constantFrom(...MANIFESTO), { maxLength: 8 }).map((l) => l.join('\n')) },
+    { weight: 1, arbitrary: fc.string({ unit: 'grapheme', maxLength: 60 }) },
+  );
+
+  it('propriedade: texto, blocos de Markdown válidos e inválidos e bytes soltos nos nove arquivos não derrubam `abrir`', () => {
     const dir = pastaTemporaria();
+    const codigosVistos = new Set<string>();
+    let comMembro = 0;
     fc.assert(
-      fc.property(fc.array(conteudo, { minLength: 9, maxLength: 9 }), (conteudos) => {
+      fc.property(fc.tuple(...ARQUIVOS_DE_VERDADE.map(conteudoDe), conteudoDoManifesto), (conteudos) => {
         cofreCom(conteudos, dir);
-        confereInvariantes(Vault.abrir(dir));
+        const vault = Vault.abrir(dir);
+        confereInvariantes(vault);
+        for (const p of vault.problemas) codigosVistos.add(p.codigo);
+        if (vault.membros.length > 0) comMembro++;
       }),
-      { numRuns: 60 },
+      { numRuns: 120 },
     );
+    // A propriedade só vale se de fato chegou à validação das linhas e montou membros.
+    expect(comMembro).toBeGreaterThan(0);
+    for (const codigo of ['linha_invalida', 'faixa_obrigatoria', 'cabecalho_invalido', 'secao_ausente', 'id_invalido']) {
+      expect(codigosVistos, codigo).toContain(codigo);
+    }
   });
 });
 
@@ -417,6 +540,19 @@ describe('lerPerfil', () => {
     expect(problemas.map((p) => [p.arquivo, p.codigo])).toEqual(
       ARQUIVOS_DE_VERDADE.map((a) => [`Perfis/Nada/${a}`, 'arquivo_ausente']),
     );
+  });
+
+  it('arquivo ilegível (pasta no lugar do `Genetica.md`): `arquivo_ilegivel`, seção vazia, membro continua, sem estado', () => {
+    const dir = join(pastaTemporaria(), 'Ana');
+    cpSync(join(EXEMPLO, 'Perfis', 'Ana'), dir, { recursive: true });
+    rmSync(join(dir, 'Genetica.md'));
+    mkdirSync(join(dir, 'Genetica.md'));
+    const { membro, problemas, estados } = lerPerfil(dir, 'Ana');
+    expect(problemas.map((p) => [p.arquivo, p.codigo])).toEqual([['Perfis/Ana/Genetica.md', 'arquivo_ilegivel']]);
+    expect(membro?.genetica).toEqual({ condicoes_hereditarias: [] });
+    expect(membro?.historico).toHaveLength(5);
+    expect(estados['Ana/Genetica.md']).toBeUndefined();
+    expect(Object.keys(estados)).toHaveLength(7);
   });
 
   it('arquivo ausente que não é a Ficha: seção vazia, membro continua', () => {
@@ -442,6 +578,7 @@ describe('problemas.ts', () => {
     for (const codigo of [
       'manifesto_invalido',
       'arquivo_ausente',
+      'arquivo_ilegivel',
       'yaml_invalido',
       'cabecalho_invalido',
       'secao_ausente',
